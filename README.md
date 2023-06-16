@@ -1,5 +1,5 @@
 # JDecompiler-java
-This is a Java decompiler that I've been doing for over a year (intermittently).
+This is a Java decompiler that I've been doing since the beginning of 2022 (intermittently).
 Writing it in C++ turned out to be a mistake, so I moved it to Java.
 Maybe I'll finish it someday, but I need to add a more functionality.
 
@@ -11,6 +11,7 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - finally
 - switch
 - break/continue
+- Reading Java assembly code
 
 ## Implemented:
 - A system of primitive types (the type of a variable is determined by its use)
@@ -41,3 +42,4 @@ Maybe I'll finish it someday, but I need to add a more functionality.
 - x590.util - https://github.com/petr590/x590.util
 - fastutil
 - junit (for testing)
+
