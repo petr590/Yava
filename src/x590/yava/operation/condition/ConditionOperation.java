@@ -1,0 +1,42 @@
+package x590.yava.operation.condition;
+
+import x590.yava.operation.AbstractOperation;
+import x590.yava.operation.BooleanOperation;
+
+public abstract class ConditionOperation extends AbstractOperation implements BooleanOperation {
+	
+	protected boolean inverted;
+	protected ConditionOperation() {}
+	
+	public ConditionOperation invert() {
+		inverted = !inverted;
+		onInvert();
+		return this;
+	}
+	
+	protected void onInvert() {}
+	
+	public boolean isAlwaysTrue() {
+		return false;
+	}
+	
+	public boolean isAlwaysFalse() {
+		return false;
+	}
+	
+	public boolean equals(ConditionOperation other) {
+		return inverted == other.inverted;
+	}
+	
+	public ConditionOperation and(ConditionOperation condition) {
+		return  this.isAlwaysTrue() ? condition :
+				condition.isAlwaysTrue() ? this :
+				new AndOperation(this, condition);
+	}
+	
+	public ConditionOperation or(ConditionOperation condition) {
+		return  this.isAlwaysFalse() ? condition :
+				condition.isAlwaysFalse() ? this :
+				new OrOperation(this, condition);
+	}
+}

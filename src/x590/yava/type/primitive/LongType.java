@@ -1,0 +1,29 @@
+package x590.yava.type.primitive;
+
+import x590.yava.type.Type;
+import x590.yava.type.TypeSize;
+import x590.yava.type.reference.ClassType;
+
+public final class LongType extends PrimitiveType {
+	
+	public static final LongType INSTANCE = new LongType();
+	
+	private LongType() {
+		super("J", "long", "l");
+	}
+	
+	@Override
+	public ClassType getWrapperType() {
+		return ClassType.LONG;
+	}
+	
+	@Override
+	public TypeSize getSize() {
+		return TypeSize.LONG;
+	}
+	
+	@Override
+	public boolean canImplicitCastToNarrowest(Type other) {
+		return this == other || other == PrimitiveType.FLOAT || other == PrimitiveType.DOUBLE;
+	}
+}
