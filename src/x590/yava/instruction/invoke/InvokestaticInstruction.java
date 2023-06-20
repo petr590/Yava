@@ -5,11 +5,11 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.invoke.InvokestaticOperation;
 
 public final class InvokestaticInstruction extends InvokeInstruction {
-	
+
 	public InvokestaticInstruction(int index) {
 		super(index);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return InvokestaticOperation.operationOf(context, index);

@@ -16,11 +16,11 @@ public class ParseException extends RuntimeException {
 
 	public static final Actual END_OF_FILE = new Actual("end of file", "");
 
-	
+
 	public ParseException() {
 		super();
 	}
-	
+
 	public ParseException(String message) {
 		super(message);
 	}
@@ -44,16 +44,16 @@ public class ParseException extends RuntimeException {
 	public static ParseException expectedButGot(char expected, char actual, String quote) {
 		return new ParseException("expected " + quote + expected + quote + ", got " + quote + actual + quote);
 	}
-	
+
 	public ParseException(Throwable cause) {
 		super(cause);
 	}
-	
+
 	public ParseException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
 	public ParseException initCause(Throwable cause) {
-		return (ParseException)super.initCause(cause);
+		return (ParseException) super.initCause(cause);
 	}
 }

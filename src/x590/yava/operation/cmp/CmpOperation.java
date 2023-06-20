@@ -9,19 +9,19 @@ import x590.yava.operation.Operation;
 import x590.yava.type.Type;
 
 public abstract class CmpOperation extends AbstractOperation implements BooleanOperation {
-	
+
 	public final Operation operand1, operand2;
-	
+
 	public CmpOperation(Type requiredType, DecompilationContext context) {
 		this.operand2 = context.popAsNarrowest(requiredType);
 		this.operand1 = context.popAsNarrowest(requiredType);
 	}
-	
+
 	@Override
 	public final void writeTo(StringifyOutputStream out, StringifyContext context) {
 		throw new UnsupportedOperationException("Method writeTo(StringifyOutputStream, StringifyContext) must not be called for CmpOperation");
 	}
-	
+
 	@Override
 	public boolean equals(Operation other) {
 		return this == other || other instanceof CmpOperation operation &&

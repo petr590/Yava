@@ -1,7 +1,7 @@
 package x590.yava.example;
 
-import x590.yava.FileSource;
 import x590.util.Logger;
+import x590.yava.FileSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class DecompilationExampleTesting extends ExampleTesting {
 	private static Example getExampleAnnotation(Class<?> clazz) {
 		Example exampleAnnotation = clazz.getDeclaredAnnotation(Example.class);
 
-		if(exampleAnnotation == null) {
+		if (exampleAnnotation == null) {
 			throw new IllegalArgumentException("Class " + clazz.getCanonicalName() + " is not annotated with @Example");
 		}
 
@@ -41,12 +41,12 @@ public class DecompilationExampleTesting extends ExampleTesting {
 
 		int skipped = 0;
 
-		for(Class<?> clazz : classes) {
+		for (Class<?> clazz : classes) {
 			Example exampleAnnotation = clazz.getDeclaredAnnotation(Example.class);
 
-			if(exampleAnnotation != null) {
+			if (exampleAnnotation != null) {
 
-				if(exampleAnnotation.source() == FileSource.JDK) {
+				if (exampleAnnotation.source() == FileSource.JDK) {
 					skipped += 1;
 					Logger.debug("Class " + clazz.getName() + " provides JDK example");
 					continue;
@@ -58,11 +58,11 @@ public class DecompilationExampleTesting extends ExampleTesting {
 				Class<?>[] classesToDecompile = exampleAnnotation.classes();
 
 
-				if(classesToDecompile.length == 0) {
+				if (classesToDecompile.length == 0) {
 					args.add(getClassPath(dir, clazz));
 
 				} else {
-					for(Class<?> decompilingClass : classesToDecompile) {
+					for (Class<?> decompilingClass : classesToDecompile) {
 						args.add(getClassPath(dir, decompilingClass));
 					}
 				}
@@ -83,7 +83,11 @@ public class DecompilationExampleTesting extends ExampleTesting {
 
 
 	public void runForJdk(Class<?> clazz) {
-		runForJdk(new Class[] { clazz }, EMPTY_ARGS);
+		runForJdk(new Class[]{clazz}, EMPTY_ARGS);
+	}
+
+	public void runForJdk(Class<?> clazz, String... otherArgs) {
+		runForJdk(new Class[]{clazz}, otherArgs);
 	}
 
 	public void runForJdk(Class<?>... classes) {

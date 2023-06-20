@@ -5,16 +5,16 @@ import x590.yava.operation.Priority;
 import x590.yava.type.Type;
 
 public final class RemOperatorOperation extends BinaryOperatorOperation {
-	
+
 	public RemOperatorOperation(Type type, DecompilationContext context) {
 		super(type, context);
 	}
-	
+
 	@Override
 	public String getOperator() {
 		return "%";
 	}
-	
+
 	@Override
 	public int getPriority() {
 		return Priority.REMAINDER;

@@ -1,11 +1,5 @@
-Added decompilation stats, which are output after decompilation of all classes, to make it easier to debug the code.
+Fixed a bug with infinities and NaN type float with the flag `-c=never'.
 
-The example testing system has been redesigned.
+Fixed a bug with hex representation of negative numeric constants.
 
-Assembly has been added (so far only assembly code parsing, the function is under development).
-
-Fixed a bug with shift operators for long.
-
-Fixed a bug with UncertainReferenceType and arrays of primitives.
-
-The project has been renamed to Yava.
+The inference of variable names is supplemented with methods such as xToY, length, size, count.

@@ -5,11 +5,11 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.load.FLoadOperation;
 
 public class FLoadInstruction extends LoadInstruction {
-	
+
 	public FLoadInstruction(int index) {
 		super(index);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new FLoadOperation(context, index);

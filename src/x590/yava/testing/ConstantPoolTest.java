@@ -1,13 +1,12 @@
 package x590.yava.testing;
 
-import static org.junit.Assert.assertSame;
-
 import org.junit.Test;
-
 import x590.yava.constpool.ConstantPool;
 
+import static org.junit.Assert.assertSame;
+
 public class ConstantPoolTest {
-	
+
 	@Test
 	public void test() {
 		assertSame(

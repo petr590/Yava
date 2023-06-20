@@ -6,11 +6,11 @@ import x590.yava.example.ExampleTesting;
 @Example
 @SuppressWarnings("unused")
 public class PrimitiveClassesExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(PrimitiveClassesExample.class);
 	}
-	
+
 	public static void foo() {
 		System.out.println(byte.class);
 		System.out.println(short.class);

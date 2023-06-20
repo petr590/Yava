@@ -1,5 +1,7 @@
 package x590.yava.type.primitive;
 
+import x590.util.annotation.Nullable;
+import x590.yava.clazz.ClassInfo;
 import x590.yava.io.ExtendedOutputStream;
 import x590.yava.type.BasicType;
 import x590.yava.type.GeneralCastingKind;
@@ -7,64 +9,61 @@ import x590.yava.type.Type;
 import x590.yava.type.UncertainIntegralType;
 import x590.yava.type.reference.ClassType;
 import x590.yava.type.reference.WrapperClassType;
-import x590.util.annotation.Nullable;
 
 import static x590.yava.type.UncertainIntegralType.INCLUDE_BOOLEAN;
 import static x590.yava.type.UncertainIntegralType.INCLUDE_CHAR;
 
-import x590.yava.clazz.ClassInfo;
-
 public abstract sealed class PrimitiveType extends BasicType
 		permits IntegralType, CharType, BooleanType, LongType, FloatType, DoubleType, VoidType {
-	
+
 	public static final PrimitiveType
-			BYTE    = ByteType.INSTANCE,
-			SHORT   = ShortType.INSTANCE,
-			CHAR    = CharType.INSTANCE,
-			INT     = IntType.INSTANCE,
-			LONG    = LongType.INSTANCE,
-			FLOAT   = FloatType.INSTANCE,
-			DOUBLE  = DoubleType.INSTANCE,
+			BYTE = ByteType.INSTANCE,
+			SHORT = ShortType.INSTANCE,
+			CHAR = CharType.INSTANCE,
+			INT = IntType.INSTANCE,
+			LONG = LongType.INSTANCE,
+			FLOAT = FloatType.INSTANCE,
+			DOUBLE = DoubleType.INSTANCE,
 			BOOLEAN = BooleanType.INSTANCE,
-			VOID    = VoidType.INSTANCE;
-	
-	
+			VOID = VoidType.INSTANCE;
+
+
 	public static final int
-			BYTE_CAPACITY  = 1,
+			BYTE_CAPACITY = 1,
 			SHORT_CAPACITY = 2,
-			CHAR_CAPACITY  = 2,
-			INT_CAPACITY   = 4;
-	
-	
+			CHAR_CAPACITY = 2,
+			INT_CAPACITY = 4;
+
+
 	public static final Type
-			BYTE_SHORT_INT_CHAR_BOOLEAN = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY, INCLUDE_CHAR | INCLUDE_BOOLEAN),
-			BYTE_SHORT_INT_CHAR         = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY, INCLUDE_CHAR),
-			BYTE_SHORT_INT              = UncertainIntegralType.getInstance(BYTE_CAPACITY,  INT_CAPACITY),
-			SHORT_INT_CHAR              = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY, INCLUDE_CHAR),
-			INT_CHAR                    = UncertainIntegralType.getInstance(INT_CAPACITY,   INT_CAPACITY, INCLUDE_CHAR),
-			SHORT_INT                   = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY),
-			BYTE_BOOLEAN                = UncertainIntegralType.getInstance(BYTE_CAPACITY,  BYTE_CAPACITY, INCLUDE_BOOLEAN),
-			INT_BOOLEAN                 = UncertainIntegralType.getInstance(INT_CAPACITY,   INT_CAPACITY,  INCLUDE_BOOLEAN);
-	
-	
+			BYTE_SHORT_INT_CHAR_BOOLEAN = UncertainIntegralType.getInstance(BYTE_CAPACITY, INT_CAPACITY, INCLUDE_CHAR | INCLUDE_BOOLEAN),
+			BYTE_SHORT_INT_CHAR = UncertainIntegralType.getInstance(BYTE_CAPACITY, INT_CAPACITY, INCLUDE_CHAR),
+			BYTE_SHORT_INT = UncertainIntegralType.getInstance(BYTE_CAPACITY, INT_CAPACITY),
+			SHORT_INT_CHAR = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY, INCLUDE_CHAR),
+			INT_CHAR = UncertainIntegralType.getInstance(INT_CAPACITY, INT_CAPACITY, INCLUDE_CHAR),
+			SHORT_INT = UncertainIntegralType.getInstance(SHORT_CAPACITY, INT_CAPACITY),
+			BYTE_BOOLEAN = UncertainIntegralType.getInstance(BYTE_CAPACITY, BYTE_CAPACITY, INCLUDE_BOOLEAN),
+			INT_BOOLEAN = UncertainIntegralType.getInstance(INT_CAPACITY, INT_CAPACITY, INCLUDE_BOOLEAN);
+
+
 	private final String encodedName, name, nameForVariable;
-	
+
 	public PrimitiveType(String encodedName, String name, String nameForVariable) {
 		this.encodedName = encodedName;
 		this.name = name;
 		this.nameForVariable = nameForVariable;
 	}
-	
+
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
 		out.write(name);
 	}
-	
+
 	@Override
 	public String toString() {
 		return name;
 	}
-	
+
 	@Override
 	public String getEncodedName() {
 		return encodedName;
@@ -74,77 +73,77 @@ public abstract sealed class PrimitiveType extends BasicType
 	public String getBinaryName() {
 		return encodedName;
 	}
-	
+
 	@Override
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public String getNameForVariable() {
 		return nameForVariable;
 	}
-	
+
 	@Override
 	protected boolean canCastToNarrowestImpl(Type other) {
 		return this == other;
 	}
-	
+
 	@Override
 	protected boolean canCastToWidestImpl(Type other) {
 		return this == other;
 	}
-	
+
 	@Override
 	protected final Type castToNarrowestImpl(Type other) {
 		return this.canCastToNarrowestImpl(other) ? this : null;
 	}
-	
+
 	@Override
 	protected final Type castToWidestImpl(Type other) {
 		return this.canCastToWidestImpl(other) ? this : null;
 	}
-	
+
 	@Override
 	public @Nullable Type castToGeneralNoexcept(Type other, GeneralCastingKind kind) {
-		if(other instanceof WrapperClassType wrapper) {
+		if (other instanceof WrapperClassType wrapper) {
 			return this.castToGeneralNoexcept(wrapper.getPrimitiveType(), kind);
 		}
-		
-		if(kind == GeneralCastingKind.BINARY_OPERATOR) {
-			if((this == CHAR || this.isIntegral()) && (other == CHAR || other.isIntegral())) {
+
+		if (kind == GeneralCastingKind.BINARY_OPERATOR) {
+			if ((this == CHAR || this.isIntegral()) && (other == CHAR || other.isIntegral())) {
 				return INT;
 			}
-			
+
 		} else {
-			if(this == other) {
+			if (this == other) {
 				return this;
 			}
-			
-			if(this == CHAR && other.isIntegral() || other == CHAR && this.isIntegral()) {
+
+			if (this == CHAR && other.isIntegral() || other == CHAR && this.isIntegral()) {
 				return INT;
 			}
-			
-			if(this instanceof IntegralType integralType1 && other instanceof IntegralType integralType2) {
+
+			if (this instanceof IntegralType integralType1 && other instanceof IntegralType integralType2) {
 				return integralType1.getCapacity() > integralType2.getCapacity() ? this : other;
 			}
 		}
-		
+
 		return super.castToGeneralNoexcept(other, kind);
 	}
-	
+
 	@Override
 	public @Nullable Type implicitCastToGeneralNoexcept(Type other, GeneralCastingKind kind) {
-		if(other instanceof WrapperClassType wrapper) {
+		if (other instanceof WrapperClassType wrapper) {
 			return this.implicitCastToGeneralNoexcept(wrapper.getPrimitiveType(), kind);
 		}
-		
+
 		return super.implicitCastToGeneralNoexcept(other, kind);
 	}
-	
+
 	public Type toUncertainIntegralType() {
 		return this;
 	}
-	
+
 	public abstract ClassType getWrapperType();
 }

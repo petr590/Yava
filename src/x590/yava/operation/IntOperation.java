@@ -4,7 +4,7 @@ import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 
 public interface IntOperation extends Operation {
-	
+
 	@Override
 	default Type getReturnType() {
 		return PrimitiveType.INT;

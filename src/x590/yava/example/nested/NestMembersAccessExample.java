@@ -6,20 +6,20 @@ import x590.yava.example.ExampleTesting;
 @Example
 @SuppressWarnings("unused")
 public class NestMembersAccessExample {
-	
+
 	private int nonstaticField;
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(ExampleTesting.VANILLA_DIR, NestMembersAccessExample.class
 //				, "-s"
 		);
 	}
-	
-	
+
+
 	public static int getNonstaticInnerField(StaticClass inner) {
 		return inner.nonstaticField;
 	}
-	
+
 	public static void setNonstaticInnerField(StaticClass inner, int x) {
 		inner.nonstaticField = x;
 	}
@@ -41,22 +41,22 @@ public class NestMembersAccessExample {
 
 		private static int staticField;
 		private int nonstaticField;
-		
+
 		public static int getNonstaticOuterField(NestMembersAccessExample outer) {
 			return outer.nonstaticField;
 		}
-		
+
 		public static void setNonstaticOuterField(NestMembersAccessExample outer, int x) {
 			outer.nonstaticField = x;
 		}
 	}
-	
+
 	public class NonstaticClass {
-		
+
 		public int getNonstaticOuterField() {
 			return nonstaticField;
 		}
-		
+
 		public int setNonstaticOuterField(int x) {
 			return NestMembersAccessExample.this.nonstaticField = x;
 		}

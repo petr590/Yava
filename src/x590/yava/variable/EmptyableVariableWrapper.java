@@ -8,18 +8,20 @@ package x590.yava.variable;
  * Используются точно также, как и обычные переменные.
  */
 public interface EmptyableVariableWrapper extends EmptyableVariable {
-	
-	
+
+
 	@Override
-	public VariableWrapper nonEmpty();
-	
-	/** Присваивает новую переменную, возвращает обёртку.
-	 * Для пустой обёртки возвращает новую, для непустой - {@code this} */
-	public VariableWrapper assign(Variable other);
-	
-	
+	VariableWrapper nonEmpty();
+
+	/**
+	 * Присваивает новую переменную, возвращает обёртку.
+	 * Для пустой обёртки возвращает новую, для непустой - {@code this}
+	 */
+	VariableWrapper assign(Variable other);
+
+
 	@Override
-	public default EmptyableVariableWrapper wrapped() {
+	default EmptyableVariableWrapper wrapped() {
 		return this;
 	}
 }

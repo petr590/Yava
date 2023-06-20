@@ -6,13 +6,14 @@ import x590.yava.example.ExampleTesting;
 @Example
 @SuppressWarnings("unused")
 public class TryCatchFinallyExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(TryCatchFinallyExample.class);
 	}
-	
-	public void foo() {}
-	
+
+	public void foo() {
+	}
+
 	public void method1() {
 		try {
 			int i = 0;

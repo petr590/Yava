@@ -1,16 +1,16 @@
 package x590.yava.io;
 
 import it.unimi.dsi.fastutil.chars.Char2ObjectFunction;
+import x590.util.*;
+import x590.util.annotation.Nullable;
+import x590.util.function.ObjIntBooleanFunction;
+import x590.util.io.UncheckedInputStream;
 import x590.yava.Keywords;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ClassType;
-import x590.util.*;
-import x590.util.annotation.Nullable;
-import x590.util.function.ObjIntBooleanFunction;
-import x590.util.io.UncheckedInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,12 +29,12 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 	private final InputStream in;
 
-	/** Буферизация. Необходима, так как мы не можем посмотреть следующие несколько символов, не прочитав их. */
+	/**
+	 * Буферизация. Необходима, так как мы не можем посмотреть следующие несколько символов, не прочитав их.
+	 */
 	private @Nullable String nextBufferedString;
 
 	private int nextBufferedCharPos;
-
-	private int lastBufferedChar = EOF_CHAR;
 
 	private void buffer(String str) {
 		String nextBufferedString = this.nextBufferedString;
@@ -47,13 +47,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 	private void buffer(int ch) {
-		int lastBufferedChar = this.lastBufferedChar;
-
-		if(lastBufferedChar != EOF_CHAR) {
-			buffer(String.valueOf(lastBufferedChar));
-		}
-
-		this.lastBufferedChar = ch;
+		buffer(String.valueOf((char) ch));
 	}
 
 	public AssemblingInputStream(InputStream in) {
@@ -65,21 +59,17 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 		public static final CharPredicate
 				STRING = new CharPredicate(Character::isJavaIdentifierPart, Character::isJavaIdentifierPart),
-				NAME   = new CharPredicate(Character::isJavaIdentifierStart, Character::isJavaIdentifierPart),
-				TYPE   = new CharPredicate(CharPredicate::isJavaTypeStart, CharPredicate::isJavaTypePart),
+				NAME = new CharPredicate(Character::isJavaIdentifierStart, Character::isJavaIdentifierPart),
+				TYPE = new CharPredicate(CharPredicate::isJavaTypeStart, CharPredicate::isJavaTypePart),
 				INTEGRAL_NUMBER = new CharPredicate(CharPredicate::isIntegralNumberStart, CharPredicate::isIntegralNumberPart),
-				ANY_NUMBER      = new CharPredicate(CharPredicate::isAnyNumberStart, CharPredicate::isAnyNumberPart);
-
-		private CharPredicate(IntPredicate startPredicate, IntPredicate partPredicate) {
-			this.startPredicate = startPredicate;
-			this.partPredicate = partPredicate;
-		}
+				ANY_NUMBER = new CharPredicate(CharPredicate::isAnyNumberStart, CharPredicate::isAnyNumberPart);
 
 		public static CharPredicate withLength(int maxCount) {
 			var predicate = new IntPredicate() {
 				private int count;
 
-				@Override public boolean test(int value) {
+				@Override
+				public boolean test(int value) {
 					return ++count <= maxCount;
 				}
 			};
@@ -133,8 +123,12 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		public static NonMatchingCharHandler throwingParseException(String expected) {
 			return THROWING_HANDLERS.computeIfAbsent(expected,
 					(String exp) -> new NonMatchingCharHandler(
-							actual -> { throw ParseException.expectedButGot(exp, String.valueOf(actual)); },
-							() -> { throw ParseException.expectedButGot(exp, ParseException.END_OF_FILE); }
+							actual -> {
+								throw ParseException.expectedButGot(exp, String.valueOf(actual));
+							},
+							() -> {
+								throw ParseException.expectedButGot(exp, ParseException.END_OF_FILE);
+							}
 					)
 			);
 		}
@@ -153,42 +147,66 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	public int read() throws UncheckedIOException {
 		var nextBufferedString = this.nextBufferedString;
 
-		if(nextBufferedString != null) {
-			if(nextBufferedCharPos < nextBufferedString.length()) {
+		if (nextBufferedString != null) {
+			if (nextBufferedCharPos < nextBufferedString.length()) {
 				return nextBufferedString.charAt(nextBufferedCharPos++);
 			} else {
 				this.nextBufferedString = null;
 			}
 		}
 
-		int ch = lastBufferedChar;
-		if(ch != EOF_CHAR) {
-			lastBufferedChar = EOF_CHAR;
-			return ch;
-		}
-
 		try {
 			return in.read();
-		} catch(IOException ex) {
+		} catch (IOException ex) {
 			throw newUncheckedException(ex);
 		}
 	}
 
 
-
-	/** @return Следующий непробельный символ или {@link #EOF_CHAR}, если данные закончились */
+	/**
+	 * @return Следующий непробельный символ или {@link #EOF_CHAR}, если данные закончились
+	 */
 	public int next() {
 		int ch;
 
 		do {
 			ch = read();
-		} while(Character.isWhitespace(ch));
+		} while (Character.isWhitespace(ch));
+
+
+		if (ch == '/') {
+			int nextCh = read();
+
+			if (nextCh == '/') { // однострочный комментарий
+				do {
+					ch = read();
+				} while (ch != '\n');
+
+				return next();
+
+			} else if (nextCh == '*') { // многострочный комментарий
+
+				nextCh = read();
+
+				do {
+					ch = nextCh;
+					nextCh = read();
+				} while (ch != '*' || nextCh != '/');
+
+				return next();
+
+			} else {
+				buffer(nextCh);
+			}
+		}
 
 		return ch;
 	}
 
 
-	/** @return Следующую строку, которая содержит либо название, либо другой непробельный символ. */
+	/**
+	 * @return Следующую строку, которая содержит либо название, либо другой непробельный символ.
+	 */
 	public String nextString() {
 		return nextString(CharPredicate.STRING, NonMatchingCharHandler.DEFAULT_HANDLER);
 	}
@@ -196,24 +214,26 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	public String nextName() {
 		String str = tryReadStringLiteral();
 
-		if(str != null) {
+		if (str != null) {
 			return str;
 		}
 
 		return nextString(CharPredicate.NAME, NonMatchingCharHandler.throwingParseException("name"));
 	}
 
-	/** @return Следующий тип */
+	/**
+	 * @return Следующий тип
+	 */
 	public Type nextType() {
 		String name = nextString(CharPredicate.TYPE, NonMatchingCharHandler.throwingParseException("type name"));
 
 		int nestingLevel = 0;
 
-		while(advanceIfHasNext("[") && advanceIfHasNext("]")) {
+		while (advanceIfHasNext('[') && advanceIfHasNext(']')) {
 			nestingLevel++;
 		}
 
-		Type type = switch(name) {
+		Type type = switch (name) {
 			case BYTE -> PrimitiveType.BYTE;
 			case SHORT -> PrimitiveType.SHORT;
 			case CHAR -> PrimitiveType.CHAR;
@@ -224,7 +244,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			case BOOLEAN -> PrimitiveType.BOOLEAN;
 			case VOID -> PrimitiveType.VOID;
 			default -> {
-				if(Keywords.isKeyword(name)) {
+				if (Keywords.isKeyword(name)) {
 					throw ParseException.expectedButGot("type", name);
 				}
 
@@ -235,14 +255,16 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return nestingLevel == 0 ? type : type.arrayTypeAsType(nestingLevel);
 	}
 
-	/** @return Следующий тип класса */
+	/**
+	 * @return Следующий тип класса
+	 */
 	public ClassType nextClassType() {
 		return castOrThrowParseException(nextType(), ClassType.class);
 	}
 
 
 	public Stream<Type> nextMethodArguments() {
-		if(requireNext('(').advanceIfHasNext(")")) {
+		if (requireNext('(').advanceIfHasNext(')')) {
 			return Stream.empty();
 		}
 
@@ -253,8 +275,8 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 	public Stream<Type> nextTypesStream() {
 		return Stream.concat(
-				Stream.of(nextClassType()),
-				Stream.generate(() -> advanceIfHasNext(",") ? nextType() : null).takeWhile(Objects::nonNull)
+				Stream.of(nextType()),
+				Stream.generate(() -> advanceIfHasNext(',') ? nextType() : null).takeWhile(Objects::nonNull)
 		);
 	}
 
@@ -265,18 +287,20 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 	@SuppressWarnings("unchecked")
 	private static <T extends Type> T castOrThrowParseException(Type type, Class<T> clazz) {
-		if(clazz.isInstance(type))
-			return (T)type;
+		if (clazz.isInstance(type))
+			return (T) type;
 
 		throw new ParseException("unexpected type " + type);
 	}
 
 
-	/** @return Следующее число как {@code int} */
+	/**
+	 * @return Следующее число как {@code int}
+	 */
 	public int nextInt() {
 		String str = nextIntegerNumberString("int");
 
-		if(parseNumber(str) instanceof Integer integer) {
+		if (parseNumber(str) instanceof Integer integer) {
 			return integer;
 		}
 
@@ -284,14 +308,16 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 
-	/** @return Следующее беззнаковое число как {@code int} */
+	/**
+	 * @return Следующее беззнаковое число как {@code int}
+	 */
 	public int nextUnsignedInt() {
 		String str = nextIntegerNumberString("unsigned int");
 
-		if(parseNumber(str) instanceof Integer integer) {
+		if (parseNumber(str) instanceof Integer integer) {
 			int value = integer;
 
-			if(value >= 0)
+			if (value >= 0)
 				return value;
 		}
 
@@ -306,15 +332,15 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	public int nextConstant(ConstantPool pool) {
 		String str = tryReadStringLiteral();
 
-		if(str != null) {
+		if (str != null) {
 			return pool.findOrAddString(str);
 		}
 
 //		if(Character.isDigit(preview())) {
-			return pool.findOrAddNumber(parseNumber(nextString(
-					CharPredicate.ANY_NUMBER,
-					NonMatchingCharHandler.throwingParseException("constant")
-			)));
+		return pool.findOrAddNumber(parseNumber(nextString(
+				CharPredicate.ANY_NUMBER,
+				NonMatchingCharHandler.throwingParseException("constant")
+		)));
 //		}
 	}
 
@@ -353,13 +379,13 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 		String className, name;
 
-		if(str.endsWith(".") && (name = tryReadStringLiteral()) != null) {
+		if (str.endsWith(".") && (name = tryReadStringLiteral()) != null) {
 			className = str.substring(0, str.length() - 1);
 
 		} else {
 			int pointIndex = str.lastIndexOf('.');
 
-			if(pointIndex == -1) {
+			if (pointIndex == -1) {
 				throw ParseException.expectedButGot("method", str);
 			}
 
@@ -371,24 +397,24 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 	private @Nullable String tryReadStringLiteral() {
-		if(advanceIfHasNext('"')) {
+		if (advanceIfHasNext('"')) {
 			StringBuilder value = new StringBuilder();
 
-			for(int ch = read(); ; value.append((char)ch), ch = read()) {
-				if(ch == '\\') {
+			for (int ch = read(); ; value.append((char) ch), ch = read()) {
+				if (ch == '\\') {
 					int escaped = read();
 
-					ch = switch(escaped) {
-						case '"'  -> '"';
+					ch = switch (escaped) {
+						case '"' -> '"';
 						case '\'' -> '\'';
 						case '\\' -> '\\';
-						case 'n'  -> '\n';
-						case 'r'  -> '\r';
-						case 'f'  -> '\f';
+						case 'n' -> '\n';
+						case 'r' -> '\r';
+						case 'f' -> '\f';
 						default -> throw new ParseException("invalid char escaping \"\\" + escaped + "\"");
 					};
 
-				} else if(ch == '"') {
+				} else if (ch == '"') {
 					break;
 				}
 			}
@@ -419,7 +445,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			int radix =
 					factualLength > 1 && str.charAt(start) == '0' ?
 							factualLength > 2 ?
-									switch(str.charAt(start + 1)) {
+									switch (str.charAt(start + 1)) {
 										case 'x' -> 16;
 										case 'b' -> 2;
 										default -> 8;
@@ -429,10 +455,32 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 			char lowerLastChar = Character.toLowerCase(str.charAt(length - 1));
 
-			ObjIntBooleanFunction<String, Number> parser = switch(lowerLastChar) {
-				case 'l' -> LongUtil::parseLong;
-				case 'f' -> FloatUtil::parseFloat;
-				case 'd' -> DoubleUtil::parseDouble;
+			int cutEnd = 0;
+
+			ObjIntBooleanFunction<String, Number> parser = switch (lowerLastChar) {
+				case 'l' -> {
+					cutEnd = 1;
+					yield LongUtil::parseLong;
+				}
+
+				case 'f' -> {
+					if (radix != 16 || str.toLowerCase().contains("p")) {
+						cutEnd = 1;
+						yield FloatUtil::parseFloat;
+					}
+
+					yield IntegerUtil::parseInt;
+				}
+
+				case 'd' -> {
+					if (radix != 16 || str.toLowerCase().contains("p")) {
+						cutEnd = 1;
+						yield DoubleUtil::parseDouble;
+					}
+
+					yield IntegerUtil::parseInt;
+				}
+
 				default -> str.contains(".") || str.toLowerCase().contains(FPUtil.getExponentSeparatorString(radix)) ?
 						DoubleUtil::parseDouble :
 						IntegerUtil::parseInt;
@@ -441,13 +489,13 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			return parser.apply(
 					str.substring(
 							start + (radix == 8 ? 1 : radix != 10 ? 2 : 0),
-							length - (lowerLastChar == 'l' || lowerLastChar == 'f' || lowerLastChar == 'd' ? 1 : 0)
+							length - cutEnd
 					),
 					radix, firstChar == '-'
 			);
 
 
-		} catch(NumberFormatException ex) {
+		} catch (NumberFormatException ex) {
 			throw ParseException.expectedButGot("constant", str).initCause(ex);
 		}
 	}
@@ -457,20 +505,20 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 		int ch = next();
 
-		if(ch == EOF_CHAR) {
+		if (ch == EOF_CHAR) {
 			return handler.getEof();
 		}
 
-		if(!predicate.isStartChar(ch)) {
-			return handler.handleNonMatchingChar((char)ch);
+		if (!predicate.isStartChar(ch)) {
+			return handler.handleNonMatchingChar((char) ch);
 		}
 
 		StringBuilder str = new StringBuilder();
 
 		do {
-			str.append((char)ch);
+			str.append((char) ch);
 			ch = read();
-		} while(predicate.isPartChar(ch));
+		} while (predicate.isPartChar(ch));
 
 		buffer(ch);
 
@@ -493,7 +541,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	public boolean advanceIfHasNext(String str) {
 		String next = nextString(CharPredicate.withLength(str.length()), NonMatchingCharHandler.DEFAULT_HANDLER);
 
-		if(next.equals(str)) {
+		if (next.equals(str)) {
 			return true;
 		} else {
 			buffer(next);
@@ -504,7 +552,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	public boolean advanceIfHasNext(char ch) {
 		int next = next();
 
-		if(next == ch) {
+		if (next == ch) {
 			return true;
 		} else {
 			buffer(next);
@@ -514,10 +562,10 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 	public AssemblingInputStream requireNext(char expected) {
 		int ch = next();
-		if(ch != expected) {
+		if (ch != expected) {
 			throw ch == EOF_CHAR ?
 					newUncheckedEOFException() :
-					ParseException.expectedButGot(expected, (char)ch);
+					ParseException.expectedButGot(expected, (char) ch);
 		}
 
 		return this;
@@ -529,7 +577,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 	public AssemblingInputStream requireNextString(String expected) {
 		String str = nextString();
-		if(!str.equals(expected)) {
+		if (!str.equals(expected)) {
 			throw str.isEmpty() ?
 					newUncheckedEOFException() :
 					ParseException.expectedButGot(expected, str);

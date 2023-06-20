@@ -6,11 +6,11 @@ import x590.yava.operation.operator.ShiftLeftOperatorOperation;
 import x590.yava.type.Type;
 
 public class ShiftLeftOperatorInstruction extends OperatorInstruction {
-	
+
 	public ShiftLeftOperatorInstruction(Type type) {
 		super(type);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new ShiftLeftOperatorOperation(type, context);

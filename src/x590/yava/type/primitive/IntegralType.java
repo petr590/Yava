@@ -10,33 +10,35 @@ import x590.yava.type.TypeSize;
  */
 public abstract sealed class IntegralType extends PrimitiveType
 		permits ByteType, ShortType, IntType {
-	
+
 	public IntegralType(String encodedName, String name, String nameForVariable) {
 		super(encodedName, name, nameForVariable);
 	}
-	
+
 	@Override
 	public final TypeSize getSize() {
 		return TypeSize.WORD;
 	}
-	
-	/** Размер примитива в байтах */
+
+	/**
+	 * Размер примитива в байтах
+	 */
 	public abstract int getCapacity();
-	
-	
+
+
 	@Override
 	protected boolean canCastToNarrowestImpl(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() >= this.getCapacity();
 	}
-	
+
 	@Override
 	protected boolean canCastToWidestImpl(Type other) {
 		return this == other ||
 				other instanceof IntegralType integralType && integralType.getCapacity() <= this.getCapacity() ||
 				other == CHAR && this.getCapacity() > CHAR_CAPACITY;
 	}
-	
+
 	@Override
 	public boolean canImplicitCastToNarrowest(Type other) {
 		return canCastToNarrowest(other) || other.isLongOrFloatOrDouble();

@@ -1,7 +1,6 @@
 package x590.yava.attribute;
 
-import java.util.*;
-
+import x590.util.annotation.Immutable;
 import x590.yava.attribute.Attributes.Location;
 import x590.yava.attribute.annotation.AnnotationDefaultAttribute;
 import x590.yava.attribute.annotation.AnnotationsAttribute;
@@ -14,15 +13,16 @@ import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.io.AssemblingInputStream;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.util.annotation.Immutable;
 
-import static x590.yava.attribute.AttributeReader.*;
-import static x590.yava.attribute.AttributeParser.*;
+import java.util.*;
+
+import static x590.yava.attribute.AttributeParser.parser;
+import static x590.yava.attribute.AttributeReader.reader;
 
 public class AttributeType<A extends Attribute> implements AttributeReader<A>, AttributeParser<A> {
-	
+
 	private static final Map<Location, Map<String, AttributeType<?>>> ATTRIBUTE_TYPES = new EnumMap<>(Location.class);
-	
+
 	private static final @Immutable Set<Location> CLASS_FIELD_OR_METHOD_LOCATION = EnumSet.of(Location.CLASS, Location.FIELD, Location.METHOD);
 	private static final @Immutable Set<Location> CLASS_FIELD_METHOD_OR_CODE_LOCATION = EnumSet.of(Location.CLASS, Location.FIELD, Location.METHOD, Location.CODE_ATTRIBUTE);
 
@@ -30,12 +30,14 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 	private static final AttributeParser<?> unhandledParser = (name, in, pool, location) -> {
 		throw new ParseException("Attribute \"" + name + "\" yet not finished");
 	};
-	
-	
+
+
 	public static final AttributeType<UnknownAttribute> UNKNOWN =
 			new AttributeType<>("",
 					(name, length, in, pool, location) -> new UnknownAttribute(name, length, in),
-					(name, in, pool, location) -> { throw new ParseException("Cannot parse unknown attribute"); }
+					(name, in, pool, location) -> {
+						throw new ParseException("Unknown attribute \"" + name + "\"");
+					}
 			);
 
 
@@ -91,10 +93,10 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 
 	// Code
 	public static final EmptyableAttributeType<LocalVariableTableAttribute> LOCAL_VARIABLE_TABLE =
-			create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TABLE, reader(LocalVariableTableAttribute::new), LocalVariableTableAttribute.emptyTable());
+			create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TABLE, reader(LocalVariableTableAttribute::new), parser(LocalVariableTableAttribute::new), LocalVariableTableAttribute.emptyTable());
 
 	public static final EmptyableAttributeType<LocalVariableTableAttribute> LOCAL_VARIABLE_TYPE_TABLE =
-			create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TYPE_TABLE, reader(LocalVariableTableAttribute::new), LocalVariableTableAttribute.emptyTypeTable());
+			create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TYPE_TABLE, reader(LocalVariableTableAttribute::new), parser(LocalVariableTableAttribute::new), LocalVariableTableAttribute.emptyTypeTable());
 
 
 	// Class, field, method
@@ -117,58 +119,57 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 
 	public static final AttributeType<TypeAnnotationsAttribute> RUNTIME_INVISIBLE_TYPE_ANNOTATIONS =
 			create(CLASS_FIELD_METHOD_OR_CODE_LOCATION, AttributeNames.RUNTIME_INVISIBLE_TYPE_ANNOTATIONS, TypeAnnotationsAttribute::new);
-	
-	
-	
+
+
 	private final String name;
 	private final AttributeReader<A> reader;
 	private final AttributeParser<A> parser;
-	
+
 	private void putToMap(Location location) {
 		ATTRIBUTE_TYPES.computeIfAbsent(location, loc -> new HashMap<>()).put(name, this);
 	}
-	
+
 	private AttributeType(String name, AttributeReader<A> reader, AttributeParser<A> parser) {
 		this.name = Objects.requireNonNull(name);
 		this.reader = Objects.requireNonNull(reader);
 		this.parser = Objects.requireNonNull(parser);
 	}
-	
+
 	protected AttributeType(Location location, String name, AttributeReader<A> reader, AttributeParser<A> parser) {
 		this(name, reader, parser);
 		putToMap(location);
 	}
-	
+
 	protected AttributeType(Set<Location> locations, String name, AttributeReader<A> reader, AttributeParser<A> parser) {
 		this(name, reader, parser);
-		
-		for(Location location : locations)
+
+		for (Location location : locations)
 			putToMap(location);
 	}
-	
+
 
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public static <A extends Attribute> AttributeType<A> create(Location location, String name, AttributeReader<A> reader) {
-		return new AttributeType<>(location, name, reader, (AttributeParser<A>)unhandledParser);
+		return new AttributeType<>(location, name, reader, (AttributeParser<A>) unhandledParser);
 	}
 
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public static <A extends Attribute> AttributeType<A> create(Set<Location> locations, String name, AttributeReader<A> reader) {
-		return new AttributeType<>(locations, name, reader, (AttributeParser<A>)unhandledParser);
+		return new AttributeType<>(locations, name, reader, (AttributeParser<A>) unhandledParser);
 	}
 
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public static <A extends Attribute> EmptyableAttributeType<A> create(Location location, String name, AttributeReader<A> reader, A emptyAttribute) {
-		return new EmptyableAttributeType<>(location, name, reader, (AttributeParser<A>)unhandledParser, emptyAttribute);
+		return new EmptyableAttributeType<>(location, name, reader, (AttributeParser<A>) unhandledParser, emptyAttribute);
 	}
 
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public static <A extends Attribute> EmptyableAttributeType<A> create(Set<Location> locations, String name, AttributeReader<A> reader, A emptyAttribute) {
-		return new EmptyableAttributeType<>(locations, name, reader, (AttributeParser<A>)unhandledParser, emptyAttribute);
+		return new EmptyableAttributeType<>(locations, name, reader, (AttributeParser<A>) unhandledParser, emptyAttribute);
 	}
 
 
@@ -187,12 +188,12 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 	public static <A extends Attribute> EmptyableAttributeType<A> create(Set<Location> locations, String name, AttributeReader<A> reader, AttributeParser<A> parser, A emptyAttribute) {
 		return new EmptyableAttributeType<>(locations, name, reader, parser, emptyAttribute);
 	}
-	
-	
+
+
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public A readAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool, Location location) {
 		return reader.readAttribute(name, length, in, pool, location);
@@ -201,8 +202,8 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 	public A parseAttribute(String name, AssemblingInputStream in, ConstantPool pool, Location location) {
 		return parser.parseAttribute(name, in, pool, location);
 	}
-	
-	
+
+
 	public static AttributeType<?> getAttributeType(Location location, String name) {
 		return ATTRIBUTE_TYPES.getOrDefault(location, Collections.emptyMap()).getOrDefault(name, UNKNOWN);
 	}

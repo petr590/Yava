@@ -8,11 +8,11 @@ public class NoSuchFieldException extends NoSuchClassMemberException {
 
 	@Serial
 	private static final long serialVersionUID = 3224048661190569290L;
-	
+
 	public NoSuchFieldException(String message) {
 		super(message);
 	}
-	
+
 	public NoSuchFieldException(FieldDescriptor descriptor) {
 		super(descriptor);
 	}

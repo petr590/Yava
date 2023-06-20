@@ -8,21 +8,22 @@ import x590.yava.type.Type;
 import x590.yava.type.reference.ClassType;
 
 public final class EmptyStringConstOperation extends AbstractOperation {
-	
+
 	public static final EmptyStringConstOperation INSTANCE = new EmptyStringConstOperation();
-	
-	private EmptyStringConstOperation() {}
-	
+
+	private EmptyStringConstOperation() {
+	}
+
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		out.write("\"\"");
 	}
-	
+
 	@Override
 	public Type getReturnType() {
 		return ClassType.STRING;
 	}
-	
+
 	@Override
 	public boolean equals(Operation other) {
 		return this == other;

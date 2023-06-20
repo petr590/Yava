@@ -7,15 +7,15 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.constant.FConstOperation;
 
 public class FConstInstruction extends ConstInstruction<FloatConstant> {
-	
+
 	public FConstInstruction(FloatConstant constant) {
 		super(constant);
 	}
-	
+
 	public FConstInstruction(float value) {
 		super(ConstantPool.findOrCreateConstant(value));
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new FConstOperation(constant);

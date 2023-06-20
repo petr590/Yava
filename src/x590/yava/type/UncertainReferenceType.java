@@ -1,7 +1,6 @@
 package x590.yava.type;
 
-import java.util.function.Function;
-
+import x590.util.annotation.Nullable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.exception.decompilation.IllegalTypeException;
 import x590.yava.io.ExtendedOutputStream;
@@ -10,22 +9,27 @@ import x590.yava.type.reference.ArrayType;
 import x590.yava.type.reference.ClassType;
 import x590.yava.type.reference.IArrayType;
 import x590.yava.type.reference.ReferenceType;
-import x590.util.annotation.Nullable;
+
+import java.util.function.Function;
 
 /**
  * Когда ссылочный тип неизвестен точно
  */
 public sealed class UncertainReferenceType extends Type {
-	
-	/** Наиболее широкий тип */
+
+	/**
+	 * Наиболее широкий тип
+	 */
 	private final ReferenceType widestType;
-	
-	/** Наиболее узкий тип. Если он равен {@code null}, то {@code this}
-	 * обозначает тип {@link #widestType} и любой его подтип */
+
+	/**
+	 * Наиболее узкий тип. Если он равен {@code null}, то {@code this}
+	 * обозначает тип {@link #widestType} и любой его подтип
+	 */
 	private final @Nullable ReferenceType narrowestType;
-	
+
 	private final String encodedName;
-	
+
 	private UncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		this.widestType = widestType;
 		this.narrowestType = narrowestType;
@@ -35,17 +39,17 @@ public sealed class UncertainReferenceType extends Type {
 		check(widestType);
 		check(narrowestType);
 	}
-	
+
 	private UncertainReferenceType(ReferenceType widestType) {
 		this(widestType, null);
 	}
 
 	private static UncertainReferenceType newUncertainReferenceType(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
-		if(widestType.isIArrayType()) {
-			if(narrowestType == null)
+		if (widestType.isIArrayType()) {
+			if (narrowestType == null)
 				return new UncertainReferenceArrayType((ReferenceType & IArrayType) widestType);
 
-			if(narrowestType.isIArrayType())
+			if (narrowestType.isIArrayType())
 				return new UncertainReferenceArrayType((ReferenceType & IArrayType) widestType, (ReferenceType & IArrayType) narrowestType);
 		}
 
@@ -60,93 +64,93 @@ public sealed class UncertainReferenceType extends Type {
 
 
 	private void check(@Nullable ReferenceType type) {
-		if(type instanceof ArrayType arrayType &&
-			arrayType.getMemberType() instanceof UncertainReferenceType) {
+		if (type instanceof ArrayType arrayType &&
+				arrayType.getMemberType() instanceof UncertainReferenceType) {
 
 			throw new IllegalTypeException(this.toString());
 		}
 	}
-	
-	
+
+
 	public static Type getInstance(ReferenceType widestType) {
 		return newUncertainReferenceType(widestType);
 	}
 
 	public static @Nullable Type getInstanceNoexcept(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
-		if(narrowestType != null) {
-			if(widestType.equalsIgnoreSignature(narrowestType))
+		if (narrowestType != null) {
+			if (widestType.equalsIgnoreSignature(narrowestType))
 				return narrowestType;
 
-			if(widestType.isDefinitelySubclassOf(narrowestType) && !narrowestType.isDefinitelySubclassOf(widestType))
+			if (widestType.isDefinitelySubclassOf(narrowestType) && !narrowestType.isDefinitelySubclassOf(widestType))
 				return null;
 		}
 
 		return newUncertainReferenceType(widestType, narrowestType);
 	}
-	
+
 	public static Type getInstance(ReferenceType widestType, @Nullable ReferenceType narrowestType) {
 		Type type = getInstanceNoexcept(widestType, narrowestType);
 
-		if(type != null)
+		if (type != null)
 			return type;
 
 		throw new IllegalTypeException(widestType + ", " + narrowestType);
 	}
-	
-	
+
+
 	public @Nullable ReferenceType getNarrowestType() {
 		return narrowestType;
 	}
-	
+
 	public ReferenceType getWidestType() {
 		return widestType;
 	}
-	
-	
+
+
 	private ReferenceType getNonNullType() {
 		return narrowestType == null ? widestType : narrowestType;
 	}
-	
+
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
 		out.printObject(getNonNullType(), classinfo);
 	}
-	
+
 	@Override
 	public String toString() {
 		return narrowestType == null ?
 				"(" + widestType + ")" :
 				"(" + widestType + " - " + narrowestType + ")";
 	}
-	
+
 	@Override
 	public String getEncodedName() {
 		return encodedName;
 	}
-	
+
 	@Override
 	public String getName() {
 		return getNonNullType().getName();
 	}
-	
+
 	@Override
 	public String getNameForVariable() {
 		return getNonNullType().getNameForVariable();
 	}
-	
-	
+
+
 	@Override
 	public boolean isAnyReferenceType() {
 		return true;
 	}
-	
-	
+
+
 	@Override
 	public TypeSize getSize() {
 		return TypeSize.WORD;
 	}
-	
-	
+
+
 	private static final class UncertainReferenceArrayType extends UncertainReferenceType implements IArrayType {
 
 		private final int nestingLevel;
@@ -177,15 +181,15 @@ public sealed class UncertainReferenceType extends Type {
 		}
 
 		private Type getComponentType(Function<IArrayType, Type> getter) {
-			if(getNarrowestType() == null) {
-				if(getWidestType() instanceof IArrayType arrayWidestType) {
+			if (getNarrowestType() == null) {
+				if (getWidestType() instanceof IArrayType arrayWidestType) {
 					return getter.apply(arrayWidestType);
 				} else {
 					throw new IllegalTypeException(this + " is not an array");
 				}
 			}
 
-			if(getNarrowestType() instanceof IArrayType arrayNarrowestType &&
+			if (getNarrowestType() instanceof IArrayType arrayNarrowestType &&
 					getWidestType() instanceof IArrayType arrayWidestType) {
 
 				try {
@@ -204,29 +208,29 @@ public sealed class UncertainReferenceType extends Type {
 
 
 		private static Type newUncertainType(Type widestType, Type narrowestType) {
-			if(widestType.equals(narrowestType)) {
+			if (widestType.equals(narrowestType)) {
 				return widestType;
 			}
 
 			ReferenceType referenceWidestType = asReferenceType(widestType);
 			ReferenceType referenceNarrowestType = asReferenceType(narrowestType);
 
-			if(referenceWidestType != null && referenceNarrowestType != null) {
+			if (referenceWidestType != null && referenceNarrowestType != null) {
 				return newUncertainReferenceType(referenceWidestType, referenceNarrowestType);
 			}
 
-			if(widestType instanceof PrimitiveType primitiveWidestType) {
-				if(narrowestType instanceof PrimitiveType primitiveNarrowestType) {
+			if (widestType instanceof PrimitiveType primitiveWidestType) {
+				if (narrowestType instanceof PrimitiveType primitiveNarrowestType) {
 					return UncertainIntegralType.getInstance(primitiveNarrowestType, primitiveWidestType);
 				}
 
-				if(narrowestType instanceof UncertainIntegralType uncertainNarrowestType &&
+				if (narrowestType instanceof UncertainIntegralType uncertainNarrowestType &&
 						uncertainNarrowestType.canCastToWidest(widestType)) {
 
 					return uncertainNarrowestType;
 				}
 
-			} else if(widestType instanceof UncertainIntegralType uncertainWidestType &&
+			} else if (widestType instanceof UncertainIntegralType uncertainWidestType &&
 					narrowestType instanceof PrimitiveType &&
 					uncertainWidestType.canCastToWidest(narrowestType)) {
 
@@ -237,15 +241,15 @@ public sealed class UncertainReferenceType extends Type {
 		}
 
 		private static @Nullable ReferenceType asReferenceType(Type type) {
-			if(type == Types.ANY_OBJECT_TYPE) {
+			if (type == Types.ANY_OBJECT_TYPE) {
 				return ClassType.OBJECT;
 			}
 
-			if(type instanceof ReferenceType referenceType) {
+			if (type instanceof ReferenceType referenceType) {
 				return referenceType;
 			}
 
-			if(type instanceof UncertainReferenceType) {
+			if (type instanceof UncertainReferenceType) {
 				throw new IllegalTypeException("Cannot normalize UncertainReferenceType " + type);
 			}
 
@@ -264,81 +268,81 @@ public sealed class UncertainReferenceType extends Type {
 
 	@Override
 	protected @Nullable Type castImpl(Type other, CastingKind kind) {
-		if(this.equals(other))
+		if (this.equals(other))
 			return this;
-		
-		if(other instanceof ReferenceType referenceType) {
-			
-			if(referenceType.isDefinitelySubclassOf(widestType) && (narrowestType == null || narrowestType.isDefinitelySubclassOf(referenceType))) {
+
+		if (other instanceof ReferenceType referenceType) {
+
+			if (referenceType.isDefinitelySubclassOf(widestType) && (narrowestType == null || narrowestType.isDefinitelySubclassOf(referenceType))) {
 				return kind.isNarrowest() ?
 						getInstanceNoexcept(referenceType, narrowestType) :
 						getInstanceNoexcept(widestType, referenceType);
 			}
-			
-			if(kind.isNarrowest() ?
-				widestType.isDefinitelySubclassOf(referenceType) :
-				referenceType.isDefinitelySubclassOf(narrowestType)) {
-				
+
+			if (kind.isNarrowest() ?
+					widestType.isDefinitelySubclassOf(referenceType) :
+					referenceType.isDefinitelySubclassOf(narrowestType)) {
+
 				return this;
 			}
-			
+
 			return null;
 		}
-		
-		if(other instanceof UncertainReferenceType uncertainType) {
-			if(kind.isNarrowest()) {
+
+		if (other instanceof UncertainReferenceType uncertainType) {
+			if (kind.isNarrowest()) {
 				ReferenceType widestType = chooseNarrowestFrom(this.widestType, uncertainType.widestType);
-				
-				if(widestType != null) {
+
+				if (widestType != null) {
 					return getInstanceNoexcept(widestType, this.narrowestType);
 				}
-				
+
 			} else {
 				ReferenceType narrowestType = chooseWidestFrom(this.narrowestType, uncertainType.narrowestType);
-				
-				if(narrowestType != null) {
+
+				if (narrowestType != null) {
 					return getInstanceNoexcept(this.widestType, narrowestType);
 				}
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	private static @Nullable ReferenceType chooseNarrowestFrom(ReferenceType type1, ReferenceType type2) {
-		return  type1.isDefinitelySubclassOf(type2) ? type1 :
+		return type1.isDefinitelySubclassOf(type2) ? type1 :
 				type2.isDefinitelySubclassOf(type1) ? type2 : null;
 	}
-	
+
 	private static @Nullable ReferenceType chooseWidestFrom(ReferenceType type1, ReferenceType type2) {
-		return  type1.isDefinitelySubclassOf(type2) ? type2 :
+		return type1.isDefinitelySubclassOf(type2) ? type2 :
 				type2.isDefinitelySubclassOf(type1) ? type1 : null;
 	}
-	
+
 	@Override
 	protected Type reversedCastImpl(Type other, CastingKind kind) {
-		if(this.equals(other))
+		if (this.equals(other))
 			return this;
-		
-		if(other instanceof ReferenceType referenceType) {
-			
-			if(kind.isNarrowest() ?
-				referenceType.isDefinitelySubclassOf(widestType) :
-				widestType.isDefinitelySubclassOf(referenceType) || narrowestType != null && referenceType.isDefinitelySubclassOf(narrowestType)) {
-				
+
+		if (other instanceof ReferenceType referenceType) {
+
+			if (kind.isNarrowest() ?
+					referenceType.isDefinitelySubclassOf(widestType) :
+					widestType.isDefinitelySubclassOf(referenceType) || narrowestType != null && referenceType.isDefinitelySubclassOf(narrowestType)) {
+
 				return referenceType;
 			}
 		}
-		
+
 		return null;
 	}
-	
-	
+
+
 	@Override
 	public void addImports(ClassInfo classinfo) {
 		getNonNullType().addImports(classinfo);
 	}
-	
+
 	@Override
 	public BasicType reduced() {
 		return getNonNullType().reduced();

@@ -4,11 +4,11 @@ import x590.yava.context.DecompilationContext;
 import x590.yava.type.Type;
 
 public final class ShiftRightOperatorOperation extends ShiftOperatorOperation {
-	
+
 	public ShiftRightOperatorOperation(Type type, DecompilationContext context) {
 		super(type, context);
 	}
-	
+
 	@Override
 	public String getOperator() {
 		return ">>";

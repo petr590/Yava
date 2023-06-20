@@ -5,24 +5,32 @@ package x590.yava.type;
  * к общему типу. Используется в методе {@link Type#castToGeneral(Type, GeneralCastingKind)}.
  */
 public enum GeneralCastingKind implements ICastingKind {
-	/** Оператор сравнения */
+	/**
+	 * Оператор сравнения
+	 */
 	COMPARISON,
-	
-	/** Операторы сравнения `==` и `!=` */
+
+	/**
+	 * Операторы сравнения `==` и `!=`
+	 */
 	EQUALS_COMPARISON,
-	
-	/** Любой бинарный оператор */
+
+	/**
+	 * Любой бинарный оператор
+	 */
 	BINARY_OPERATOR,
-	
-	/** Тернарный оператор */
+
+	/**
+	 * Тернарный оператор
+	 */
 	TERNARY_OPERATOR;
-	
+
 	private final String lowerCaseName;
-	
+
 	GeneralCastingKind() {
 		this.lowerCaseName = name().toLowerCase().replace('_', ' ');
 	}
-	
+
 	@Override
 	public String lowerCaseName() {
 		return lowerCaseName;

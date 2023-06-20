@@ -6,7 +6,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.returning.VReturnOperation;
 
 public class VReturnInstruction implements Instruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return VReturnOperation.getInstance(context);

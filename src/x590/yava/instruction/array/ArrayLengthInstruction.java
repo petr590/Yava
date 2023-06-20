@@ -6,7 +6,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.array.ArrayLengthOperation;
 
 public class ArrayLengthInstruction implements Instruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new ArrayLengthOperation(context);

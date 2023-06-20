@@ -1,19 +1,19 @@
 package x590.yava.example.generic;
 
-import java.util.List;
-
 import x590.yava.example.Example;
 import x590.yava.example.ExampleTesting;
+
+import java.util.List;
 
 @Example
 @SuppressWarnings("unused")
 public class GenericsInferenceExample {
-	
+
 	public static void main(String[] args) {
 //		ExampleTesting.DECOMPILING.run(ExampleTesting.VANILLA_DIR, GenericsInferenceExample.class);
 		ExampleTesting.DECOMPILING.run(ExampleTesting.DEFAULT_DIR, GenericsInferenceExample.class);
 	}
-	
+
 	public static <T extends Number> T varTypeChecking(T t1) {
 		T t2 = t1;
 		return t2;
@@ -23,7 +23,7 @@ public class GenericsInferenceExample {
 		List<Number> list2 = list;
 		return list2;
 	}
-	
+
 	public static Number genericMethodChecking(List<Number> list) {
 		Number num = list.get(0);
 		return num;
@@ -53,9 +53,11 @@ public class GenericsInferenceExample {
 		}
 	}
 
-	public static class Class2<B> extends Class1<B> {}
+	public static class Class2<B> extends Class1<B> {
+	}
 
-	public static class Class3<C> extends Class2<C> {}
+	public static class Class3<C> extends Class2<C> {
+	}
 
 
 //	public class InnerClass<T> {

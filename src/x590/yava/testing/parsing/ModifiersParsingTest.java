@@ -1,7 +1,6 @@
 package x590.yava.testing.parsing;
 
 import org.junit.Test;
-
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.io.AssemblingInputStream;
 import x590.yava.modifiers.ClassModifiers;
@@ -10,7 +9,8 @@ import x590.yava.modifiers.FieldModifiers;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static x590.yava.modifiers.Modifiers.*;
 
 public class ModifiersParsingTest {

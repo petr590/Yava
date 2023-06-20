@@ -1,18 +1,19 @@
 package x590.yava.example.array;
 
-import static x590.yava.example.array.VarargsSuperclass.*;
-
 import x590.yava.example.Example;
 import x590.yava.example.ExampleTesting;
+
+import static x590.yava.example.array.VarargsSuperclass.foo;
+import static x590.yava.example.array.VarargsSuperclass.foo2;
 
 @Example
 @SuppressWarnings("unused")
 public class VarargsExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(VarargsSuperclass.class, VarargsExample.class);
 	}
-	
+
 	void bar() throws NoSuchMethodException, SecurityException {
 		foo();
 		foo(0);

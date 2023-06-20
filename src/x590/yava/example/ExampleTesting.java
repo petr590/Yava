@@ -1,13 +1,13 @@
 package x590.yava.example;
 
-import static java.io.File.separatorChar;
+import x590.yava.main.Main;
+import x590.yava.main.Yava;
 
 import java.util.Arrays;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import x590.yava.main.Yava;
-import x590.yava.main.Main;
+import static java.io.File.separatorChar;
 
 // Temporary
 @SuppressWarnings("unused")
@@ -28,7 +28,7 @@ public abstract class ExampleTesting {
 			DEFAULT_DIR = "out/production/yava",
 			VANILLA_DIR = "out/vanilla-example/yava";
 
-			// Eclipse IDE
+	// Eclipse IDE
 //			DEFAULT_DIR = "bin",
 //			VANILLA_DIR = "vbin";
 
@@ -113,7 +113,7 @@ public abstract class ExampleTesting {
 		try {
 			Main.main(args);
 
-		} catch(Throwable ex) {
+		} catch (Throwable ex) {
 			ex.printStackTrace();
 			System.exit(1);
 		}

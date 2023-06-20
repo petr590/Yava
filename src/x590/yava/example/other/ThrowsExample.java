@@ -11,5 +11,6 @@ public class ThrowsExample {
 		ExampleTesting.DECOMPILING.run(ThrowsExample.class);
 	}
 
-	public static void foo() throws Exception {}
+	public static void foo() throws Exception {
+	}
 }

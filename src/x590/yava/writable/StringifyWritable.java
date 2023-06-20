@@ -6,5 +6,5 @@ import x590.yava.io.StringifyOutputStream;
  * Описывает объект, который можно записать в {@link StringifyOutputStream}
  */
 public interface StringifyWritable<T> extends Writable<T> {
-	public void writeTo(StringifyOutputStream out, T param);
+	void writeTo(StringifyOutputStream out, T param);
 }

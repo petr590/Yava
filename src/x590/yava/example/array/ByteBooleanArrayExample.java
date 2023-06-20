@@ -4,21 +4,21 @@ import x590.yava.example.Example;
 import x590.yava.example.ExampleTesting;
 
 @Example
-@SuppressWarnings({ "unused", "null" })
+@SuppressWarnings({"unused", "null"})
 public class ByteBooleanArrayExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(ByteBooleanArrayExample.class);
 	}
-	
+
 	public void foo() {
 		byte[] arr1 = null;
 		boolean[] arr2 = null;
-		
+
 		arr1[0] = 127;
 		arr2[0] = false;
 	}
-	
+
 //	public void bar() {
 //		// null нужен, чтобы декомпилятор не мог сразу понять, какой тип у массива - byte или boolean
 //		byte[] arr1 = null;

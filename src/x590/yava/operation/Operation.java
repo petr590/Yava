@@ -1,15 +1,13 @@
 package x590.yava.operation;
 
-import static x590.yava.operation.Priority.*;
-
-import java.lang.reflect.Field;
-import java.util.LinkedList;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import x590.util.annotation.Nullable;
+import x590.util.holder.BooleanHolder;
 import x590.yava.Importable;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.StringifyContext;
 import x590.yava.io.StringifyOutputStream;
+import x590.yava.main.Config;
 import x590.yava.modifiers.MethodModifiers;
 import x590.yava.operation.load.ALoadOperation;
 import x590.yava.operationinstruction.constant.AConstNullOperationInstruction;
@@ -19,8 +17,11 @@ import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ReferenceType;
 import x590.yava.writable.StringifyWritable;
-import x590.util.annotation.Nullable;
-import x590.util.holder.BooleanHolder;
+
+import java.lang.reflect.Field;
+import java.util.LinkedList;
+
+import static x590.yava.operation.Priority.*;
 
 /**
  * Класс, представляющий операцию. Операция - это объектное представление инструкций.<br>
@@ -39,7 +40,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		LEFT, RIGHT;
 
 		public static Associativity byPriority(int priority) {
-			return switch(priority) {
+			return switch (priority) {
 				case ASSIGNMENT, TERNARY_OPERATOR, CAST, UNARY -> RIGHT;
 				default -> LEFT;
 			};
@@ -47,35 +48,47 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 
 
-	/** Метод записи в поток */
+	/**
+	 * Метод записи в поток
+	 */
 	@Override
 	void writeTo(StringifyOutputStream out, StringifyContext context);
 
-	/** Записывает операцию в поток как отдельное выражение */
+	/**
+	 * Записывает операцию в поток как отдельное выражение
+	 */
 	default void writeAsStatement(StringifyOutputStream out, StringifyContext context) {
 		this.writeFront(out, context);
 		this.writeTo(out, context);
 		this.writeBack(out, context);
 	}
 
-	/** Вывод перед каждой операцией */
+	/**
+	 * Вывод перед каждой операцией
+	 */
 	default void writeFront(StringifyOutputStream out, StringifyContext context) {
 		out.println().printIndent();
 	}
 
-	/** Вывод после каждой операции */
+	/**
+	 * Вывод после каждой операции
+	 */
 	default void writeBack(StringifyOutputStream out, StringifyContext context) {
 		out.write(';');
 	}
 
-	/** Вывод между операцииями (вызывается для всех операций в scope, кроме последней) */
+	/**
+	 * Вывод между операцииями (вызывается для всех операций в scope, кроме последней)
+	 */
 	default void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
-		if(nextOperation.isScope())
+		if (nextOperation.isScope())
 			out.println();
 	}
 
 
-	/** Можно ли опустить операцию (например, вызоов суперконструктора по умолчанию) */
+	/**
+	 * Можно ли опустить операцию (например, вызов суперконструктора по умолчанию)
+	 */
 	default boolean canOmit() {
 		return false;
 	}
@@ -107,30 +120,52 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	void unremoveFromScope();
 
 
-	/** Считается ли операция удалённой */
+	/**
+	 * Считается ли операция удалённой
+	 */
 	boolean isRemoved();
 
-	/** Считается ли операция удалённой из содержащего scope */
+	/**
+	 * Считается ли операция удалённой из содержащего scope
+	 */
 	boolean isRemovedFromScope();
 
 
-	/** Возвращаемый тип операции. Если тип - {@link PrimitiveType#VOID},
-	 * то операция не будет добавлена на стек */
+	/**
+	 * Возвращаемый тип операции. Если тип - {@link PrimitiveType#VOID},
+	 * то операция не будет добавлена на стек
+	 */
 	Type getReturnType();
 
-	/** Неявный тип, чтобы избежать лишних преобразований. Например, когда мы
-	 * сохраняем значение int в переменную long, приведение типов можно не писать. */
+	/**
+	 * Неявный тип, чтобы избежать лишних преобразований. Например, когда мы
+	 * сохраняем значение int в переменную long, приведение типов можно не писать.
+	 */
 	default Type getImplicitType() {
 		return getReturnType();
 	}
 
-	/** Разрешает записывать инициализатор массива без указания {@code new <type>[]} */
-	default void allowShortArrayInitializer() {}
+	/**
+	 * Разрешает записывать инициализатор массива без указания {@code new <type>[]}
+	 */
+	default void allowShortArrayInitializer() {
+	}
 
-	/** Разрешает опустить явное преобразование */
+	/**
+	 * Разрешает опустить явное преобразование
+	 */
 	void allowImplicitCast();
 
-	/** Запрещает опустить явное преобразование */
+	/**
+	 * Использовать шестнадцатеричную запись числа,
+	 * если {@link Config#constantsUsagePolicy()} не равен {@link Config.UsagePolicy#NEVER}
+	 */
+	default void useHexNumber() {
+	}
+
+	/**
+	 * Запрещает опустить явное преобразование
+	 */
 	void denyImplicitCast();
 
 
@@ -144,37 +179,49 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 
 
+	/**
+	 * Call {@link #useAsNarrowest(Type)} and then {@link #getReturnType()} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAsNarrowest(Type)} and then {@link #getReturnType()} instead */
 	default Type getReturnTypeAsNarrowest(Type type) {
 		return getReturnTypeAs(type, CastingKind.NARROWEST);
 	}
 
+	/**
+	 * Call {@link #useAsWidest(Type)} and then {@link #getReturnType()} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAsWidest(Type)} and then {@link #getReturnType()} instead */
 	default Type getReturnTypeAsWidest(Type type) {
 		return getReturnTypeAs(type, CastingKind.WIDEST);
 	}
 
+	/**
+	 * Call {@link #useAs(Type, CastingKind)} and then {@link #getReturnType()} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAs(Type, CastingKind)} and then {@link #getReturnType()} instead */
 	Type getReturnTypeAs(Type type, CastingKind kind);
 
 
+	/**
+	 * Call {@link #useAsNarrowest(Type)} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAsNarrowest(Type)} instead */
 	default void castReturnTypeToNarrowest(Type type) {
 		castReturnTypeTo(type, CastingKind.NARROWEST);
 	}
 
+	/**
+	 * Call {@link #useAsWidest(Type)} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAsWidest(Type)} instead */
 	default void castReturnTypeToWidest(Type type) {
 		castReturnTypeTo(type, CastingKind.WIDEST);
 	}
 
+	/**
+	 * Call {@link #useAs(Type, CastingKind)} instead
+	 */
 	@Deprecated(since = "0.8.8", forRemoval = true)
-	/** Call {@link #useAs(Type, CastingKind)} instead */
 	void castReturnTypeTo(Type type, CastingKind kind);
 
 
@@ -193,51 +240,74 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	Operation useAs(Type type, CastingKind kind);
 
 
-	/** Выведение типа. Первый проход выполняется при создании операций, т.е. собственно при декомпиляции.
+	/**
+	 * Выведение типа. Первый проход выполняется при создании операций, т.е. собственно при декомпиляции.
 	 * На втором проходе вызывается этот метод.
-	 * @return {@code true}, если тип сведён, иначе {@code false} */
+	 *
+	 * @return {@code true}, если тип сведён, иначе {@code false}
+	 */
 	default boolean deduceType() {
 		return false;
 	}
 
-	/** Сведение типа операции */
-	default void reduceType() {}
+	/**
+	 * Сведение типа операции
+	 */
+	default void reduceType() {
+	}
 
-	/** Делает приведение типа для таких выражений, как {@code null} или лямбда,
+	/**
+	 * Делает приведение типа для таких выражений, как {@code null} или лямбда,
 	 * так как мы не можем обратиться к полю или методу напрямую без приведения.
-	 * @param clazz тип, к которому преобразуется выражение */
+	 *
+	 * @param clazz тип, к которому преобразуется выражение
+	 */
 	default Operation castIfNecessary(ReferenceType clazz) {
 		return this;
 	}
 
-	/** Делает приведение типа для выражения {@code null},
+	/**
+	 * Делает приведение типа для выражения {@code null},
 	 * так как мы не можем обратиться к полю или методу напрямую без приведения.
+	 *
 	 * @param clazz тип, к которому преобразуется выражение
-	 * @see AConstNullOperationInstruction */
+	 * @see AConstNullOperationInstruction
+	 */
 	default Operation castIfNull(ReferenceType clazz) {
 		return this;
 	}
 
 
-	/** Добавляет имя переменной (для операций, работающих с переменными) */
-	default void addPossibleVariableName(String name) {}
+	/**
+	 * Добавляет имя переменной (для операций, работающих с переменными)
+	 */
+	default void addPossibleVariableName(String name) {
+	}
 
-	/** @return Возможное имя для переменной. По умолчанию {@code null} */
+	/**
+	 * @return Возможное имя для переменной. По умолчанию {@code null}
+	 */
 	default @Nullable String getPossibleVariableName() {
 		return null;
 	}
 
 
-	/** Возвращает {@code true}, если операция использует локальные переменные */
+	/**
+	 * Возвращает {@code true}, если операция использует локальные переменные
+	 */
 	default boolean requiresLocalContext() {
 		return false;
 	}
 
 
-	/** Гарантирует, что операция является scope-ом */
+	/**
+	 * Гарантирует, что операция является scope-ом
+	 */
 	boolean isScope();
 
-	/** Проверяет, что операция является константой 1 (любого типа) */
+	/**
+	 * Проверяет, что операция является константой 1 (любого типа)
+	 */
 	default boolean isOne() {
 		return false;
 	}
@@ -245,9 +315,9 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Проверяет, что операция объявляет переменную.
 	 * Нужно для корректной декомпиляции такого кода:
-	 if(condition) {
-	 int x = 0;
-	 }
+	 * if(condition) {
+	 * int x = 0;
+	 * }
 	 * Java не позволяет писать объявление переменной в блоке без фигурных скобок
 	 */
 	default boolean isVariableDefinition() {
@@ -296,17 +366,18 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	 * Задаёт таблицу значений enum, необходимых для правильной работы {@code switch},
 	 * если операция поддержвает это
 	 */
-	default void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {}
+	default void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {
+	}
 
 	/**
-	 * @return Встроенную операцию, т.е. операцию, в которой все использования переменных
-	 *         заменены на операции по таблице {@code varTable}. Не изменяет исходную операцию.
-	 *         Может вернуть {@code this}, если встроенная операция не отличается от {@code this}.
 	 * @param varTable - таблица переменных. Ключ - слот переменной, значение - оперция,
-	 *                   на которую эта переменная заменяется
-	 * Реализация по умолчанию работает через рефлексию, так что класс операции в модуле,
-	 * который не открывает доступ к приватным полям для модуля yava, должен переопределять
-	 * метод
+	 *                 на которую эта переменная заменяется
+	 *                 Реализация по умолчанию работает через рефлексию, так что класс операции в модуле,
+	 *                 который не открывает доступ к приватным полям для модуля yava, должен переопределять
+	 *                 метод
+	 * @return Встроенную операцию, т.е. операцию, в которой все использования переменных
+	 * заменены на операции по таблице {@code varTable}. Не изменяет исходную операцию.
+	 * Может вернуть {@code this}, если встроенная операция не отличается от {@code this}.
 	 */
 	default Operation inline(Int2ObjectMap<Operation> varTable) {
 		Class<?> clazz = this.getClass();
@@ -318,12 +389,12 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 
 			return inlined;
 
-		} catch(IllegalAccessException ex) {
+		} catch (IllegalAccessException ex) {
 			throw new IllegalStateException("Class " + clazz.getCanonicalName() +
 					" in module " + clazz.getModule() + " must override the inline(Int2ObjectMap<Operation>) method" +
 					" because its module does not opens access for the " + Operation.class.getModule() + " module");
 
-		} catch(InstantiationException ex) {
+		} catch (InstantiationException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
@@ -331,19 +402,19 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	private static Operation inline(Class<?> clazz, Operation self, Int2ObjectMap<Operation> varTable, BooleanHolder cloned)
 			throws IllegalAccessException, InstantiationException {
 
-		if(!Operation.class.isAssignableFrom(clazz)) {
+		if (!Operation.class.isAssignableFrom(clazz)) {
 			return self;
 		}
 
-		for(Field field : clazz.getDeclaredFields()) {
-			if(Operation.class.isAssignableFrom(field.getType())) {
+		for (Field field : clazz.getDeclaredFields()) {
+			if (Operation.class.isAssignableFrom(field.getType())) {
 				field.setAccessible(true);
-				Operation operation = (Operation)field.get(self);
+				Operation operation = (Operation) field.get(self);
 				Operation inlined = operation.inline(varTable);
 
-				if(operation != inlined) {
+				if (operation != inlined) {
 
-					if(cloned.isFalse()) {
+					if (cloned.isFalse()) {
 						cloned.set(true);
 
 						self = self.clone();
@@ -361,6 +432,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Проверяет, что операция является цепью вызовов {@code StringBuilder#append(...)}
 	 * или {@code new StringBuilder(...)}. Если это так, добавляет операнд в список операндов.
+	 *
 	 * @return Список операндов, если цепь вызовов полностью распознана, иначе {@code null}
 	 */
 	default @Nullable LinkedList<Operation> getStringBuilderChain(LinkedList<Operation> operands) {
@@ -371,16 +443,20 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Выполняется после основной декомпиляции кода
 	 */
-	default void postDecompilation(DecompilationContext context) {}
+	default void postDecompilation(DecompilationContext context) {
+	}
 
 
 	/**
 	 * Выполняется после декомпиляции всех классов
 	 */
-	default void afterDecompilation(DecompilationContext context) {}
+	default void afterDecompilation(DecompilationContext context) {
+	}
 
 
-	/** Приоритет операции, используется для правильной расстановки скобок */
+	/**
+	 * Приоритет операции, используется для правильной расстановки скобок
+	 */
 	default int getPriority() {
 		return Priority.DEFAULT_PRIORITY;
 	}
@@ -389,12 +465,16 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		writePrioritied(out, operation, context, getPriority(), associativity);
 	}
 
-	/** Оборачивает операцию в скобки, если её приоритет ниже, чем {@code thisPriority} */
+	/**
+	 * Оборачивает операцию в скобки, если её приоритет ниже, чем {@code thisPriority}
+	 */
 	void writePrioritied(StringifyOutputStream out, Operation operation, StringifyContext context, int thisPriority, Associativity associativity);
 
 	boolean equals(Operation other);
 
-	/** Нужен для копирования объекта в методе {@link #inline(Int2ObjectMap)}.
-	 * Создаёт поверхностную копию объекта */
+	/**
+	 * Нужен для копирования объекта в методе {@link #inline(Int2ObjectMap)}.
+	 * Создаёт поверхностную копию объекта
+	 */
 	Operation clone();
 }

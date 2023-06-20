@@ -6,11 +6,11 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.field.PutInstanceFieldOperation;
 
 public class PutInstanceFieldInstruction extends InstructionWithIndex {
-	
+
 	public PutInstanceFieldInstruction(int index) {
 		super(index);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new PutInstanceFieldOperation(context, index);

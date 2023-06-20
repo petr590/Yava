@@ -6,11 +6,11 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.field.PutStaticFieldOperation;
 
 public class PutStaticFieldInstruction extends InstructionWithIndex {
-	
+
 	public PutStaticFieldInstruction(int index) {
 		super(index);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new PutStaticFieldOperation(context, index);

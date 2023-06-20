@@ -1,36 +1,45 @@
 public class x590.yava.example.other.EmptyClass extends java.lang.Object {
-    version = 63.0;
-    
-    fields {
-    	public static final int FIELD {
-    		ConstantValue: 0xFF;
-    	}
-    	
-    	public static int otherField;
-    }
+	version = 63.0;
+	
+	fields {
+		public static final int FIELD {
+			ConstantValue: 0xFF;
+		}
+		
+		public static int otherField;
+	}
 
-    methods {
-        public void "<init>"() {
-            Code {
-            	maxStackSize = 1;
-            	maxLocalsCount = 1;
-            	
-                aload_0
-                invokespecial void java.lang.Object."<init>"()
-                return
-            }
+	methods {
+		public void "<init>"() {
+			Code {
+				maxStackSize = 1;
+				maxLocalsCount = 1;
+				
+				aload_0
+				invokespecial void java.lang.Object."<init>"()
+				return
+				
+				attributes {
+//					LineNumberTable {
+//						line 7: 0
+//					}
 
-            LineNumberTable {
-                line 7: 0
-            }
+					LocalVariableTable {
+//						Start  End  Slot   Name   Type
+						    0    5     0   this   x590.yava.example.other.EmptyClass
+					}
+				}
+			}
+		}
 
-            LocalVariableTable {
-//              Start  Length  Slot  Name   Signature
-                    0       5     0  this   x590.yava.example.other.EmptyClass
-            }
-        }
-
-        public static void main(java.lang.String[]) {}
-    }
+		public static void main(java.lang.String[]) {
+			Code {
+				maxStackSize = 0;
+				maxLocalsCount = 0;
+				
+				return
+			}
+		}
+	}
 }
 

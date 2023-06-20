@@ -4,21 +4,21 @@ import x590.yava.clazz.ClassInfo;
 import x590.yava.writable.DisassemblingStringifyWritable;
 
 public interface IWhitespaceStringBuilder extends DisassemblingStringifyWritable<ClassInfo> {
-	
-	public IWhitespaceStringBuilder append(String str);
-	
-	public default IWhitespaceStringBuilder appendIf(boolean condition, String str) {
+
+	IWhitespaceStringBuilder append(String str);
+
+	default IWhitespaceStringBuilder appendIf(boolean condition, String str) {
 		return condition ? this.append(str) : this;
 	}
-	
-	public boolean isEmpty();
-	
+
+	boolean isEmpty();
+
 	@Override
-	public String toString();
-	
-	public default IWhitespaceStringBuilder printTrailingSpace() {
+	String toString();
+
+	default IWhitespaceStringBuilder printTrailingSpace() {
 		return this.printTrailingSpace(true);
 	}
-	
-	public IWhitespaceStringBuilder printTrailingSpace(boolean print);
+
+	IWhitespaceStringBuilder printTrailingSpace(boolean print);
 }

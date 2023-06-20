@@ -6,11 +6,11 @@ import x590.yava.operation.operator.AndOperatorOperation;
 import x590.yava.type.Type;
 
 public class AndOperatorInstruction extends OperatorInstruction {
-	
+
 	public AndOperatorInstruction(Type type) {
 		super(type);
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new AndOperatorOperation(type, context);

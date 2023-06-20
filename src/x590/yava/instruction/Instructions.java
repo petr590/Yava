@@ -1,17 +1,16 @@
 package x590.yava.instruction;
 
-import x590.yava.instruction.scope.MonitorEnterInstruction;
-import x590.yava.instruction.scope.MonitorExitInstruction;
-import x590.yava.type.TypeSize;
-
-import static x590.yava.type.primitive.PrimitiveType.*;
-
 import x590.yava.instruction.array.ArrayLengthInstruction;
 import x590.yava.instruction.arrayload.*;
 import x590.yava.instruction.arraystore.*;
 import x590.yava.instruction.cast.CastInstruction;
-import x590.yava.instruction.cmp.*;
-import x590.yava.instruction.constant.*;
+import x590.yava.instruction.cmp.DCmpInstruction;
+import x590.yava.instruction.cmp.FCmpInstruction;
+import x590.yava.instruction.cmp.LCmpInstruction;
+import x590.yava.instruction.constant.DConstInstruction;
+import x590.yava.instruction.constant.FConstInstruction;
+import x590.yava.instruction.constant.IConstInstruction;
+import x590.yava.instruction.constant.LConstInstruction;
 import x590.yava.instruction.dup.*;
 import x590.yava.instruction.load.*;
 import x590.yava.instruction.operator.*;
@@ -19,60 +18,65 @@ import x590.yava.instruction.other.AThrowInstruction;
 import x590.yava.instruction.other.PopInstruction;
 import x590.yava.instruction.other.SwapInstruction;
 import x590.yava.instruction.returning.*;
+import x590.yava.instruction.scope.MonitorEnterInstruction;
+import x590.yava.instruction.scope.MonitorExitInstruction;
 import x590.yava.instruction.store.*;
 import x590.yava.operationinstruction.constant.AConstNullOperationInstruction;
+import x590.yava.type.TypeSize;
+
+import static x590.yava.type.primitive.PrimitiveType.*;
 
 public class Instructions {
-	
+
 	public static final Instruction
 			ACONST_NULL = AConstNullOperationInstruction.INSTANCE,
-			
-			ICONST_M1 = new IConstInstruction(-1),
-			ICONST_0  = new IConstInstruction(0),
-			ICONST_1  = new IConstInstruction(1),
-			ICONST_2  = new IConstInstruction(2),
-			ICONST_3  = new IConstInstruction(3),
-			ICONST_4  = new IConstInstruction(4),
-			ICONST_5  = new IConstInstruction(5),
-			
-			LCONST_0  = new LConstInstruction(0),
-			LCONST_1  = new LConstInstruction(1),
-			
-			FCONST_0  = new FConstInstruction(0),
-			FCONST_1  = new FConstInstruction(1),
-			FCONST_2  = new FConstInstruction(2),
-			
-			DCONST_0  = new DConstInstruction(0),
-			DCONST_1  = new DConstInstruction(1),
-			
-			
-			ILOAD_0 = new ILoadInstruction(0),
+
+	ICONST_M1 = new IConstInstruction(-1),
+			ICONST_0 = new IConstInstruction(0),
+			ICONST_1 = new IConstInstruction(1),
+			ICONST_2 = new IConstInstruction(2),
+			ICONST_3 = new IConstInstruction(3),
+			ICONST_4 = new IConstInstruction(4),
+			ICONST_5 = new IConstInstruction(5),
+
+	LCONST_0 = new LConstInstruction(0),
+			LCONST_1 = new LConstInstruction(1),
+
+	FCONST_0 = new FConstInstruction(0),
+			FCONST_1 = new FConstInstruction(1),
+			FCONST_2 = new FConstInstruction(2),
+
+	DCONST_0 = new DConstInstruction(0),
+			DCONST_1 = new DConstInstruction(1),
+
+
+	ILOAD_0 = new ILoadInstruction(0),
 			ILOAD_1 = new ILoadInstruction(1),
 			ILOAD_2 = new ILoadInstruction(2),
 			ILOAD_3 = new ILoadInstruction(3),
-			
-			LLOAD_0 = new LLoadInstruction(0),
+
+	LLOAD_0 = new LLoadInstruction(0),
 			LLOAD_1 = new LLoadInstruction(1),
 			LLOAD_2 = new LLoadInstruction(2),
 			LLOAD_3 = new LLoadInstruction(3),
-			
-			FLOAD_0 = new FLoadInstruction(0),
+
+	FLOAD_0 = new FLoadInstruction(0),
 			FLOAD_1 = new FLoadInstruction(1),
 			FLOAD_2 = new FLoadInstruction(2),
 			FLOAD_3 = new FLoadInstruction(3),
-			
-			DLOAD_0 = new DLoadInstruction(0),
+
+	DLOAD_0 = new DLoadInstruction(0),
 			DLOAD_1 = new DLoadInstruction(1),
 			DLOAD_2 = new DLoadInstruction(2),
 			DLOAD_3 = new DLoadInstruction(3),
-			
-			ALOAD_0 = new ALoadInstruction(0),
+
+	ALOAD_0 = new ALoadInstruction(0),
 			ALOAD_1 = new ALoadInstruction(1),
 			ALOAD_2 = new ALoadInstruction(2),
 			ALOAD_3 = new ALoadInstruction(3),
-			
-			
-			IALOAD = new IALoadInstruction(),
+
+
+	IALOAD = new IALoadInstruction(),
 			LALOAD = new LALoadInstruction(),
 			FALOAD = new FALoadInstruction(),
 			DALOAD = new DALoadInstruction(),
@@ -80,34 +84,34 @@ public class Instructions {
 			BALOAD = new BALoadInstruction(),
 			CALOAD = new CALoadInstruction(),
 			SALOAD = new SALoadInstruction(),
-			
-			
-			ISTORE_0 = new IStoreInstruction(0),
+
+
+	ISTORE_0 = new IStoreInstruction(0),
 			ISTORE_1 = new IStoreInstruction(1),
 			ISTORE_2 = new IStoreInstruction(2),
 			ISTORE_3 = new IStoreInstruction(3),
-			
-			LSTORE_0 = new LStoreInstruction(0),
+
+	LSTORE_0 = new LStoreInstruction(0),
 			LSTORE_1 = new LStoreInstruction(1),
 			LSTORE_2 = new LStoreInstruction(2),
 			LSTORE_3 = new LStoreInstruction(3),
-			
-			FSTORE_0 = new FStoreInstruction(0),
+
+	FSTORE_0 = new FStoreInstruction(0),
 			FSTORE_1 = new FStoreInstruction(1),
 			FSTORE_2 = new FStoreInstruction(2),
 			FSTORE_3 = new FStoreInstruction(3),
-			
-			DSTORE_0 = new DStoreInstruction(0),
+
+	DSTORE_0 = new DStoreInstruction(0),
 			DSTORE_1 = new DStoreInstruction(1),
 			DSTORE_2 = new DStoreInstruction(2),
 			DSTORE_3 = new DStoreInstruction(3),
-			
-			ASTORE_0 = new AStoreInstruction(0),
+
+	ASTORE_0 = new AStoreInstruction(0),
 			ASTORE_1 = new AStoreInstruction(1),
 			ASTORE_2 = new AStoreInstruction(2),
 			ASTORE_3 = new AStoreInstruction(3),
-			
-			IASTORE = new IAStoreInstruction(),
+
+	IASTORE = new IAStoreInstruction(),
 			LASTORE = new LAStoreInstruction(),
 			FASTORE = new FAStoreInstruction(),
 			DASTORE = new DAStoreInstruction(),
@@ -115,20 +119,20 @@ public class Instructions {
 			BASTORE = new BAStoreInstruction(),
 			CASTORE = new CAStoreInstruction(),
 			SASTORE = new SAStoreInstruction(),
-			
-			
-			POP     = new PopInstruction(TypeSize.WORD),
-			POP2    = new PopInstruction(TypeSize.LONG),
-			DUP     = new DupInstruction(),
-			DUP_X1  = new DupX1Instruction(),
-			DUP_X2  = new DupX2Instruction(),
-			DUP2    = new Dup2Instruction(),
+
+
+	POP = new PopInstruction(TypeSize.WORD),
+			POP2 = new PopInstruction(TypeSize.LONG),
+			DUP = new DupInstruction(),
+			DUP_X1 = new DupX1Instruction(),
+			DUP_X2 = new DupX2Instruction(),
+			DUP2 = new Dup2Instruction(),
 			DUP2_X1 = new Dup2X1Instruction(),
 			DUP2_X2 = new Dup2X2Instruction(),
-			SWAP    = new SwapInstruction(),
-			
-			
-			IADD = new AddOperatorInstruction(INT),
+			SWAP = new SwapInstruction(),
+
+
+	IADD = new AddOperatorInstruction(INT),
 			LADD = new AddOperatorInstruction(LONG),
 			FADD = new AddOperatorInstruction(FLOAT),
 			DADD = new AddOperatorInstruction(DOUBLE),
@@ -152,53 +156,53 @@ public class Instructions {
 			LNEG = new NegOperatorInstruction(LONG),
 			FNEG = new NegOperatorInstruction(FLOAT),
 			DNEG = new NegOperatorInstruction(DOUBLE),
-			
-			ISHL  = new ShiftLeftOperatorInstruction(INT),
-			LSHL  = new ShiftLeftOperatorInstruction(LONG),
-			ISHR  = new ShiftRightOperatorInstruction(INT),
-			LSHR  = new ShiftRightOperatorInstruction(LONG),
+
+	ISHL = new ShiftLeftOperatorInstruction(INT),
+			LSHL = new ShiftLeftOperatorInstruction(LONG),
+			ISHR = new ShiftRightOperatorInstruction(INT),
+			LSHR = new ShiftRightOperatorInstruction(LONG),
 			IUSHR = new UShiftRightOperatorInstruction(INT),
 			LUSHR = new UShiftRightOperatorInstruction(LONG),
-			IAND  = new AndOperatorInstruction(INT_BOOLEAN),
-			LAND  = new AndOperatorInstruction(LONG),
-			IOR   = new OrOperatorInstruction(INT_BOOLEAN),
-			LOR   = new OrOperatorInstruction(LONG),
-			IXOR  = new XorOperatorInstruction(INT_BOOLEAN),
-			LXOR  = new XorOperatorInstruction(LONG),
-			
-			
-			I2L = new CastInstruction(INT,    LONG,   true),
-			I2F = new CastInstruction(INT,    FLOAT,  true),
-			I2D = new CastInstruction(INT,    DOUBLE, true),
-			L2I = new CastInstruction(LONG,   INT,    false),
-			L2F = new CastInstruction(LONG,   FLOAT,  true),
-			L2D = new CastInstruction(LONG,   DOUBLE, true),
-			F2I = new CastInstruction(FLOAT,  INT,    false),
-			F2L = new CastInstruction(FLOAT,  LONG,   false),
-			F2D = new CastInstruction(FLOAT,  DOUBLE, true),
-			D2I = new CastInstruction(DOUBLE, INT,    false),
-			D2L = new CastInstruction(DOUBLE, LONG,   false),
-			D2F = new CastInstruction(DOUBLE, FLOAT,  false),
-			I2B = new CastInstruction(INT,    BYTE,   false),
-			I2C = new CastInstruction(INT,    CHAR,   false),
-			I2S = new CastInstruction(INT,    SHORT,  false),
-			
-			
-			LCMP = new LCmpInstruction(),
+			IAND = new AndOperatorInstruction(INT_BOOLEAN),
+			LAND = new AndOperatorInstruction(LONG),
+			IOR = new OrOperatorInstruction(INT_BOOLEAN),
+			LOR = new OrOperatorInstruction(LONG),
+			IXOR = new XorOperatorInstruction(INT_BOOLEAN),
+			LXOR = new XorOperatorInstruction(LONG),
+
+
+	I2L = new CastInstruction(INT, LONG, true),
+			I2F = new CastInstruction(INT, FLOAT, true),
+			I2D = new CastInstruction(INT, DOUBLE, true),
+			L2I = new CastInstruction(LONG, INT, false),
+			L2F = new CastInstruction(LONG, FLOAT, true),
+			L2D = new CastInstruction(LONG, DOUBLE, true),
+			F2I = new CastInstruction(FLOAT, INT, false),
+			F2L = new CastInstruction(FLOAT, LONG, false),
+			F2D = new CastInstruction(FLOAT, DOUBLE, true),
+			D2I = new CastInstruction(DOUBLE, INT, false),
+			D2L = new CastInstruction(DOUBLE, LONG, false),
+			D2F = new CastInstruction(DOUBLE, FLOAT, false),
+			I2B = new CastInstruction(INT, BYTE, false),
+			I2C = new CastInstruction(INT, CHAR, false),
+			I2S = new CastInstruction(INT, SHORT, false),
+
+
+	LCMP = new LCmpInstruction(),
 			FCMP = new FCmpInstruction(),
 			DCMP = new DCmpInstruction(),
-			
-			
-			IRETURN = new IReturnInstruction(),
+
+
+	IRETURN = new IReturnInstruction(),
 			LRETURN = new LReturnInstruction(),
 			FRETURN = new FReturnInstruction(),
 			DRETURN = new DReturnInstruction(),
 			ARETURN = new AReturnInstruction(),
 			VRETURN = new VReturnInstruction(),
-			
-			ARRAYLENGTH = new ArrayLengthInstruction(),
+
+	ARRAYLENGTH = new ArrayLengthInstruction(),
 			ATHROW = new AThrowInstruction(),
-			
-			MONITORENTER = new MonitorEnterInstruction(),
+
+	MONITORENTER = new MonitorEnterInstruction(),
 			MONITOREXIT = new MonitorExitInstruction();
 }

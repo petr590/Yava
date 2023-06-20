@@ -1,21 +1,21 @@
 package x590.yava.main.performing;
 
-import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import it.unimi.dsi.fastutil.ints.IntObjectImmutablePair;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
+import x590.util.Logger;
+import x590.util.TextUtil;
 import x590.yava.clazz.DecompilationStats;
 import x590.yava.clazz.JavaClass;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.main.Config;
 import x590.yava.main.Yava;
 import x590.yava.method.JavaMethod;
-import x590.util.Logger;
-import x590.util.TextUtil;
+
+import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Представляет действие декомпиляции класса
@@ -23,16 +23,16 @@ import x590.util.TextUtil;
 public class DecompilingPerforming extends DecodingPerforming<StringifyOutputStream> implements DecompilationStats {
 
 	private final Map<JavaClass, IntObjectPair<List<? extends JavaMethod>>> methodsStat = new LinkedHashMap<>();
-	
+
 	public DecompilingPerforming(Config config) {
 		super(config);
 	}
-	
+
 	@Override
 	protected StringifyOutputStream createOutputStream(OutputStream out) {
 		return new StringifyOutputStream(out);
 	}
-	
+
 	@Override
 	public void perform(JavaClass clazz) {
 		clazz.decompile(this);
@@ -48,7 +48,7 @@ public class DecompilingPerforming extends DecodingPerforming<StringifyOutputStr
 		clazz.afterDecompilation();
 		clazz.resolveImports();
 	}
-	
+
 	@Override
 	public void doWrite(JavaClass clazz) {
 		super.writeSeparator();
@@ -88,7 +88,7 @@ public class DecompilingPerforming extends DecodingPerforming<StringifyOutputStr
 
 			Iterator<String> descriptorsStringsIter = descriptorsStrings.iterator();
 
-			for(var javaMethod : errorMethods) {
+			for (var javaMethod : errorMethods) {
 				Logger.logf(methodFormat, descriptorsStringsIter.next(), javaMethod.getDecompilationException());
 			}
 		});

@@ -7,15 +7,15 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.constant.IConstOperation;
 
 public class IConstInstruction extends ConstInstruction<IntegerConstant> {
-	
+
 	public IConstInstruction(IntegerConstant constant) {
 		super(constant);
 	}
-	
+
 	public IConstInstruction(int value) {
 		super(ConstantPool.findOrCreateConstant(value));
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new IConstOperation(constant);

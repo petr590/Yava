@@ -1,28 +1,31 @@
 package x590.yava.main.performing;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.regex.Pattern;
-
+import x590.util.Logger;
+import x590.util.Timer;
+import x590.util.annotation.Nullable;
 import x590.yava.clazz.JavaClass;
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.ExtendedOutputStream;
 import x590.yava.main.Config;
-import x590.util.Logger;
-import x590.util.Timer;
-import x590.util.annotation.Nullable;
+
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 import static java.io.File.separatorChar;
 
 public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> extends AbstractPerforming<S> {
-	
+
 	public DecodingPerforming(Config config) {
 		super(config);
 	}
 
 	private static final Pattern CLASSNAME_PATTERN =
-		Pattern.compile("([\\w$-]+)(\\.[\\w$-]+)+", Pattern.UNICODE_CASE);
+			Pattern.compile("([\\w$-]+)(\\.[\\w$-]+)+", Pattern.UNICODE_CASE);
 
 	private static Path toPath(String filename) {
 		return Paths.get(
@@ -31,7 +34,7 @@ public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> exte
 						filename
 		);
 	}
-	
+
 	@Override
 	public @Nullable JavaClass read(String filename) throws IOException, UncheckedIOException {
 
@@ -60,9 +63,9 @@ public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> exte
 			in.close();
 		}
 	}
-	
+
 	protected void writeSeparator() {
-		if(!separateOutputStream) {
+		if (!separateOutputStream) {
 			out.resetIndent().print("\n\n----------------------------------------------------------------------------------------------------\n\n");
 		}
 	}

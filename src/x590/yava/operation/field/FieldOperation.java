@@ -1,7 +1,5 @@
 package x590.yava.operation.field;
 
-import java.util.Optional;
-
 import x590.yava.clazz.ClassInfo;
 import x590.yava.clazz.IClassInfo;
 import x590.yava.constpool.FieldrefConstant;
@@ -16,15 +14,17 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.OperationWithDescriptor;
 import x590.yava.type.reference.ClassType;
 
+import java.util.Optional;
+
 public abstract class FieldOperation extends OperationWithDescriptor<FieldDescriptor> {
-	
+
 	protected final boolean canOmit;
 	private boolean isEnclosingThis;
-	
+
 	public FieldOperation(DecompilationContext context, int index) {
 		this(context, context.pool.get(index));
 	}
-	
+
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
 		super(FieldDescriptor.from(fieldref));
 		this.canOmit = canOmit(context.getClassinfo());
@@ -34,71 +34,71 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 		super(descriptor);
 		this.canOmit = canOmit(context.getClassinfo());
 	}
-	
+
 	private boolean canOmit(ClassInfo classinfo) {
-		
-		if(!Yava.getConfig().showSynthetic() && getDescriptor().getDeclaringClass().equals(classinfo.getThisType())) {
+
+		if (!Yava.getConfig().showSynthetic() && getDescriptor().getDeclaringClass().equals(classinfo.getThisType())) {
 			Optional<JavaField> field = classinfo.findField(getDescriptor());
-			
-			if(field.isPresent()) {
+
+			if (field.isPresent()) {
 				return field.get().getModifiers().isSynthetic();
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	private boolean isEnclosingThis(DecompilationContext context, Operation object) {
-		
-		if(!Yava.getConfig().showSynthetic()) {
+
+		if (!Yava.getConfig().showSynthetic()) {
 			var thisType = context.getClassinfo().getThisType();
-			
-			if( 	thisType.isNested() &&
+
+			if (thisType.isNested() &&
 					object.isThisObject(context.getMethodModifiers()) &&
 					getDescriptor().getName().matches("this\\$\\d+") &&
 					getDescriptor().getType() instanceof ClassType fieldType &&
 					thisType.isNestmateOf(fieldType)) {
-					
+
 				var foundField = context.getClassinfo().findField(getDescriptor());
 				return foundField.isPresent() && foundField.get().getModifiers().isSynthetic();
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	protected Operation popObject(DecompilationContext context) {
 		Operation object = context.popAsNarrowest(getDescriptor().getDeclaringClass()).castIfNecessary(getDescriptor().getDeclaringClass());
 		this.isEnclosingThis = isEnclosingThis(context, object);
 		return object;
 	}
-	
+
 	@Override
 	protected Optional<? extends FieldInfo> findMemberInfo(IClassInfo classinfo, FieldDescriptor descriptor) {
 		return classinfo.findFieldInfoInThisAndSuperClasses(descriptor);
 	}
-	
-	
+
+
 	@Override
 	protected boolean canOmitClass(StringifyContext context) {
-		return  super.canOmitClass(context) &&
+		return super.canOmitClass(context) &&
 				!context.getMethodScope().hasVariableWithName(getDescriptor().getName());
 	}
-	
+
 	@Override
 	protected boolean canOmitObject(StringifyContext context, Operation object) {
-		return  isEnclosingThis ||
+		return isEnclosingThis ||
 				super.canOmitObject(context, object) &&
-				!context.getMethodScope().hasVariableWithName(getDescriptor().getName());
+						!context.getMethodScope().hasVariableWithName(getDescriptor().getName());
 	}
-	
+
 	@Override
 	public boolean canOmit() {
 		return canOmit;
 	}
-	
+
 	public void writeName(StringifyOutputStream out, StringifyContext context) {
-		if(isEnclosingThis) {
+		if (isEnclosingThis) {
 			out.print(getDescriptor().getType(), context.getClassinfo()).write(".this");
 		} else {
 			out.write(getDescriptor().getName());

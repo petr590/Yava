@@ -6,7 +6,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.returning.FReturnOperation;
 
 public class FReturnInstruction implements Instruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new FReturnOperation(context);

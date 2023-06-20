@@ -6,5 +6,5 @@ import x590.yava.io.DisassemblingOutputStream;
  * Описывает объект, который можно записать в {@link DisassemblingOutputStream}
  */
 public interface DisassemblingWritable<T> extends Writable<T> {
-	public void writeDisassembled(DisassemblingOutputStream out, T param);
+	void writeDisassembled(DisassemblingOutputStream out, T param);
 }

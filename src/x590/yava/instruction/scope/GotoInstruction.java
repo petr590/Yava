@@ -1,8 +1,6 @@
 package x590.yava.instruction.scope;
 
-import java.util.List;
-import java.util.Optional;
-
+import x590.util.annotation.Nullable;
 import x590.yava.attribute.CodeAttribute.ExceptionTable.TryEntry;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.DisassemblerContext;
@@ -11,162 +9,159 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.condition.BooleanConstOperation;
 import x590.yava.operation.execstream.BreakOperation;
 import x590.yava.operation.execstream.ContinueOperation;
-import x590.yava.scope.CatchScope;
-import x590.yava.scope.ElseScope;
-import x590.yava.scope.EmptyInfiniteLoopScope;
-import x590.yava.scope.IfScope;
-import x590.yava.scope.LoopScope;
-import x590.yava.scope.Scope;
-import x590.util.annotation.Nullable;
+import x590.yava.scope.*;
+
+import java.util.List;
+import java.util.Optional;
 
 public class GotoInstruction extends TransitionInstruction {
-	
+
 	private Role role;
-	
+
 	public enum Role {
 		UNKNOWN, ELSE, CATCH_OVERJUMP,
 		EMPTY_INFINITE_LOOP, INFINITE_LOOP, LOOP_PROLOGUE,
 		BREAK, CONTINUE
 	}
-	
+
 	public GotoInstruction(DisassemblerContext context, int offset) {
 		super(context, offset);
-		
+
 		this.role =
 				offset == 0 ? Role.EMPTY_INFINITE_LOOP :
-				offset < 0 ? Role.INFINITE_LOOP :
-				Role.UNKNOWN;
+						offset < 0 ? Role.INFINITE_LOOP :
+								Role.UNKNOWN;
 	}
-	
-	
+
+
 	public Role getRole() {
 		return role;
 	}
-	
-	
+
+
 	@Override
 	@SuppressWarnings("incomplete-switch")
 	public void preDecompilation(PreDecompilationContext context) {
-		
+
 		super.preDecompilation(context);
-		
-		switch(role) {
+
+		switch (role) {
 			case UNKNOWN -> {
-			
-				if(targetPos > context.currentPos() && context.hasIfInstructionsPointedTo(context.currentIndex() + 1)) {
+
+				if (targetPos > context.currentPos() && context.hasIfInstructionsPointedTo(context.currentIndex() + 1)) {
 					role = Role.ELSE;
-					
+
 				} else {
 					final int currentIndex = context.currentIndex();
-					
+
 					Optional<TryEntry> foundTryEntry = context.getExceptionTable().getEntries().stream()
 							.filter(tryEntry -> currentIndex == tryEntry.getFactualEndIndex(context)).findAny();
-					
-					if(foundTryEntry.isPresent()) {
+
+					if (foundTryEntry.isPresent()) {
 						role = Role.CATCH_OVERJUMP;
 						foundTryEntry.get().setLastPos(targetPos);
 					}
 				}
 			}
-			
+
 			case INFINITE_LOOP -> {
-				
-				if(targetPos < context.currentPos()) {
-					
+
+				if (targetPos < context.currentPos()) {
+
 					List<GotoInstruction> otherGotos = context.getGotoInstructionsPointedTo(targetIndex);
-					
+
 					assert !otherGotos.contains(this);
 					assert otherGotos.stream()
 							.mapToInt(gotoInstruction -> gotoInstruction.fromIndex)
 							.max().orElse(NONE_INDEX) < fromIndex;
-					
-					if(!otherGotos.isEmpty()) {
+
+					if (!otherGotos.isEmpty()) {
 						otherGotos.forEach(gotoInstruction -> gotoInstruction.role = Role.CONTINUE);
 					}
 				}
 			}
 		}
 	}
-	
-	
+
+
 	@Override
 	public @Nullable Operation toOperationBeforeTargetIndex(DecompilationContext context) {
-		if(role == Role.INFINITE_LOOP)
+		if (role == Role.INFINITE_LOOP)
 			return new LoopScope(context, targetIndex - 1, fromIndex + 1, BooleanConstOperation.TRUE, true);
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
-		
+
 		int targetIndex = this.targetIndex;
-		
+
 		context.saveStackState(targetIndex);
 		context.addBreak(targetIndex - 1);
-		
-		return switch(role) {
-			
+
+		return switch (role) {
+
 			case UNKNOWN -> {
-				
+
 				Operation breakOperation = recognizeBreak(context);
-				if(breakOperation != null) {
+				if (breakOperation != null) {
 					yield breakOperation;
 				}
-				
-				if(recognizeElse(context, context.currentScope())) {
+
+				if (recognizeElse(context, context.currentScope())) {
 					yield null;
 				}
-				
-				if(context.currentScope() instanceof CatchScope catchScope &&
+
+				if (context.currentScope() instanceof CatchScope catchScope &&
 						context.currentIndex() + 1 == catchScope.endIndex()) {
-					
+
 					role = Role.CATCH_OVERJUMP;
 				}
-				
+
 				yield null;
 			}
-			
+
 			case ELSE -> {
-				
+
 				Operation breakOperation = recognizeBreak(context);
-				if(breakOperation != null) {
+				if (breakOperation != null) {
 					yield breakOperation;
 				}
-				
-				if(!recognizeElse(context, context.currentScope())) {
+
+				if (!recognizeElse(context, context.currentScope())) {
 					context.warning("Cannot recognize else scope");
 				}
-				
+
 				yield null;
 			}
-			
+
 			case CONTINUE -> {
-				
+
 				boolean hasOtherContinuable = false;
-				
-				for(Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
-					
-					if(scope.isContinuable()) {
-						if(scope.startIndex() == targetIndex) {
+
+				for (Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
+
+					if (scope.isContinuable()) {
+						if (scope.startIndex() == targetIndex) {
 							yield new ContinueOperation(scope, hasOtherContinuable);
 						}
-						
+
 						hasOtherContinuable = true;
 					}
 				}
-				
+
 				context.warning("Cannot recognize continue operation");
 				yield null;
 			}
-			
+
 			case EMPTY_INFINITE_LOOP -> new EmptyInfiniteLoopScope(context);
-			
+
 			case CATCH_OVERJUMP, LOOP_PROLOGUE, INFINITE_LOOP, BREAK -> null;
 		};
-		
+
 		// Old code
-		
+
 //		int endIndex = this.endIndex = context.posToIndex(endPos);
 //		int currentIndex = context.currentIndex();
 //		Scope currentScope = context.currentScope();
@@ -199,49 +194,49 @@ public class GotoInstruction extends TransitionInstruction {
 //		
 //		return null;
 	}
-	
+
 	@Override
 	protected @Nullable Scope toScope(DecompilationContext context) {
 		return toOperation(context) instanceof Scope scope ? scope : null;
 	}
-	
+
 	private @Nullable Operation recognizeBreak(DecompilationContext context) {
 		boolean hasOtherBreakable = false;
 		int targetIndex = this.targetIndex;
-		
-		for(Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
-			
-			if(scope.isBreakable()) {
-				if(scope.expandTo(targetIndex)) {
+
+		for (Scope scope = context.currentScope(); scope != null; scope = scope.superScope()) {
+
+			if (scope.isBreakable()) {
+				if (scope.expandTo(targetIndex)) {
 					role = Role.BREAK;
 					return new BreakOperation(scope, hasOtherBreakable);
 				}
-				
+
 				hasOtherBreakable = true;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	private boolean recognizeElse(DecompilationContext context, Scope currentScope) {
-		
-		if(currentScope instanceof IfScope currentIf) {
+
+		if (currentScope instanceof IfScope currentIf) {
 			return recognizeElse(context, currentIf);
-			
-		} else if(currentScope instanceof ElseScope elseScope && targetIndex == elseScope.endIndex()) {
+
+		} else if (currentScope instanceof ElseScope elseScope && targetIndex == elseScope.endIndex()) {
 			elseScope.setEndIndex(context.currentIndex() + 1);
 			return recognizeElse(context, elseScope.superScope());
 		}
-		
+
 		return false;
 	}
-	
+
 	private boolean recognizeElse(DecompilationContext context, IfScope currentIf) {
-		
+
 		int currentIndex = context.currentIndex();
-		
-		if(currentIndex + 1 == currentIf.endIndex()) { // Создаём else
+
+		if (currentIndex + 1 == currentIf.endIndex()) { // Создаём else
 			currentIf.addElse(context, targetIndex);
 			return true;
 		}
@@ -261,31 +256,31 @@ public class GotoInstruction extends TransitionInstruction {
 			
 			code3;
 		 */
-		
-		if(targetIndex == currentIf.endIndex() && currentIf.superScope() instanceof IfScope superIf) {
+
+		if (targetIndex == currentIf.endIndex() && currentIf.superScope() instanceof IfScope superIf) {
 			currentIf.setEndIndex(currentIndex + 1);
 			return recognizeElse(context, superIf);
 		}
-		
+
 		return false;
 	}
-	
+
 	@Override
 	public void postDecompilation(DecompilationContext context) {
-		if(role == Role.UNKNOWN) {
+		if (role == Role.UNKNOWN) {
 			int currentIndex = context.currentIndex();
 			int targetIndexM1 = targetIndex - 1;
-			
+
 			Optional<LoopScope> foundScope = context.getOperations().stream()
 					.filter(
-						operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
-								scope.startIndex() == currentIndex && scope.conditionStartIndex() == targetIndexM1
-					
-					).map(operation -> (LoopScope)operation)
+							operation -> !operation.isRemoved() && operation instanceof LoopScope scope &&
+									scope.startIndex() == currentIndex && scope.conditionStartIndex() == targetIndexM1
+
+					).map(operation -> (LoopScope) operation)
 					.findAny();
-			
-			
-			if(foundScope.isPresent()) {
+
+
+			if (foundScope.isPresent()) {
 				role = Role.LOOP_PROLOGUE;
 				foundScope.get().makePreCondition();
 			} else {

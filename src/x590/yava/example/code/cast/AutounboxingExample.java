@@ -5,11 +5,11 @@ import x590.yava.example.ExampleTesting;
 
 @Example
 public class AutounboxingExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(AutounboxingExample.class);
 	}
-	
+
 	@SuppressWarnings("unused")
 	public static final void foo(Byte ob, Short os, Character oc, Integer oi, Long ol, Float of, Double od, Boolean oz) {
 		byte b = ob;
@@ -20,55 +20,55 @@ public class AutounboxingExample {
 		float f = of;
 		double d = od;
 		boolean z = oz;
-		
+
 		b = ob;
 		s = ob;
-		c = (char)(byte)ob;
+		c = (char) (byte) ob;
 		i = ob;
 		l = ob;
 		f = ob;
 		d = ob;
-		b = (byte)(short)os;
+		b = (byte) (short) os;
 		s = os;
-		c = (char)(short)os;
+		c = (char) (short) os;
 		i = os;
 		l = os;
 		f = os;
 		d = os;
-		b = (byte)(char)oc;
-		s = (short)(char)oc;
+		b = (byte) (char) oc;
+		s = (short) (char) oc;
 		c = oc;
 		i = oc;
 		l = oc;
 		f = oc;
 		d = oc;
-		b = (byte)(int)oi;
-		s = (short)(int)oi;
-		c = (char)(int)oi;
+		b = (byte) (int) oi;
+		s = (short) (int) oi;
+		c = (char) (int) oi;
 		i = oi;
 		l = oi;
 		f = oi;
 		d = oi;
-		b = (byte)(long)ol;
-		s = (short)(long)ol;
-		c = (char)(long)ol;
-		i = (int)(long)ol;
+		b = (byte) (long) ol;
+		s = (short) (long) ol;
+		c = (char) (long) ol;
+		i = (int) (long) ol;
 		l = ol;
 		f = ol;
 		d = ol;
-		b = (byte)(float)of;
-		s = (short)(float)of;
-		c = (char)(float)of;
-		i = (int)(float)of;
-		l = (long)(float)of;
+		b = (byte) (float) of;
+		s = (short) (float) of;
+		c = (char) (float) of;
+		i = (int) (float) of;
+		l = (long) (float) of;
 		f = of;
 		d = of;
-		b = (byte)(double)od;
-		s = (short)(double)od;
-		c = (char)(double)od;
-		i = (int)(double)od;
-		l = (long)(double)od;
-		f = (float)(double)od;
+		b = (byte) (double) od;
+		s = (short) (double) od;
+		c = (char) (double) od;
+		i = (int) (double) od;
+		l = (long) (double) od;
+		f = (float) (double) od;
 		d = od;
 	}
 }

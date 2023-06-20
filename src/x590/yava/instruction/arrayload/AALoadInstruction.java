@@ -5,7 +5,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.arrayload.AALoadOperation;
 
 public class AALoadInstruction extends ArrayLoadInstruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new AALoadOperation(context);

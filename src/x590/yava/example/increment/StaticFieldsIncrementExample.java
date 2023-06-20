@@ -6,7 +6,7 @@ import x590.yava.example.ExampleTesting;
 @Example
 @SuppressWarnings("unused")
 public class StaticFieldsIncrementExample {
-	
+
 	public static byte b = 0;
 	public static short s = 0;
 	public static char c = 0;
@@ -14,11 +14,11 @@ public class StaticFieldsIncrementExample {
 	public static long l = 0;
 	public static float f = 0;
 	public static double d = 0;
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(StaticFieldsIncrementExample.class);
 	}
-	
+
 	public static void inc() {
 		System.out.println(b++);
 		System.out.println(s++);
@@ -28,7 +28,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f++);
 		System.out.println(d++);
 	}
-	
+
 	public static void dec() {
 		System.out.println(b--);
 		System.out.println(s--);
@@ -38,7 +38,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f--);
 		System.out.println(d--);
 	}
-	
+
 	public static void preInc() {
 		System.out.println(++b);
 		System.out.println(++s);
@@ -48,7 +48,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(++f);
 		System.out.println(++d);
 	}
-	
+
 	public static void preDec() {
 		System.out.println(--b);
 		System.out.println(--s);
@@ -58,7 +58,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(--f);
 		System.out.println(--d);
 	}
-	
+
 	public static void add() {
 		System.out.println(b += b);
 		System.out.println(s += s);
@@ -68,7 +68,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f += f);
 		System.out.println(d += d);
 	}
-	
+
 	public static void sub() {
 		System.out.println(b -= b);
 		System.out.println(s -= s);
@@ -78,7 +78,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f -= f);
 		System.out.println(d -= d);
 	}
-	
+
 	public static void mul() {
 		System.out.println(b *= b);
 		System.out.println(s *= s);
@@ -88,7 +88,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f *= f);
 		System.out.println(d *= d);
 	}
-	
+
 	public static void div() {
 		System.out.println(b /= b);
 		System.out.println(s /= s);
@@ -98,7 +98,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f /= f);
 		System.out.println(d /= d);
 	}
-	
+
 	public static void rem() {
 		System.out.println(b %= b);
 		System.out.println(s %= s);
@@ -108,7 +108,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(f %= f);
 		System.out.println(d %= d);
 	}
-	
+
 	public static void and() {
 		System.out.println(b &= b);
 		System.out.println(s &= s);
@@ -116,7 +116,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i &= i);
 		System.out.println(l &= l);
 	}
-	
+
 	public static void or() {
 		System.out.println(b |= b);
 		System.out.println(s |= s);
@@ -124,7 +124,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i |= i);
 		System.out.println(l |= l);
 	}
-	
+
 	public static void xor() {
 		System.out.println(b ^= b);
 		System.out.println(s ^= s);
@@ -132,23 +132,23 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i ^= i);
 		System.out.println(l ^= l);
 	}
-	
+
 	public static void not() {
-		System.out.println(b = (byte)~b);
-		System.out.println(s = (short)~s);
-		System.out.println(c = (char)~c);
+		System.out.println(b = (byte) ~b);
+		System.out.println(s = (short) ~s);
+		System.out.println(c = (char) ~c);
 		System.out.println(i = ~i);
 		System.out.println(l = ~l);
 	}
-	
+
 	public static void neg() {
-		System.out.println(b = (byte)-b);
-		System.out.println(s = (short)-s);
-		System.out.println(c = (char)-c);
+		System.out.println(b = (byte) -b);
+		System.out.println(s = (short) -s);
+		System.out.println(c = (char) -c);
 		System.out.println(i = -i);
 		System.out.println(l = -l);
 	}
-	
+
 	public static void shl() {
 		System.out.println(b <<= b);
 		System.out.println(s <<= s);
@@ -156,7 +156,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i <<= i);
 		System.out.println(l <<= l);
 	}
-	
+
 	public static void shr() {
 		System.out.println(b >>= b);
 		System.out.println(s >>= s);
@@ -164,7 +164,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i >>= i);
 		System.out.println(l >>= l);
 	}
-	
+
 	public static void ushr() {
 		System.out.println(b >>>= b);
 		System.out.println(s >>>= s);
@@ -172,7 +172,7 @@ public class StaticFieldsIncrementExample {
 		System.out.println(i >>>= i);
 		System.out.println(l >>>= l);
 	}
-	
+
 	public static void assign() {
 		System.out.println(b = -1);
 		System.out.println(s = -1);

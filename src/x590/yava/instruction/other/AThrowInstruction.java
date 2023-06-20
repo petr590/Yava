@@ -6,7 +6,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.other.AThrowOperation;
 
 public class AThrowInstruction implements Instruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new AThrowOperation(context);

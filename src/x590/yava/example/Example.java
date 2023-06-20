@@ -13,17 +13,25 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Example {
-	
-	/** Классы, которые мы будем декомпилировать.
-	 * Если массив пустой, значит, декомпилируется тот класс, в котором объявлена аннотация */
+
+	/**
+	 * Классы, которые мы будем декомпилировать.
+	 * Если массив пустой, значит, декомпилируется тот класс, в котором объявлена аннотация
+	 */
 	Class<?>[] classes() default {};
-	
-	/** Массив аргументов для запуска декомпилятора */
+
+	/**
+	 * Массив аргументов для запуска декомпилятора
+	 */
 	String[] args() default {};
-	
-	/** Папка, где будет поиск классов */
+
+	/**
+	 * Папка, где будет поиск классов
+	 */
 	String directory() default ExampleTesting.DEFAULT_DIR;
-	
-	/** Откуда брать классы */
+
+	/**
+	 * Откуда брать классы
+	 */
 	FileSource source() default FileSource.FILESYSTEM;
 }

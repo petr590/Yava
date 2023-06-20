@@ -3,10 +3,10 @@ package x590.yava.test;
 import java.util.Map;
 
 public class ClassNamesTest {
-	
+
 	public static void main(String[] args) {
 		Class<?> clazz = Map.Entry.class;
-		
+
 		System.out.println("getName()          -> " + clazz.getName());
 		System.out.println("getCanonicalName() -> " + clazz.getCanonicalName());
 		System.out.println("getTypeName()      -> " + clazz.getTypeName());

@@ -1,8 +1,8 @@
 package x590.yava.attribute;
 
+import x590.yava.attribute.Attributes.Location;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.io.AssemblingInputStream;
-import x590.yava.attribute.Attributes.Location;
 
 @FunctionalInterface
 public interface AttributeParser<A extends Attribute> {

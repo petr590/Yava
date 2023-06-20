@@ -5,7 +5,7 @@ import x590.yava.io.AssemblingInputStream;
 
 import java.io.ByteArrayInputStream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class NumberParsingTest {
 

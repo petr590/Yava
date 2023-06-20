@@ -12,7 +12,7 @@ public class Debug2<T> {
 	private T[] genericArray;
 
 	private Object[] getObjArray() {
-		return new Object[] { null };
+		return new Object[]{null};
 	}
 
 	@SuppressWarnings("unchecked")
@@ -20,20 +20,21 @@ public class Debug2<T> {
 		Object obj = null;
 
 		foo(null);
-		foo((T[])obj);
-		foo((T[])array);
+		foo((T[]) obj);
+		foo((T[]) array);
 		foo(genericArray);
-		this.genericArray = (T[])array;
+		this.genericArray = (T[]) array;
 	}
 
-	public void foo(T[] array) {}
+	public void foo(T[] array) {
+	}
 
 	@SuppressWarnings("unchecked")
 	public T[] test() {
 		T[] array = genericArray;
 
 		if (array == null) {
-			genericArray = array = (T[])getObjArray();
+			genericArray = array = (T[]) getObjArray();
 		}
 
 		return array;

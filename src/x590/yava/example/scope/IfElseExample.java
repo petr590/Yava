@@ -6,31 +6,31 @@ import x590.yava.example.ExampleTesting;
 @Example
 @SuppressWarnings("unused")
 public class IfElseExample {
-	
+
 	public static void main(String[] args) {
 		ExampleTesting.DECOMPILING.run(IfElseExample.class);
 	}
-	
+
 	public static void ifElseScope(Object obj) {
-		if(obj == null)
+		if (obj == null)
 			System.out.println("Null");
 		else
 			System.out.println("Not null");
 	}
-	
+
 	public static void difficultIfElseScope1(int x) {
-		if(x == 10) {
-			if(x == 20) {
+		if (x == 10) {
+			if (x == 20) {
 				System.out.print("1");
 			} else {
 				System.out.print("2");
 			}
-			
+
 		} else {
 			System.out.print("0");
 		}
 	}
-	
+
 //	public static void difficultIfElseScope2(int x) {
 //		if(x == 10) {
 //			if(x == 20) {

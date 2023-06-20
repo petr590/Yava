@@ -5,7 +5,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.arrayload.BALoadOperation;
 
 public class BALoadInstruction extends ArrayLoadInstruction {
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new BALoadOperation(context);

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import re, subprocess
 
-path = 'src/x590/jdecompiler/main/Version.java'
+path = 'src/x590/yava/main/Version.java'
 
 with open(path, 'r', encoding='utf-8') as file:
 	content = file.read()

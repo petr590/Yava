@@ -14,9 +14,9 @@ public class AssemblingInputStreamTest {
 		var in = new AssemblingInputStream(new ByteArrayInputStream("abcd {}()".getBytes()));
 
 		assertEquals("abcd", in.nextString());
-		assertFalse(in.advanceIfHasNext("("));
-		assertTrue(in.advanceIfHasNext("{"));
-		assertTrue(in.advanceIfHasNext("}"));
+		assertFalse(in.advanceIfHasNext('('));
+		assertTrue(in.advanceIfHasNext('{'));
+		assertTrue(in.advanceIfHasNext('}'));
 		assertTrue(in.advanceIfHasNext("()"));
 	}
 }

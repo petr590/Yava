@@ -7,13 +7,13 @@ import x590.yava.operation.other.PopOperation;
 import x590.yava.type.TypeSize;
 
 public class PopInstruction implements Instruction {
-	
+
 	private final TypeSize size;
-	
+
 	public PopInstruction(TypeSize size) {
 		this.size = size;
 	}
-	
+
 	@Override
 	public Operation toOperation(DecompilationContext context) {
 		return new PopOperation(size, context);

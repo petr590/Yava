@@ -148,17 +148,17 @@ public class ArrayIncrementExample2 {
 	}
 
 	public static void not(byte[] b, short[] s, char[] c, int[] i, long[] l) {
-		b[0] = (byte)~b[0];
-		s[0] = (short)~s[0];
-		c[0] = (char)~c[0];
+		b[0] = (byte) ~b[0];
+		s[0] = (short) ~s[0];
+		c[0] = (char) ~c[0];
 		i[0] = ~i[0];
 		l[0] = ~l[0];
 	}
 
 	public static void neg(byte[] b, short[] s, char[] c, int[] i, long[] l) {
-		b[0] = (byte)-b[0];
-		s[0] = (short)-s[0];
-		c[0] = (char)-c[0];
+		b[0] = (byte) -b[0];
+		s[0] = (short) -s[0];
+		c[0] = (char) -c[0];
 		i[0] = -i[0];
 		l[0] = -l[0];
 	}
