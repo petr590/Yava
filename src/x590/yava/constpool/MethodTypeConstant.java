@@ -1,8 +1,9 @@
 package x590.yava.constpool;
 
 import x590.yava.clazz.ClassInfo;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.operation.Operation;
 import x590.yava.operation.constant.MethodTypeConstOperation;
@@ -53,9 +54,8 @@ public final class MethodTypeConstant extends ConstValueConstant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_METHOD_TYPE);
-		out.writeByte(descriptorIndex);
+	public void serialize(AssemblingOutputStream out) {
+		out.recordByte(TAG_METHOD_TYPE).writeByte(descriptorIndex);
 	}
 
 

@@ -4,7 +4,7 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 import x590.yava.Importable;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ClassConstant;
+import x590.yava.constpool.constvalue.ClassConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.constpool.ModuleConstant;
 import x590.yava.constpool.PackageConstant;
@@ -67,8 +67,7 @@ public class ModuleAttribute extends Attribute implements StringifyWritable<Clas
 	}
 
 
-	private interface IModuleEntry extends StringifyWritable<ClassInfo>, Importable {
-	}
+	private interface IModuleEntry extends StringifyWritable<ClassInfo>, Importable {}
 
 
 	private static class RequirementEntry implements IModuleEntry {

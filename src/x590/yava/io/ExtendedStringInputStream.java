@@ -120,7 +120,7 @@ public class ExtendedStringInputStream extends UncheckedInputStream {
 		while (true) {
 			int c = read();
 			if (c == ch || c == EOF_CHAR) break;
-			str.append((char) c);
+			str.append((char)c);
 		}
 
 		decPos();
@@ -133,7 +133,7 @@ public class ExtendedStringInputStream extends UncheckedInputStream {
 		while (true) {
 			int c = read();
 			if (c == ch1 || c == ch2 || c == EOF_CHAR) break;
-			str.append((char) c);
+			str.append((char)c);
 		}
 
 		decPos();

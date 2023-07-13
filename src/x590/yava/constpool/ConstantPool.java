@@ -9,10 +9,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import x590.util.annotation.Nullable;
-import x590.yava.JavaSerializable;
+import x590.yava.constpool.constvalue.*;
+import x590.yava.exception.decompilation.IllegalConstantException;
+import x590.yava.serializable.JavaSerializable;
 import x590.yava.exception.decompilation.NoSuchConstantException;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
+import x590.yava.type.Type;
+import x590.yava.type.reference.RealReferenceType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,11 +26,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class ConstantPool implements JavaSerializable {
-
-	private static final Int2ObjectMap<IntegerConstant> INTEGER_CONSTANTS = new Int2ObjectArrayMap<>();
-	private static final Long2ObjectMap<LongConstant> LONG_CONSTANTS = new Long2ObjectArrayMap<>();
-	private static final Float2ObjectMap<FloatConstant> FLOAT_CONSTANTS = new Float2ObjectArrayMap<>();
-	private static final Double2ObjectMap<DoubleConstant> DOUBLE_CONSTANTS = new Double2ObjectArrayMap<>();
 
 	private static final Map<String, Utf8Constant> UTF8_CONSTANTS = new HashMap<>();
 	private static final Map<String, StringConstant> STRING_CONSTANTS = new HashMap<>();
@@ -59,7 +58,7 @@ public final class ConstantPool implements JavaSerializable {
 
 	private ConstantPool() {
 		this.data = new ArrayList<>();
-		data.add(null);
+		data.add(null); // 0-й элемент всегда null
 	}
 
 	public static ConstantPool read(ExtendedDataInputStream in) {
@@ -78,10 +77,21 @@ public final class ConstantPool implements JavaSerializable {
 		throw new NoSuchConstantException("By index " + index);
 	}
 
+	public <C extends Constant> C get(int index, Class<C> constantClass) {
+		C constant = get(index);
+
+		if (constantClass.isInstance(constant)) {
+			return constant;
+		}
+
+		throw new IllegalConstantException("Expected: " + constantClass.getSimpleName()
+				+ ", got " + constant.getConstantName());
+	}
+
 	@SuppressWarnings("unchecked")
 	public <C extends Constant> @Nullable C getNullable(int index) {
 		try {
-			return (C) data.get(index);
+			return (C)data.get(index);
 		} catch (IndexOutOfBoundsException ex) {
 			throw new NoSuchConstantException("By index " + index);
 		}
@@ -108,6 +118,10 @@ public final class ConstantPool implements JavaSerializable {
 	public int add(Constant constant) {
 		int index = data.size();
 		data.add(constant);
+
+		if(constant.holdsTwo())
+			data.add(null);
+
 		return index;
 	}
 
@@ -122,86 +136,114 @@ public final class ConstantPool implements JavaSerializable {
 		return add(newConstantSupplier.get());
 	}
 
+	public int findOrAddInteger(int value) {
+		return findOrAdd(
+				constant -> constant instanceof IntegerConstant integer && integer.getValue() == value,
+				() -> findOrCreateConstant(value)
+		);
+	}
+
+	public int findOrAddLong(long value) {
+		return findOrAdd(
+				constant -> constant instanceof LongConstant longConstant && longConstant.getValue() == value,
+				() -> findOrCreateConstant(value)
+		);
+	}
+
+	public int findOrAddFloat(float value) {
+		return findOrAdd(
+				constant -> constant instanceof FloatConstant floatConstant && floatConstant.equalsTo(value),
+				() -> findOrCreateConstant(value)
+		);
+	}
+
+	public int findOrAddDouble(double value) {
+		return findOrAdd(
+				constant -> constant instanceof DoubleConstant doubleConstant && doubleConstant.equalsTo(value),
+				() -> findOrCreateConstant(value)
+		);
+	}
+
 	public int findOrAddUtf8(String value) {
-		return findOrAdd(constant -> constant instanceof Utf8Constant utf8 &&
-						utf8.getString().equals(value),
-				() -> new Utf8Constant(value));
+		return findOrAdd(
+				constant -> constant instanceof Utf8Constant utf8 && utf8.getString().equals(value),
+				() -> new Utf8Constant(value)
+		);
 	}
 
 	public int findOrAddString(String value) {
-		return findOrAdd(constant -> constant instanceof StringConstant string &&
-						string.getString().equals(value),
-				() -> new Utf8Constant(value));
+		int utf8Index = findOrAddUtf8(value);
+
+		return findOrAdd(
+				constant -> constant instanceof StringConstant string && string.getString().equals(value),
+				() -> new StringConstant(utf8Index, get(utf8Index))
+		);
 	}
 
 	public int findOrAddClass(int nameIndex) {
-		return findOrAdd(constant -> constant instanceof ClassConstant clazz &&
-						clazz.getNameIndex() == nameIndex,
-				() -> new ClassConstant(nameIndex, this));
+		return findOrAdd(
+				constant -> constant instanceof ClassConstant clazz && clazz.getNameIndex() == nameIndex,
+				() -> new ClassConstant(nameIndex, this)
+		);
 	}
 
 	public int findOrAddNameAndType(int nameIndex, int descriptorIndex) {
-		return findOrAdd(constant -> constant instanceof NameAndTypeConstant nameAndType &&
+		return findOrAdd(
+				constant -> constant instanceof NameAndTypeConstant nameAndType &&
 						nameAndType.getNameIndex() == nameIndex && nameAndType.getDescriptorIndex() == descriptorIndex,
-				() -> new NameAndTypeConstant(nameIndex, descriptorIndex, this));
+				() -> new NameAndTypeConstant(nameIndex, descriptorIndex, this)
+		);
 	}
 
 	private int findOrAddReferenceConstant(int classIndex, int nameAndTypeIndex, Predicate<Constant> predicate, Supplier<Constant> supplier) {
-		return findOrAdd(constant -> predicate.test(constant) && constant instanceof ReferenceConstant ref &&
+		return findOrAdd(
+				constant -> predicate.test(constant) && constant instanceof ReferenceConstant ref &&
 						ref.getClassIndex() == classIndex && ref.getNameAndTypeIndex() == nameAndTypeIndex,
-				supplier);
+				supplier
+		);
 	}
 
 	public int findOrAddFieldref(int classIndex, int nameAndTypeIndex) {
 		return findOrAddReferenceConstant(classIndex, nameAndTypeIndex,
 				constant -> constant instanceof FieldrefConstant,
-				() -> new FieldrefConstant(classIndex, nameAndTypeIndex, this));
+				() -> new FieldrefConstant(classIndex, nameAndTypeIndex, this)
+		);
 	}
 
 	public int findOrAddMethodref(int classIndex, int nameAndTypeIndex) {
 		return findOrAddReferenceConstant(classIndex, nameAndTypeIndex,
 				constant -> constant instanceof MethodrefConstant,
-				() -> new MethodrefConstant(classIndex, nameAndTypeIndex, this));
+				() -> new MethodrefConstant(classIndex, nameAndTypeIndex, this)
+		);
 	}
 
 	public int findOrAddInterfaceMethodref(int classIndex, int nameAndTypeIndex) {
 		return findOrAddReferenceConstant(classIndex, nameAndTypeIndex,
 				constant -> constant instanceof InterfaceMethodrefConstant,
-				() -> new InterfaceMethodrefConstant(classIndex, nameAndTypeIndex, this));
+				() -> new InterfaceMethodrefConstant(classIndex, nameAndTypeIndex, this)
+		);
 	}
 
 	public int findOrAddNumber(Number number) {
-		return findOrAdd(constant -> constant instanceof ConstableValueConstant<?> constableValueConstant &&
-						constableValueConstant.getValueAsObject().equals(number),
+		return findOrAdd(
+				constant -> constant instanceof ConstableValueConstant<?> constableValueConstant && constableValueConstant.getValueAsObject().equals(number),
 				() -> findOrCreateConstant(number));
 	}
 
-	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		int size = data.size();
-		out.writeShort(size);
-
-		for (int i = 1; i < size; i++) {
-			Constant conatant = data.get(i);
-			if (conatant != null)
-				conatant.serialize(out);
-		}
-	}
-
 	public static IntegerConstant findOrCreateConstant(int value) {
-		return INTEGER_CONSTANTS.computeIfAbsent(value, IntegerConstant::new);
+		return IntegerConstant.of(value);
 	}
 
 	public static LongConstant findOrCreateConstant(long value) {
-		return LONG_CONSTANTS.computeIfAbsent(value, LongConstant::new);
+		return LongConstant.of(value);
 	}
 
 	public static FloatConstant findOrCreateConstant(float value) {
-		return FLOAT_CONSTANTS.computeIfAbsent(value, FloatConstant::new);
+		return FloatConstant.of(value);
 	}
 
 	public static DoubleConstant findOrCreateConstant(double value) {
-		return DOUBLE_CONSTANTS.computeIfAbsent(value, DoubleConstant::new);
+		return DoubleConstant.of(value);
 	}
 
 	public static IntegerConstant findOrCreateConstant(boolean value) {
@@ -211,11 +253,11 @@ public final class ConstantPool implements JavaSerializable {
 	public static ConstableValueConstant<? extends Number> findOrCreateConstant(Number value) {
 		Class<? extends Number> clazz = value.getClass();
 		if (clazz == Integer.class) return findOrCreateConstant(value.intValue());
-		if (clazz == Long.class) return findOrCreateConstant(value.longValue());
-		if (clazz == Float.class) return findOrCreateConstant(value.floatValue());
-		if (clazz == Double.class) return findOrCreateConstant(value.doubleValue());
-		if (clazz == Byte.class) return findOrCreateConstant(value.byteValue());
-		if (clazz == Short.class) return findOrCreateConstant(value.shortValue());
+		if (clazz == Long.class)    return findOrCreateConstant(value.longValue());
+		if (clazz == Float.class)   return findOrCreateConstant(value.floatValue());
+		if (clazz == Double.class)  return findOrCreateConstant(value.doubleValue());
+		if (clazz == Byte.class)    return findOrCreateConstant(value.byteValue());
+		if (clazz == Short.class)   return findOrCreateConstant(value.shortValue());
 		throw new IllegalArgumentException("value " + value + " has illegal type");
 	}
 
@@ -225,5 +267,34 @@ public final class ConstantPool implements JavaSerializable {
 
 	public static StringConstant findOrCreateConstant(String value) {
 		return STRING_CONSTANTS.computeIfAbsent(value, string -> new StringConstant(findOrCreateUtf8Constant(string)));
+	}
+
+	public int utf8IndexFor(Type type) {
+		return findOrAddUtf8(type.getEncodedName());
+	}
+
+	public int classIndexFor(RealReferenceType type) {
+		return findOrAddClass(findOrAddUtf8(type.getClassEncodedName()));
+	}
+
+	public int classIndexForNullable(@Nullable RealReferenceType type) {
+		return type == null ? 0 : classIndexFor(type);
+	}
+
+	@Override
+	public void serialize(AssemblingOutputStream out) {
+		int size = data.size();
+		out.writeShort(size);
+
+		for (int i = 1; i < size; i++) {
+			Constant constant = data.get(i);
+			if (constant != null)
+				constant.serialize(out);
+		}
+	}
+
+	@Override
+	public String toString() {
+		return data.toString();
 	}
 }

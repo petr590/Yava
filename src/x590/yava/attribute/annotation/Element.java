@@ -4,15 +4,15 @@ import x590.yava.Importable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.StringifyOutputStream;
-import x590.yava.writable.StringifyWritable;
+import x590.yava.io.ExtendedOutputStream;
+import x590.yava.writable.SameDisassemblingStringifyWritable;
 
-public final class Element implements StringifyWritable<ClassInfo>, Importable {
+public final class Element implements SameDisassemblingStringifyWritable<ClassInfo>, Importable {
 
 	private final String name;
 	private final ElementValue value;
 
-	protected Element(ExtendedDataInputStream in, ConstantPool pool) {
+	Element(ExtendedDataInputStream in, ConstantPool pool) {
 		this.name = pool.getUtf8String(in.readUnsignedShort());
 		this.value = ElementValue.read(in, pool);
 	}
@@ -36,8 +36,8 @@ public final class Element implements StringifyWritable<ClassInfo>, Importable {
 	}
 
 	@Override
-	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(name).print(" = ").print(value, classinfo);
+	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+		out.print(name).print(" = ").printObject(value, classinfo);
 	}
 
 

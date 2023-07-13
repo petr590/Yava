@@ -53,7 +53,7 @@ public abstract class ExtendedOutputStream<Self extends ExtendedOutputStream<Sel
 
 	@SuppressWarnings("unchecked")
 	protected Self self() {
-		return (Self) this;
+		return (Self)this;
 	}
 
 	public Self resetIndent() {

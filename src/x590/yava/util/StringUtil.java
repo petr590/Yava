@@ -44,28 +44,27 @@ public class StringUtil {
 	private static final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
 	private static String encodeUtf8(int c) {
+		if (c < 0) {
+			throw new IllegalArgumentException("Char code U+" + IntegerUtil.hex(c) + " is too large for encode");
+		}
+
 		// 0xxxxxxx
-		if (c < 0x80) return String.valueOf((char) c);
+		if (c < 0x80) return String.valueOf((char)c);
 		// 110xxxxx 10xxxxxx
 		if (c < 0x800)
-			return new String(new byte[]{(byte) ((c >> 6 & 0x1F) | 0xC0), (byte) ((c & 0x3F) | 0x80)}, UTF8_CHARSET);
+			return new String(new byte[] { (byte)((c >> 6 & 0x1F) | 0xC0), (byte)((c       & 0x3F) | 0x80)}, UTF8_CHARSET);
 		// 1110xxxx 10xxxxxx 10xxxxxx
 		if (c < 0x10000)
-			return new String(new byte[]{(byte) ((c >> 12 & 0xF) | 0xE0), (byte) ((c >> 6 & 0x3F) | 0x80), (byte) ((c >> 0 & 0x3F) | 0x80)}, UTF8_CHARSET);
+			return new String(new byte[] { (byte)((c >> 12 & 0xF) | 0xE0), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c       & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if (c < 0x200000)
-			return new String(new byte[]{(byte) ((c >> 18 & 0x7) | 0xF0), (byte) ((c >> 12 & 0x3F) | 0x80), (byte) ((c >> 6 & 0x3F) | 0x80),
-					(byte) ((c & 0x3F) | 0x80)}, UTF8_CHARSET);
+			return new String(new byte[] { (byte)((c >> 18 & 0x7) | 0xF0), (byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >> 6 & 0x3F) | 0x80), (byte)((c       & 0x3F) | 0x80) }, UTF8_CHARSET);
 		// 111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 		if (c < 0x4000000)
-			return new String(new byte[]{(byte) ((c >> 24 & 0x3) | 0xF8), (byte) ((c >> 18 & 0x3F) | 0x80), (byte) ((c >> 12 & 0x3F) | 0x80),
-					(byte) ((c >> 6 & 0x3F) | 0x80), (byte) ((c & 0x3F) | 0x80)}, UTF8_CHARSET);
-		// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
-		if (c < 0x80000000)
-			return new String(new byte[]{(byte) ((c >> 30 & 0x1) | 0xFC), (byte) ((c >> 24 & 0x3F) | 0x80), (byte) ((c >> 18 & 0x3F) | 0x80),
-					(byte) ((c >> 12 & 0x3F) | 0x80), (byte) ((c >> 6 & 0x3F) | 0x80), (byte) ((c & 0x3F) | 0x80)}, UTF8_CHARSET);
+			return new String(new byte[] { (byte)((c >> 24 & 0x3) | 0xF8), (byte)((c >> 18 & 0x3F) | 0x80), (byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >>  6 & 0x3F) | 0x80), (byte)((c      & 0x3F) | 0x80) }, UTF8_CHARSET);
 
-		throw new IllegalArgumentException("Char code U+" + IntegerUtil.hex(c) + " is too large for encode");
+		// 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+		return     new String(new byte[] { (byte)((c >> 30 & 0x1) | 0xFC), (byte)((c >> 24 & 0x3F) | 0x80), (byte)((c >> 18 & 0x3F) | 0x80), (byte)((c >> 12 & 0x3F) | 0x80), (byte)((c >> 6 & 0x3F) | 0x80), (byte)((c & 0x3F) | 0x80) }, UTF8_CHARSET);
 	}
 
 
@@ -118,7 +117,7 @@ public class StringUtil {
 		};
 	}
 
-	public static String toLiteral(String str) {
+	public static String stringToLiteral(String str) {
 		byte[] bytes = str.getBytes();
 
 		StringBuilder result = new StringBuilder(bytes.length).append('"');
@@ -157,9 +156,6 @@ public class StringUtil {
 
 				ch = (ch & 0xF) << 12 | (bytes[++i] & 0x3F) << 6 | (bytes[++i] & 0x3F);
 			}
-
-			if (ch > 0x10FFFF)
-				throw new DecompilationException("Invalid string: char code U+" + IntegerUtil.hex(ch) + " is out of range");
 
 			result.append(charToString('"', ch));
 		}
@@ -207,62 +203,64 @@ public class StringUtil {
 
 
 	public static final int
-			NONE = 0x0,
-			USE_HEX = 0x1,
-			SIGNED = 0x2,
-			IMPLICIT = 0x3;
+			NONE     = 0x0,
+			USE_HEX  = 0x1,
+			SIGNED   = 0x2,
+			IMPLICIT = 0x4;
 
 
-	public static String toLiteral(boolean value) {
+	public static String booleanToLiteral(boolean value) {
 		return Boolean.toString(value);
 	}
 
-	public static String toLiteral(byte value, int flags) {
+	public static String byteToLiteral(byte value, int flags) {
 		return numberConstantToString(value, flags);
 	}
 
-	public static String toLiteral(short value, int flags) {
+	public static String shortToLiteral(short value, int flags) {
 		return numberConstantToString(value, flags);
 	}
 
-	public static String toLiteral(char value) {
+	public static String charToLiteral(char value) {
 		return "'" + charToString('\'', value) + "'";
 	}
 
-	public static String toLiteral(int value, int flags) {
+	public static String intToLiteral(int value, int flags) {
 		return numberConstantToString(value, flags);
 	}
 
-	public static String toLiteral(long value, int flags) {
+	public static String longToLiteral(long value, int flags) {
 		return numberConstantToString(value, flags) + CONFIG.getLongSuffix();
 	}
 
-	public static String toLiteral(float value) {
+	public static String floatToLiteral(float value) {
 		if (!Float.isFinite(value)) {
 
 			String end = (CONFIG.printTrailingZero() ? ".0" : "") + CONFIG.getFloatSuffix();
 
-			return value == Float.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
-					value == Float.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
+			return  value == Float.POSITIVE_INFINITY ?  "1" + end + " / 0" + end :
+					value == Float.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end :
+														"0" + end + " / 0" + end;
 		}
 
-		return (!CONFIG.printTrailingZero() && (int) value == value ? Integer.toString((int) value) : Float.toString(value)) +
+		return (!CONFIG.printTrailingZero() && (int)value == value ? Integer.toString((int) value) : Float.toString(value)) +
 				CONFIG.getFloatSuffix();
 	}
 
-	public static String toLiteral(double value) {
+	public static String doubleToLiteral(double value) {
 		if (!Double.isFinite(value)) {
 
 			String end = CONFIG.printTrailingZero() ?
 					CONFIG.printDoubleSuffix() ? ".0" + CONFIG.getDoubleSuffix() : ".0" :
 					Character.toString(CONFIG.getDoubleSuffix());
 
-			return value == Double.POSITIVE_INFINITY ? "1" + end + " / 0" + end :
-					value == Double.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end : "0" + end + " / 0" + end;
+			return  value == Double.POSITIVE_INFINITY ?  "1" + end + " / 0" + end :
+					value == Double.NEGATIVE_INFINITY ? "-1" + end + " / 0" + end :
+														 "0" + end + " / 0" + end;
 		}
 
-		return !CONFIG.printTrailingZero() && (int) value == value ?
-				Integer.toString((int) value) + CONFIG.getDoubleSuffix() :
+		return !CONFIG.printTrailingZero() && (int)value == value ?
+				Integer.toString((int)value) + CONFIG.getDoubleSuffix() :
 				CONFIG.printDoubleSuffix() ?
 						Double.toString(value) + CONFIG.getDoubleSuffix() :
 						Double.toString(value);

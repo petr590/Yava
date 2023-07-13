@@ -7,10 +7,8 @@ import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.constpool.FieldrefConstant;
 import x590.yava.constpool.NameAndTypeConstant;
-import x590.yava.io.AssemblingInputStream;
-import x590.yava.io.DisassemblingOutputStream;
-import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.StringifyOutputStream;
+import x590.yava.io.*;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.type.Type;
 import x590.yava.type.reference.RealReferenceType;
 import x590.yava.type.reference.ReferenceType;
@@ -20,7 +18,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class FieldDescriptor extends Descriptor<FieldDescriptor> implements Importable {
+public final class FieldDescriptor extends Descriptor<FieldDescriptor> implements Importable, JavaSerializableWithPool {
 
 	private static final Map<RealReferenceType, Map<String, Map<Type, FieldDescriptor>>> INSTANCES = new HashMap<>();
 
@@ -118,7 +116,14 @@ public final class FieldDescriptor extends Descriptor<FieldDescriptor> implement
 
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-		out.print(getName()).print(getType(), classinfo);
+		out .printsp(getType(), classinfo)
+			.print(getName());
+	}
+
+	public void writeAsFieldref(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out .printsp(getType(), classinfo)
+			.print(getDeclaringClass(), classinfo).print('.')
+			.print(getName());
 	}
 
 
@@ -126,5 +131,11 @@ public final class FieldDescriptor extends Descriptor<FieldDescriptor> implement
 	public FieldDescriptor replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
 		Type type = this.type.replaceAllTypes(replaceTable);
 		return type == this.type ? this : of(type, getDeclaringClass(), getName());
+	}
+
+	@Override
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .recordShort(pool.findOrAddUtf8(getName()))
+			.recordShort(pool.utf8IndexFor(type));
 	}
 }

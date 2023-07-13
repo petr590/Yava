@@ -1,9 +1,10 @@
 package x590.yava.constpool;
 
 import x590.yava.clazz.ClassInfo;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.operation.Operation;
 import x590.yava.operation.constant.MethodHandleConstOperation;
@@ -123,10 +124,10 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_METHOD_HANDLE);
-		out.writeByte(referenceKind.getIndex());
-		out.writeShort(referenceIndex);
+	public void serialize(AssemblingOutputStream out) {
+		out .recordByte(TAG_METHOD_HANDLE)
+			.recordByte(referenceKind.getIndex())
+			.recordShort(referenceIndex);
 	}
 
 

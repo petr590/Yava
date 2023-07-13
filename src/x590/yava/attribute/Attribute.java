@@ -1,26 +1,29 @@
 package x590.yava.attribute;
 
 import x590.yava.Importable;
-import x590.yava.JavaSerializable;
+import x590.yava.clazz.ClassInfo;
+import x590.yava.exception.WriteException;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.attribute.Attributes.Location;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.AssemblingInputStream;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
+import x590.yava.serializable.JavaSerializableWithPool;
+import x590.yava.writable.DisassemblingWritable;
 
 /**
- * Представляет атрибут в class файле.
- * Атрибуты может быть в классе, поле, методе, другом атрибуте
+ * Представляет атрибут в class файле
  */
-public abstract class Attribute implements JavaSerializable, Importable {
+public abstract class Attribute implements JavaSerializableWithPool, DisassemblingWritable<ClassInfo>, Importable {
 
 	private final String name;
 	private int length;
 
 	/**
 	 * Поле {@link #length} не инициализировано и должно быть инициализировано позже
-	 * с помощью вызова {@link #initLength(int)}
+	 * в дочернем конструкторе с помощью вызова {@link #initLength(int)}
 	 */
 	protected Attribute(String name) {
 		this(name, -1);
@@ -45,6 +48,9 @@ public abstract class Attribute implements JavaSerializable, Importable {
 	}
 
 
+	/**
+	 * @throws DisassemblingException если {@code length != requiredLength}
+	 */
 	protected static void checkLength(String name, int length, int requiredLength) {
 		if (length != requiredLength)
 			throw new DisassemblingException("Length of the \"" + name + "\" attribute must be " + requiredLength + ", got " + length);
@@ -81,13 +87,35 @@ public abstract class Attribute implements JavaSerializable, Importable {
 		return Short.BYTES + Integer.BYTES + length;
 	}
 
-	protected void serializeHeader(ExtendedDataOutputStream out) {
-//		out.writeShort(nameIndex);
-		out.writeInt(length);
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printIndent().printsp(name).println('{').increaseIndent();
+		writeDisassembledContent(out, classinfo);
+		out.reduceIndent().printIndent().println('}');
+	}
+
+	protected void writeDisassembledContent(DisassemblingOutputStream out, ClassInfo classinfo) {
+		throw new RuntimeException("Attribute \"" + name + "\" yet not finished");
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		throw new IllegalStateException("Not released yet :(");
+	public final void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .recordShort(pool.findOrAddUtf8(name))
+			.writeInt(length);
+
+		int expectedSize = out.size() + length;
+
+		serializeData(out, pool);
+
+		int diff = out.size() - expectedSize;
+
+		if (diff != 0) {
+			throw new WriteException("Attribute \"" + name + "\" has pos difference: "
+					+ "actual size is " + (diff > 0 ? "greater" : "less") + " than expected by " + Math.abs(diff));
+		}
+	}
+
+	protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+		throw new UnsupportedOperationException("Serializing for \"" + name + "\" attribute is not released yet :(");
 	}
 }

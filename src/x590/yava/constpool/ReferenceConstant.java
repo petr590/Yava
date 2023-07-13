@@ -1,5 +1,6 @@
 package x590.yava.constpool;
 
+import x590.yava.constpool.constvalue.ClassConstant;
 import x590.yava.io.ExtendedDataInputStream;
 
 public abstract class ReferenceConstant extends Constant {

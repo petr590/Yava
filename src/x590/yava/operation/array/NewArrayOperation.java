@@ -8,9 +8,9 @@ import x590.yava.exception.decompilation.DecompilationException;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.operation.AbstractOperation;
 import x590.yava.operation.Operation;
+import x590.yava.operation.constant.AConstNullOperation;
 import x590.yava.operation.constant.IConstOperation;
 import x590.yava.operation.constant.ZeroConstOperation;
-import x590.yava.operationinstruction.constant.AConstNullOperationInstruction;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ArrayType;
@@ -27,10 +27,6 @@ public class NewArrayOperation extends AbstractOperation {
 	private final List<Operation> initializers = new ArrayList<>();
 	private final @Immutable List<Operation> immutableInitializers = Collections.unmodifiableList(initializers);
 	private boolean shortArrayInitializerAllowed, varargsInlined;
-
-	public NewArrayOperation(DecompilationContext context, int index) {
-		this(context, context.pool.getClassConstant(index).toArrayType());
-	}
 
 	public NewArrayOperation(DecompilationContext context, int index, int dimensions) {
 		this(context, context.pool.getClassConstant(index).toArrayType(), dimensions);
@@ -79,7 +75,7 @@ public class NewArrayOperation extends AbstractOperation {
 
 	private void fillInitializersWithZeros(int toIndex) {
 		for (int i = initializers.size(); i < toIndex; i++) {
-			initializers.add(arrayType.getElementType().isPrimitive() ? ZeroConstOperation.INSTANCE : AConstNullOperationInstruction.INSTANCE);
+			initializers.add(arrayType.getElementType().isPrimitive() ? ZeroConstOperation.INSTANCE : AConstNullOperation.INSTANCE);
 		}
 	}
 

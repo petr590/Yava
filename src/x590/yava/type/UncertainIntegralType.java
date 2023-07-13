@@ -72,7 +72,7 @@ public final class UncertainIntegralType extends Type {
 		this.includeChar = includeChar;
 		this.highPrimitiveType = primitiveTypeByCapacity(maxCapacity, includeChar);
 		this.encodedName = "VariableCapacityIntegralType:" + minCapacity + ":" + maxCapacity + ":" +
-				(char) ('0' + (includeBoolean ? 1 : 0) + (includeChar ? 2 : 0));
+				(char)('0' + (includeBoolean ? 1 : 0) + (includeChar ? 2 : 0));
 	}
 
 	private UncertainIntegralType(int minCapacity, int maxCapacity, int flags) {

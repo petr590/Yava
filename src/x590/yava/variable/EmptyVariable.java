@@ -8,8 +8,7 @@ public final class EmptyVariable implements EmptyableVariable {
 	public static final EmptyVariable INSTANCE = new EmptyVariable();
 
 
-	private EmptyVariable() {
-	}
+	private EmptyVariable() {}
 
 
 	@Override
@@ -23,13 +22,11 @@ public final class EmptyVariable implements EmptyableVariable {
 	}
 
 	@Override
-	public void assignName() {
-	}
+	public void assignName() {}
 
 
 	@Override
-	public void reduceType() {
-	}
+	public void reduceType() {}
 
 	@Override
 	public EmptyableVariableWrapper wrapped() {

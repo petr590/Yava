@@ -2,7 +2,7 @@ package x590.yava.scope;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.util.annotation.Nullable;
-import x590.yava.constpool.IntegerConstant;
+import x590.yava.constpool.constvalue.IntegerConstant;
 import x590.yava.context.StringifyContext;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.main.Yava;

@@ -6,18 +6,22 @@ import x590.util.annotation.Nullable;
 import x590.util.function.ObjIntBooleanFunction;
 import x590.util.io.UncheckedInputStream;
 import x590.yava.Keywords;
+import x590.yava.attribute.code.CodeAttribute;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.type.Type;
+import x590.yava.type.Types;
 import x590.yava.type.primitive.PrimitiveType;
+import x590.yava.type.reference.ArrayType;
 import x590.yava.type.reference.ClassType;
+import x590.yava.type.reference.RealReferenceType;
+import x590.yava.type.reference.ReferenceType;
+import x590.yava.type.reference.generic.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -47,11 +51,23 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 	private void buffer(int ch) {
-		buffer(String.valueOf((char) ch));
+		buffer(String.valueOf((char)ch));
 	}
 
 	public AssemblingInputStream(InputStream in) {
 		this.in = in;
+	}
+
+	public int nextLabel(CodeAttribute.LabelsManager labelsManager) {
+		String name = nextString();
+
+		if (labelsManager.hasLabel(name)) {
+			return labelsManager.getLabelPos(name) - labelsManager.getInstructionPos();
+		}
+
+		labelsManager.addForwardingEntry(name);
+
+		return 0;
 	}
 
 
@@ -61,6 +77,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 				STRING = new CharPredicate(Character::isJavaIdentifierPart, Character::isJavaIdentifierPart),
 				NAME = new CharPredicate(Character::isJavaIdentifierStart, Character::isJavaIdentifierPart),
 				TYPE = new CharPredicate(CharPredicate::isJavaTypeStart, CharPredicate::isJavaTypePart),
+				GENERIC_DECLARATION_TYPE = STRING,
 				INTEGRAL_NUMBER = new CharPredicate(CharPredicate::isIntegralNumberStart, CharPredicate::isIntegralNumberPart),
 				ANY_NUMBER = new CharPredicate(CharPredicate::isAnyNumberStart, CharPredicate::isAnyNumberPart);
 
@@ -255,73 +272,236 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return nestingLevel == 0 ? type : type.arrayTypeAsType(nestingLevel);
 	}
 
-	/**
-	 * @return Следующий тип класса
-	 */
+	/** @return Следующий ссылочный тип */
+	public RealReferenceType nextReferenceType() {
+		return castOrThrowParseException(nextType(), RealReferenceType.class);
+	}
+
+	/** @return Следующий тип класса */
 	public ClassType nextClassType() {
 		return castOrThrowParseException(nextType(), ClassType.class);
 	}
 
+	/** @return Следующий тип массива */
+	public ArrayType nextArrayType() {
+		return castOrThrowParseException(nextType(), ArrayType.class);
+	}
 
-	public Stream<Type> nextMethodArguments() {
+	/** @return Следующий примитивный тип */
+	public PrimitiveType nextPrimitiveType() {
+		return castOrThrowParseException(nextType(), PrimitiveType.class);
+	}
+
+
+	public @Nullable ClassType nextNullableClassType() {
+		return advanceIfHasNext(NULL) ? null : nextClassType();
+	}
+
+
+	public Type nextParametrizedType() {
+		Type type = nextType();
+
+		if (type instanceof ClassType classType) {
+			if (advanceIfHasNext('<')) {
+				var parameters = GenericParameters.of(nextParameterTypesStream().toList());
+				requireNext('>');
+				return classType.withSignature(parameters);
+			}
+		}
+
+		return type;
+	}
+
+	public RealReferenceType nextParametrizedReferenceType() {
+		return castOrThrowParseException(nextParametrizedType(), RealReferenceType.class);
+	}
+
+	public ReferenceType nextParameterType() {
+		if (advanceIfHasNext('?')) {
+			if (advanceIfHasNext(EXTENDS)) {
+				return new ExtendingGenericType(nextParametrizedReferenceType());
+			}
+
+			if (advanceIfHasNext(SUPER)) {
+				return new SuperGenericType(nextParametrizedReferenceType());
+			}
+
+			return Types.ANY_GENERIC_TYPE;
+		}
+
+		return nextParametrizedReferenceType();
+	}
+
+	public GenericDeclarationType nextGenericDeclarationType() {
+		String name = nextString(CharPredicate.GENERIC_DECLARATION_TYPE, NonMatchingCharHandler.throwingParseException("generic type name"));
+
+		if (Keywords.isKeyword(name)) {
+			throw ParseException.expectedButGot("generic type", name);
+		}
+
+		List<ReferenceType> types;
+
+		if (advanceIfHasNext(EXTENDS)) {
+			types = new ArrayList<>();
+
+			do {
+				types.add(nextParametrizedReferenceType());
+			} while (advanceIfHasNext('&'));
+
+		} else {
+			types = Collections.emptyList();
+		}
+
+		return GenericDeclarationType.of(name, types);
+	}
+
+
+	public <T extends Type> Stream<T> nextMethodArguments(Supplier<? extends T> nextTypeFunction) {
 		if (requireNext('(').advanceIfHasNext(')')) {
 			return Stream.empty();
 		}
 
-		Stream<Type> stream = nextTypesStream();
+		Stream<T> stream = nextTypesStream(nextTypeFunction);
 		requireNext(')');
 		return stream;
 	}
 
-	public Stream<Type> nextTypesStream() {
+	public Stream<Type> nextMethodArguments() {
+		return nextMethodArguments(this::nextType);
+	}
+
+	public Stream<Type> nextParametrizedMethodArguments() {
+		return nextMethodArguments(this::nextParametrizedType);
+	}
+
+
+	public <T extends Type> Stream<T> nextTypesStream(Supplier<? extends T> nextTypeFunction) {
 		return Stream.concat(
-				Stream.of(nextType()),
-				Stream.generate(() -> advanceIfHasNext(',') ? nextType() : null).takeWhile(Objects::nonNull)
+				Stream.of(nextTypeFunction.get()),
+				Stream.generate(() -> advanceIfHasNext(',') ? nextTypeFunction.get() : null).takeWhile(Objects::nonNull)
 		);
+	}
+
+	public Stream<Type> nextTypesStream() {
+		return nextTypesStream(this::nextType);
+	}
+
+	public Stream<RealReferenceType> nextParametrizedReferenceTypesStream() {
+		return nextTypesStream(this::nextParametrizedReferenceType);
+	}
+
+	public Stream<ReferenceType> nextParameterTypesStream() {
+		return nextTypesStream(this::nextParameterType);
 	}
 
 	public Stream<ClassType> nextClassTypesStream() {
 		return nextTypesStream().map(type -> castOrThrowParseException(type, ClassType.class));
 	}
 
+	public Stream<GenericDeclarationType> nextGenericDeclarationTypesStream() {
+		return nextTypesStream(this::nextGenericDeclarationType);
+	}
+
 
 	@SuppressWarnings("unchecked")
 	private static <T extends Type> T castOrThrowParseException(Type type, Class<T> clazz) {
 		if (clazz.isInstance(type))
-			return (T) type;
+			return (T)type;
 
 		throw new ParseException("unexpected type " + type);
 	}
 
 
-	/**
-	 * @return Следующее число как {@code int}
-	 */
-	public int nextInt() {
-		String str = nextIntegerNumberString("int");
+	/** @return Следующее число как {@code byte} */
+	public int nextByte() {
+		return nextSignedNumber("byte", number -> (byte)number == number);
+	}
 
-		if (parseNumber(str) instanceof Integer integer) {
-			return integer;
-		}
-
-		throw ParseException.expectedButGot("int", str);
+	/** @return Следующее число как {@code short} */
+	public int nextShort() {
+		return nextSignedNumber("short", number -> (short)number == number);
 	}
 
 
-	/**
-	 * @return Следующее беззнаковое число как {@code int}
-	 */
-	public int nextUnsignedInt() {
-		String str = nextIntegerNumberString("unsigned int");
+	/** @return Следующее число как {@code int} */
+	public int nextInt() {
+		return nextSignedNumber("int", number -> true);
+	}
+
+	private int nextSignedNumber(String expected, IntPredicate predicate) {
+		String str = nextIntegerNumberString(expected);
 
 		if (parseNumber(str) instanceof Integer integer) {
 			int value = integer;
 
-			if (value >= 0)
+			if (predicate.test(value)) {
 				return value;
+			}
+
+			throw new ParseException("value " + value + " is too large for " + expected);
 		}
 
-		throw ParseException.expectedButGot("unsigned int", str);
+		throw ParseException.expectedButGot(expected, str);
+	}
+
+
+	/** @return Следующее беззнаковое число как {@code byte} */
+	public int nextUnsignedByte() {
+		return nextUnsignedNumber("unsigned byte", number -> (number & 0xFF) == number);
+	}
+
+	/** @return Следующее беззнаковое число как {@code short} */
+	public int nextUnsignedShort() {
+		return nextUnsignedNumber("unsigned short", number -> (number & 0xFFFF) == number);
+	}
+
+	/** @return Следующее беззнаковое число как {@code int} */
+	public int nextUnsignedInt() {
+		return nextUnsignedNumber("unsigned int", number -> true);
+	}
+
+
+	private int nextUnsignedNumber(String expected, IntPredicate predicate) {
+		String str = nextIntegerNumberString(expected);
+
+		if (parseNumber(str) instanceof Integer integer) {
+			int value = integer;
+
+			if (value >= 0) {
+				if (predicate.test(value)) {
+					return value;
+				}
+
+				throw new ParseException("value " + value + " is too large for " + expected);
+			}
+		}
+
+		throw ParseException.expectedButGot(expected, str);
+	}
+
+
+	public long nextLong() {
+		return nextNumber("long", Long.class);
+	}
+
+	public float nextFloat() {
+		return nextNumber("float", Float.class);
+	}
+
+	public double nextDouble() {
+		return nextNumber("double", Double.class);
+	}
+
+	private <N extends Number> N nextNumber(String expected, Class<N> clazz) {
+		String str = nextIntegerNumberString(expected);
+
+		Number num = parseNumber(str);
+
+		if (clazz.isInstance(num)) {
+			return clazz.cast(num);
+		}
+
+		throw ParseException.expectedButGot(expected, str);
 	}
 
 
@@ -400,7 +580,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		if (advanceIfHasNext('"')) {
 			StringBuilder value = new StringBuilder();
 
-			for (int ch = read(); ; value.append((char) ch), ch = read()) {
+			for (int ch = read(); ; value.append((char)ch), ch = read()) {
 				if (ch == '\\') {
 					int escaped = read();
 
@@ -510,13 +690,13 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		}
 
 		if (!predicate.isStartChar(ch)) {
-			return handler.handleNonMatchingChar((char) ch);
+			return handler.handleNonMatchingChar((char)ch);
 		}
 
 		StringBuilder str = new StringBuilder();
 
 		do {
-			str.append((char) ch);
+			str.append((char)ch);
 			ch = read();
 		} while (predicate.isPartChar(ch));
 
@@ -565,7 +745,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		if (ch != expected) {
 			throw ch == EOF_CHAR ?
 					newUncheckedEOFException() :
-					ParseException.expectedButGot(expected, (char) ch);
+					ParseException.expectedButGot(expected, (char)ch);
 		}
 
 		return this;

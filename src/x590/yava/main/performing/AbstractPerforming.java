@@ -12,32 +12,36 @@ import java.util.function.Function;
 
 public abstract class AbstractPerforming<S extends OutputStream> implements Performing<S> {
 
+	private final PerformingType type;
+
 	protected S out;
 
-	/**
-	 * Если {@code true}, то выводится в System.out, иначе записывается в файлы
-	 */
+	/** Если {@code true}, то выводится в {@link System#out}, иначе записывается в файлы */
 	protected final boolean separateOutputStream;
 
-	/**
-	 * Если {@code true}, то выводится в System.out, иначе записывается в файлы
-	 */
 	protected final FileSource fileSource;
 
-	public AbstractPerforming(Config config) {
-		this(config, !config.writeToConsole());
+	public AbstractPerforming(PerformingType type, Config config) {
+		this(type, config, !config.writeToConsole());
 	}
 
-	public AbstractPerforming(Config config, boolean separateOutputStream) {
+	public AbstractPerforming(PerformingType type, Config config, boolean separateOutputStream) {
+		this.type = type;
 		this.separateOutputStream = separateOutputStream;
 		this.fileSource = config.getFileSource();
 	}
 
+	public PerformingType getType() {
+		return type;
+	}
+
 	@Override
-	public void setup() throws IOException, UncheckedIOException {
+	public void setup() throws UncheckedIOException {
 		if (!separateOutputStream)
 			this.out = createOutputStream(System.out);
 	}
+
+	protected abstract String getOutputFileExtension();
 
 	protected abstract S createOutputStream(OutputStream out);
 
@@ -49,7 +53,7 @@ public abstract class AbstractPerforming<S extends OutputStream> implements Perf
 	@Override
 	public final void write(JavaClass clazz) throws IOException, UncheckedIOException {
 		if (separateOutputStream) {
-			this.out = createOutputStream(new FileOutputStream(clazz.getSourceFilePath()));
+			this.out = createOutputStream(new FileOutputStream(clazz.getFilePath(getOutputFileExtension())));
 			doWrite(clazz);
 			out.close();
 			out = null;
@@ -61,8 +65,7 @@ public abstract class AbstractPerforming<S extends OutputStream> implements Perf
 	public abstract void doWrite(JavaClass clazz);
 
 	@Override
-	public void finalizePerforming() {
-	}
+	public void finalizePerforming() {}
 
 	@Override
 	public void close() throws IOException, UncheckedIOException {

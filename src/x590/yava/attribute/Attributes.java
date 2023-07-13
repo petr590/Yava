@@ -4,13 +4,15 @@ import x590.util.Logger;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 import x590.yava.Importable;
-import x590.yava.JavaSerializable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.decompilation.AttributeNotFoundException;
 import x590.yava.io.AssemblingInputStream;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
+import x590.yava.serializable.JavaSerializableWithPool;
+import x590.yava.writable.DisassemblingWritable;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -19,7 +21,7 @@ import java.util.function.Supplier;
  * Представляет набор атрибутов. Хранит только уникальные атрибуты
  */
 @Immutable
-public final class Attributes implements JavaSerializable, Importable {
+public final class Attributes implements JavaSerializableWithPool, DisassemblingWritable<ClassInfo>, Importable {
 
 	public enum Location {
 		CLASS, FIELD, METHOD, CODE_ATTRIBUTE, OTHER
@@ -79,8 +81,24 @@ public final class Attributes implements JavaSerializable, Importable {
 	}
 
 
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		if (attributes.isEmpty()) {
+			out.write(';');
+		} else {
+			out .println(" {").increaseIndent()
+				.printAll(attributes, classinfo, '\n')
+				.reduceIndent().printIndent().println('}');
+		}
+	}
+
+
 	public static Attributes empty() {
 		return EMPTY;
+	}
+
+	public boolean isEmpty() {
+		return attributes.isEmpty();
 	}
 
 
@@ -93,8 +111,8 @@ public final class Attributes implements JavaSerializable, Importable {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeAll(attributes);
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out.recordAll(attributes, pool);
 	}
 
 

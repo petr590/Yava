@@ -6,6 +6,9 @@ import x590.yava.attribute.annotation.AnnotationDefaultAttribute;
 import x590.yava.attribute.annotation.AnnotationsAttribute;
 import x590.yava.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.yava.attribute.annotation.TypeAnnotationsAttribute;
+import x590.yava.attribute.code.CodeAttribute;
+import x590.yava.attribute.code.LineNumberTableAttribute;
+import x590.yava.attribute.code.LocalVariableTableAttribute;
 import x590.yava.attribute.signature.ClassSignatureAttribute;
 import x590.yava.attribute.signature.FieldSignatureAttribute;
 import x590.yava.attribute.signature.MethodSignatureAttribute;
@@ -16,8 +19,9 @@ import x590.yava.io.ExtendedDataInputStream;
 
 import java.util.*;
 
-import static x590.yava.attribute.AttributeParser.parser;
 import static x590.yava.attribute.AttributeReader.reader;
+import static x590.yava.attribute.AttributeParser.parser;
+import static x590.yava.attribute.AttributeParser.simpleParser;
 
 public class AttributeType<A extends Attribute> implements AttributeReader<A>, AttributeParser<A> {
 
@@ -76,10 +80,10 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 			create(Location.METHOD, AttributeNames.CODE, reader(CodeAttribute::new), parser(CodeAttribute::new), CodeAttribute.empty());
 
 	public static final EmptyableAttributeType<ExceptionsAttribute> EXCEPTIONS =
-			create(Location.METHOD, AttributeNames.EXCEPTIONS, reader(ExceptionsAttribute::new), ExceptionsAttribute.empty());
+			create(Location.METHOD, AttributeNames.EXCEPTIONS, reader(ExceptionsAttribute::new), parser(ExceptionsAttribute::new), ExceptionsAttribute.empty());
 
 	public static final AttributeType<MethodSignatureAttribute> METHOD_SIGNATURE =
-			create(Location.METHOD, AttributeNames.SIGNATURE, reader(MethodSignatureAttribute::new));
+			create(Location.METHOD, AttributeNames.SIGNATURE, reader(MethodSignatureAttribute::new), parser(MethodSignatureAttribute::new));
 
 	public static final AttributeType<AnnotationDefaultAttribute> ANNOTATION_DEFAULT =
 			create(Location.METHOD, AttributeNames.ANNOTATION_DEFAULT, reader(AnnotationDefaultAttribute::new));
@@ -92,6 +96,9 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 
 
 	// Code
+	public static final AttributeType<LineNumberTableAttribute> LINE_NUMBER_TABLE =
+			create(Location.CODE_ATTRIBUTE, AttributeNames.LINE_NUMBER_TABLE, reader(LineNumberTableAttribute::new), parser(LineNumberTableAttribute::new));
+
 	public static final EmptyableAttributeType<LocalVariableTableAttribute> LOCAL_VARIABLE_TABLE =
 			create(Location.CODE_ATTRIBUTE, AttributeNames.LOCAL_VARIABLE_TABLE, reader(LocalVariableTableAttribute::new), parser(LocalVariableTableAttribute::new), LocalVariableTableAttribute.emptyTable());
 
@@ -101,10 +108,10 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 
 	// Class, field, method
 	public static final AttributeType<SyntheticAttribute> SYNTHETIC =
-			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.SYNTHETIC, reader(SyntheticAttribute::get));
+			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.SYNTHETIC, reader(SyntheticAttribute::get), simpleParser(SyntheticAttribute::get));
 
 	public static final AttributeType<DeprecatedAttribute> DEPRECATED =
-			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.DEPRECATED, reader(DeprecatedAttribute::get));
+			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.DEPRECATED, reader(DeprecatedAttribute::get), simpleParser(DeprecatedAttribute::get));
 
 	public static final EmptyableAttributeType<AnnotationsAttribute> RUNTIME_VISIBLE_ANNOTATIONS =
 			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS, reader(AnnotationsAttribute::new), AnnotationsAttribute.emptyVisible());

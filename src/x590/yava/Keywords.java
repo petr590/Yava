@@ -6,8 +6,7 @@ import java.util.Set;
 
 public final class Keywords {
 
-	private Keywords() {
-	}
+	private Keywords() {}
 
 	public static final String
 			BOOLEAN = "boolean",

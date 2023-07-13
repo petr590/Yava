@@ -26,7 +26,7 @@ public abstract class FieldOperation extends OperationWithDescriptor<FieldDescri
 	}
 
 	public FieldOperation(DecompilationContext context, FieldrefConstant fieldref) {
-		super(FieldDescriptor.from(fieldref));
+		super(fieldref.toDescriptor());
 		this.canOmit = canOmit(context.getClassinfo());
 	}
 

@@ -1,6 +1,8 @@
 package x590.yava.attribute;
 
-public final class SyntheticAttribute extends EmptyAttribute {
+import x590.yava.io.AssemblingInputStream;
+
+public final class SyntheticAttribute extends EmptyDataAttribute {
 
 	private static final SyntheticAttribute INSTANCE = new SyntheticAttribute();
 
@@ -10,6 +12,11 @@ public final class SyntheticAttribute extends EmptyAttribute {
 
 	public static SyntheticAttribute get(String name, int length) {
 		checkLength(name, length);
+		return INSTANCE;
+	}
+
+	public static SyntheticAttribute get(AssemblingInputStream in) {
+		in.requireNext(';');
 		return INSTANCE;
 	}
 }

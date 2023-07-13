@@ -27,7 +27,7 @@ public final class ClassModifiers extends ClassEntryModifiers {
 		return INSTANCES.computeIfAbsent(in.readUnsignedShort(), ClassModifiers::new);
 	}
 
-	// Просто для удобства
+	// Просто для удобства парсинга
 	private static final int ACC_CLASS = 0x10000;
 
 	public static ClassModifiers parse(AssemblingInputStream in) {

@@ -25,8 +25,7 @@ public abstract class RealReferenceType extends ReferenceType {
 	private @Nullable @Immutable List<BiConsumer<? super ClassType, ? super List<? extends ClassType>>> initCallbacks;
 
 
-	public RealReferenceType() {
-	}
+	public RealReferenceType() {}
 
 	public RealReferenceType(Class<?> classInstance) {
 		this.classInstance = classInstance;
@@ -48,6 +47,9 @@ public abstract class RealReferenceType extends ReferenceType {
 		return interfaces.equals(genericInterfaces) ? genericInterfaces : interfaces;
 	}
 
+	/**
+	 * @return Закодированное имя класса без префикса 'L' и постфикса ';' для {@link ClassType}
+	 */
 	public abstract String getClassEncodedName();
 
 	@Override

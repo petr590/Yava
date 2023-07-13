@@ -29,8 +29,8 @@ public final class GenericDeclarationType extends ReferenceType {
 		StringBuilder nameBuilder = new StringBuilder();
 
 		for (int ch = in.read(); ch != ':'; ch = in.read()) {
-			nameBuilder.append((char) ch);
-			encodedNameBuilder.append((char) ch);
+			nameBuilder.append((char)ch);
+			encodedNameBuilder.append((char)ch);
 		}
 
 		in.decPos();

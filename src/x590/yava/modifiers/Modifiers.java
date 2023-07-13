@@ -3,8 +3,10 @@ package x590.yava.modifiers;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import x590.util.IntegerUtil;
+import x590.yava.serializable.JavaSerializable;
 import x590.yava.exception.parsing.IllegalModifierException;
 import x590.yava.io.AssemblingInputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.util.IWhitespaceStringBuilder;
 import x590.yava.util.WhitespaceStringBuilder;
 
@@ -13,7 +15,7 @@ import java.util.function.ToIntFunction;
 import static x590.yava.Keywords.isModifier;
 import static x590.yava.exception.parsing.IllegalModifierException.*;
 
-public abstract class Modifiers {
+public abstract class Modifiers implements JavaSerializable {
 
 	public static final int
 			ACC_NONE = 0x0000,
@@ -153,6 +155,11 @@ public abstract class Modifiers {
 
 	public int and(int modifier) {
 		return value & modifier;
+	}
+
+
+	public void serialize(AssemblingOutputStream out) {
+		out.writeShort(value);
 	}
 
 

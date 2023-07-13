@@ -30,4 +30,10 @@ public abstract class UnaryOperatorOperation extends OperatorOperation {
 		return this == other || other instanceof UnaryOperatorOperation operation &&
 				super.equals(operation) && operand.equals(operation.operand);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s {%s}",
+				getClass().getSimpleName(), operand);
+	}
 }

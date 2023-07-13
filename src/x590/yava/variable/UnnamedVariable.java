@@ -49,7 +49,7 @@ public class UnnamedVariable extends AbstractVariable {
 			case PLAIN -> super.nextName(baseName, index);
 			case INDEX -> {
 				int num = --index / 18;
-				yield (char) ('i' + index - num * 18) +
+				yield (char)('i' + index - num * 18) +
 						(num == 0 ? "" : Integer.toString(num + 1));
 			}
 		};
@@ -64,60 +64,60 @@ public class UnnamedVariable extends AbstractVariable {
 
 	private static String removeKeyword(String name) {
 		return switch (name) {
-			case BOOLEAN -> "bool";
-			case BYTE -> "b";
-			case CHAR -> "c";
-			case SHORT -> "s";
-			case INT -> "n";
-			case LONG -> "l";
-			case FLOAT -> "f";
-			case DOUBLE -> "d";
-			case VOID -> "v";
-			case PUBLIC -> "pub";
-			case PROTECTED -> "prot";
-			case PRIVATE -> "priv";
-			case STATIC -> "stat";
-			case FINAL -> "f";
-			case ABSTRACT -> "abs";
-			case TRANSIENT -> "trans";
-			case VOLATILE -> "vol";
-			case NATIVE -> "nat";
+			case BOOLEAN      -> "bool";
+			case BYTE         -> "b";
+			case CHAR         -> "c";
+			case SHORT        -> "s";
+			case INT          -> "n";
+			case LONG         -> "l";
+			case FLOAT        -> "f";
+			case DOUBLE       -> "d";
+			case VOID         -> "v";
+			case PUBLIC       -> "pub";
+			case PROTECTED    -> "prot";
+			case PRIVATE      -> "priv";
+			case STATIC       -> "stat";
+			case FINAL        -> "f";
+			case ABSTRACT     -> "abs";
+			case TRANSIENT    -> "trans";
+			case VOLATILE     -> "vol";
+			case NATIVE       -> "nat";
 			case SYNCHRONIZED -> "sync";
-			case CLASS -> "clazz";
-			case INTERFACE -> "interf";
-			case ENUM -> "en";
-			case THIS -> "ts";
-			case SUPER -> "sup";
-			case EXTENDS -> "ext";
-			case IMPLEMENTS -> "impl";
-			case IMPORT -> "imp";
-			case PACKAGE -> "pack";
-			case INSTANCEOF -> "inst";
-			case NEW -> "nw";
-			case IF -> "cond";
-			case ELSE -> "els";
-			case WHILE -> "whl";
-			case DO -> "d";
-			case FOR -> "f";
-			case SWITCH -> "sw";
-			case CASE -> "cs";
-			case DEFAULT -> "def";
-			case BREAK -> "brk";
-			case CONTINUE -> "cont";
-			case RETURN -> "ret";
-			case TRY -> "tr";
-			case CATCH -> "ctch";
-			case FINALLY -> "fn";
-			case THROW -> "thr";
-			case THROWS -> "thrs";
-			case ASSERT -> "assrt";
-			case TRUE -> "tr";
-			case FALSE -> "fls";
-			case NULL -> "nul";
-			case STRICTFP -> "strict";
-			case CONST -> "cnst";
-			case GOTO -> "gt";
-			default -> name;
+			case CLASS        -> "clazz";
+			case INTERFACE    -> "interf";
+			case ENUM         -> "en";
+			case THIS         -> "ts";
+			case SUPER        -> "sup";
+			case EXTENDS      -> "ext";
+			case IMPLEMENTS   -> "impl";
+			case IMPORT       -> "imp";
+			case PACKAGE      -> "pack";
+			case INSTANCEOF   -> "inst";
+			case NEW          -> "nw";
+			case IF           -> "cond";
+			case ELSE         -> "els";
+			case WHILE        -> "whl";
+			case DO           -> "d";
+			case FOR          -> "f";
+			case SWITCH       -> "sw";
+			case CASE         -> "cs";
+			case DEFAULT      -> "def";
+			case BREAK        -> "brk";
+			case CONTINUE     -> "cont";
+			case RETURN       -> "ret";
+			case TRY          -> "tr";
+			case CATCH        -> "ctch";
+			case FINALLY      -> "fn";
+			case THROW        -> "thr";
+			case THROWS       -> "thrs";
+			case ASSERT       -> "assrt";
+			case TRUE         -> "tr";
+			case FALSE        -> "fls";
+			case NULL         -> "nul";
+			case STRICTFP     -> "strict";
+			case CONST        -> "cnst";
+			case GOTO         -> "gt";
+			default           -> name;
 		};
 	}
 
@@ -125,24 +125,25 @@ public class UnnamedVariable extends AbstractVariable {
 	private static @Nullable String quickGetNameByType(Type type) {
 		if (type instanceof ClassType classType) {
 			return switch (classType.getSimpleName()) {
-				case "Object" -> "obj";
-				case "Class" -> "clazz";
-				case "Byte" -> "b";
-				case "Character" -> "c";
-				case "Short" -> "s";
-				case "Integer" -> "n";
-				case "Long" -> "l";
-				case "Float" -> "f";
-				case "Double" -> "d";
-				case "Boolean" -> "bool";
-				case "String" -> "str";
-				case "Enum" -> "en";
+				case "Object"        -> "obj";
+				case "Class"         -> "clazz";
+				case "Byte"          -> "b";
+				case "Character"     -> "c";
+				case "Short"         -> "s";
+				case "Integer"       -> "n";
+				case "Long"          -> "l";
+				case "Float"         -> "f";
+				case "Double"        -> "d";
+				case "Boolean"       -> "bool";
+				case "String"        -> "str";
+				case "Enum"          -> "en";
 				case "StringBuilder" -> "strBuilder";
-				case "StringBuffer" -> "strBuffer";
-				case "BigInteger" -> "bigint";
-				case "BigDemical" -> "bigdem";
-				case "Void" -> "v";
-				default -> null;
+				case "StringBuffer"  -> "strBuffer";
+				case "BigInteger"    -> "bigint";
+				case "BigDecimal"    -> "bigdec";
+				case "Void"          -> "v";
+				default              -> null;
+
 			};
 		}
 

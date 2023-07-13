@@ -6,7 +6,7 @@ import x590.yava.constpool.InvokeDynamicConstant;
 import x590.yava.constpool.MethodHandleConstant;
 import x590.yava.constpool.MethodHandleConstant.ReferenceKind;
 import x590.yava.constpool.MethodrefConstant;
-import x590.yava.constpool.StringConstant;
+import x590.yava.constpool.constvalue.StringConstant;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.DisassemblerContext;
 import x590.yava.exception.decompilation.DecompilationException;

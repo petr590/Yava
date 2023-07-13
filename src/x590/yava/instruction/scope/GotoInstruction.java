@@ -1,7 +1,7 @@
 package x590.yava.instruction.scope;
 
 import x590.util.annotation.Nullable;
-import x590.yava.attribute.CodeAttribute.ExceptionTable.TryEntry;
+import x590.yava.attribute.code.ExceptionTable.TryEntry;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.DisassemblerContext;
 import x590.yava.context.PreDecompilationContext;

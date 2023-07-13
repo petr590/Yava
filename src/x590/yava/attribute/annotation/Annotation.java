@@ -7,10 +7,11 @@ import x590.yava.attribute.annotation.ElementValue.ArrayElementValue;
 import x590.yava.attribute.annotation.ElementValue.ClassElementValue;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.type.reference.ClassType;
-import x590.yava.writable.StringifyWritable;
+import x590.yava.writable.DisassemblingStringifyWritable;
 
 import java.lang.annotation.Repeatable;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public final class Annotation implements StringifyWritable<ClassInfo>, Importable {
+public final class Annotation implements DisassemblingStringifyWritable<ClassInfo>, Importable {
 
 	private static final ClassType REPEATABLE = ClassType.fromClass(Repeatable.class);
 
@@ -155,6 +156,17 @@ public final class Annotation implements StringifyWritable<ClassInfo>, Importabl
 
 			out.write(')');
 		}
+	}
+
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printIndent().print('@').print(type, classinfo);
+
+		if (!elements.isEmpty()) {
+			out.print('(').printAll(elements, classinfo, ", ").print(')');
+		}
+
+		out.println();
 	}
 
 

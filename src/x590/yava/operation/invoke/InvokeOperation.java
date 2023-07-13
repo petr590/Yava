@@ -15,6 +15,7 @@ import x590.yava.operation.Operation;
 import x590.yava.operation.OperationUtils;
 import x590.yava.operation.OperationWithDescriptor;
 import x590.yava.type.Type;
+import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ClassType;
 import x590.yava.type.reference.ReferenceType;
 import x590.yava.util.StringUtil;
@@ -31,13 +32,23 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 
 	private final @Immutable List<Operation> unmodifiableArguments;
 
+	/** Фактические аргументы метода, т.е. с встроенными элементами varargs */
+	private final @Immutable List<Operation> factualArguments;
+
 	private List<Operation> popArguments(DecompilationContext context) {
 		List<Type> argTypes = getDescriptor().getArguments();
 
 		List<Operation> arguments = new ArrayList<>(argTypes.size());
 
 		for (int i = argTypes.size(); --i >= 0; ) {
-			arguments.add(context.popAsNarrowest(argTypes.get(i)));
+			var argType = argTypes.get(i);
+			var arg = context.popAsNarrowest(argType);
+
+			arguments.add(
+					argType == PrimitiveType.BYTE || argType == PrimitiveType.SHORT ?
+							arg.castIfShortOrByteLiteral(argType) :
+							arg
+			);
 		}
 
 		// Аргументы идут в обратном порядке, поэтому надо перевернуть список
@@ -54,8 +65,16 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		return unmodifiableArguments;
 	}
 
+	public @Immutable List<Operation> getFactualArguments() {
+		return factualArguments;
+	}
+
 	public int argumentsCount() {
 		return arguments.size();
+	}
+
+	public int factualArgumentsCount() {
+		return factualArguments.size();
 	}
 
 
@@ -75,9 +94,10 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		this.arguments = popArguments(context);
 		this.unmodifiableArguments = Collections.unmodifiableList(arguments);
 
-		ClassInfo.findIClassInfo(descriptor.getDeclaringClass())
-				.ifPresent(iclassinfo -> iclassinfo.findMethodInfo(descriptor)
-						.ifPresent(methodInfo -> OperationUtils.tryInlineVarargs(context, descriptor, arguments, iclassinfo, methodInfo)));
+		this.factualArguments = ClassInfo.findIClassInfo(descriptor.getDeclaringClass())
+				.flatMap(iclassinfo -> iclassinfo.findMethodInfo(descriptor)
+						.map(methodInfo -> OperationUtils.tryInlineVarargs(context, descriptor, unmodifiableArguments, iclassinfo, methodInfo)))
+				.orElse(unmodifiableArguments);
 	}
 
 
@@ -187,7 +207,7 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 
 
 	protected void writeArguments(StringifyOutputStream out, StringifyContext context) {
-		out.print('(').printAll(arguments, skipArguments(), context, ", ").print(')');
+		out.print('(').printAll(factualArguments, skipArguments(), context, ", ").print(')');
 	}
 
 	protected int skipArguments() {

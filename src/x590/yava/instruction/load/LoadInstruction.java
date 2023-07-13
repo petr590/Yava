@@ -1,10 +1,10 @@
 package x590.yava.instruction.load;
 
-import x590.yava.instruction.InstructionWithIndex;
+import x590.yava.instruction.binary.SimpleInstructionWithSlot;
 
-public abstract class LoadInstruction extends InstructionWithIndex {
+public abstract class LoadInstruction extends SimpleInstructionWithSlot {
 
-	public LoadInstruction(int index) {
-		super(index);
+	public LoadInstruction(int slot) {
+		super(slot);
 	}
 }

@@ -6,7 +6,7 @@ package x590.yava.type;
  */
 public enum GeneralCastingKind implements ICastingKind {
 	/**
-	 * Оператор сравнения
+	 * Оператор сравнения '>', '>=', '<', '<='
 	 */
 	COMPARISON,
 

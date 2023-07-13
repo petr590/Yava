@@ -13,8 +13,7 @@ public final class VReturnOperation extends AbstractOperation implements VoidOpe
 
 	private static final VReturnOperation INSTANCE = new VReturnOperation();
 
-	private VReturnOperation() {
-	}
+	private VReturnOperation() {}
 
 	/**
 	 * @return Единственный экземпляр класса

@@ -56,28 +56,19 @@ public abstract class AbstractOperation implements Operation {
 		setImplicitCast(false);
 	}
 
-	protected void setImplicitCast(boolean implicitCast) {
-	}
+	protected void setImplicitCast(boolean implicitCast) {}
 
+
+	/**
+	 * Преобразовывает типы к общему типу.
+	 * @apiNote Необходимо учитывать, что этот метод вызывает {@link #onCastReturnType(Type, CastingKind)}
+	 * @return Результат преобразования
+	 */
 	@Override
-	public final Type getReturnTypeAs(Type type, CastingKind kind) {
-		Type newType = getReturnType().castTo(type, kind);
-		onCastReturnType(newType, kind);
-		return newType;
-	}
-
-
-	@Override
-	public final Type getReturnTypeAsGeneralNarrowest(Operation other, GeneralCastingKind kind) {
-		Type generalType = getReturnType().castToGeneral(other.getReturnType(), kind);
-		this.castReturnTypeToNarrowest(generalType);
-		other.castReturnTypeToNarrowest(generalType);
+	public final Type getReturnTypeAsGeneralNarrowest(Operation operand1, Operation operand2, GeneralCastingKind kind) {
+		Type generalType = operand1.getReturnType().castToGeneral(operand2.getReturnType(), kind);
+		onCastReturnType(generalType, CastingKind.NARROWEST);
 		return generalType;
-	}
-
-	@Override
-	public final void castReturnTypeTo(Type type, CastingKind kind) {
-		onCastReturnType(getReturnType().castTo(type, kind), kind);
 	}
 
 	@Override
@@ -125,14 +116,7 @@ public abstract class AbstractOperation implements Operation {
 	}
 
 
-//	@Override
-//	public Operation useAsGeneral(Operation other, CastingKind kind) {
-//		// TODO
-//	}
-
-
-	protected void onCastReturnType(Type newType, CastingKind kind) {
-	}
+	protected void onCastReturnType(Type newType, CastingKind kind) {}
 
 	/**
 	 * Гарантирует, что операция является scope-ом

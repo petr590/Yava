@@ -18,6 +18,7 @@ public abstract class Context {
 		this.pool = otherContext.pool;
 		this.indexMap = otherContext.indexMap;
 		this.posMap = otherContext.posMap;
+		this.index = 0;
 	}
 
 	public Context(ConstantPool pool, int mapLength) {

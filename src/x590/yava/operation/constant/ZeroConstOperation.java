@@ -11,8 +11,7 @@ public final class ZeroConstOperation extends AbstractOperation {
 
 	public static final ZeroConstOperation INSTANCE = new ZeroConstOperation();
 
-	private ZeroConstOperation() {
-	}
+	private ZeroConstOperation() {}
 
 	@Override
 	public Type getReturnType() {

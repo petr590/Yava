@@ -2,7 +2,7 @@ package x590.yava.variable;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import x590.util.annotation.Nullable;
-import x590.yava.attribute.LocalVariableTableAttribute.LocalVariableEntry;
+import x590.yava.attribute.code.LocalVariableTableAttribute.LocalVariableEntry;
 import x590.yava.operation.Operation;
 import x590.yava.scope.Scope;
 import x590.yava.type.CastingKind;
@@ -65,8 +65,7 @@ public interface Variable extends EmptyableVariable {
 	/**
 	 * Делает переменную индексом
 	 */
-	default void makeAnIndex() {
-	}
+	default void makeAnIndex() {}
 
 
 	/**

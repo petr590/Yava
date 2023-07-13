@@ -1,11 +1,11 @@
 package x590.yava.constpool;
 
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 
 public final class InterfaceMethodrefConstant extends MethodrefConstant {
 
-	protected InterfaceMethodrefConstant(ExtendedDataInputStream in) {
+	InterfaceMethodrefConstant(ExtendedDataInputStream in) {
 		super(in);
 	}
 
@@ -14,9 +14,9 @@ public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_INTERFACE_METHODREF);
-		out.writeShort(getClassIndex());
-		out.writeShort(getNameAndTypeIndex());
+	public void serialize(AssemblingOutputStream out) {
+		out .recordByte(TAG_INTERFACE_METHODREF)
+			.recordShort(getClassIndex())
+			.recordShort(getNameAndTypeIndex());
 	}
 }

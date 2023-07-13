@@ -57,8 +57,7 @@ public class ParameterAnnotationsAttribute extends Attribute {
 		}
 
 		@Override
-		public void write(StringifyOutputStream out, ClassInfo classinfo, int index) {
-		}
+		public void write(StringifyOutputStream out, ClassInfo classinfo, int index) {}
 	}
 
 

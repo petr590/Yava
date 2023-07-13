@@ -4,31 +4,40 @@ import x590.util.annotation.Nullable;
 import x590.yava.clazz.JavaClass;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.io.AssemblingInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.main.Config;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
-public class AssemblingPerforming extends AbstractPerforming<ExtendedDataOutputStream> {
+public class AssemblingPerforming extends AbstractPerforming<AssemblingOutputStream> {
 
 	public AssemblingPerforming(Config config) {
-		super(config, true);
+		super(PerformingType.ASSEMBLE, config, true);
 	}
 
 	@Override
-	protected ExtendedDataOutputStream createOutputStream(OutputStream out) {
-		return new ExtendedDataOutputStream(out);
+	protected String getOutputFileExtension() {
+		return ".class";
+	}
+
+	@Override
+	protected AssemblingOutputStream createOutputStream(OutputStream out) {
+		return new AssemblingOutputStream(out);
 	}
 
 	@Override
 	public @Nullable JavaClass read(String file) throws IOException, UncheckedIOException {
 
-		try (var in = new AssemblingInputStream(Files.newInputStream(Paths.get(file)))) {
-			return JavaClass.parse(in);
+		Path path = Paths.get(file);
+
+		try (var in = new AssemblingInputStream(Files.newInputStream(path))) {
+			return JavaClass.parse(in, Objects.toString(path.getParent(), "."));
 
 		} catch (ParseException ex) {
 			ex.printStackTrace();
@@ -38,12 +47,10 @@ public class AssemblingPerforming extends AbstractPerforming<ExtendedDataOutputS
 	}
 
 	@Override
-	public void perform(JavaClass clazz) {
-	}
+	public void perform(JavaClass clazz) {}
 
 	@Override
-	public void afterPerforming(JavaClass clazz) {
-	}
+	public void afterPerforming(JavaClass clazz) {}
 
 	@Override
 	public void doWrite(JavaClass clazz) {

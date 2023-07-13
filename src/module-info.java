@@ -35,6 +35,7 @@ module yava {
 	exports x590.yava.variable;
 	
 	exports x590.yava.instruction;
+	exports x590.yava.instruction.binary;
 	exports x590.yava.instruction.load;
 	exports x590.yava.instruction.store;
 	exports x590.yava.instruction.cast;
@@ -43,12 +44,7 @@ module yava {
 	exports x590.yava.instruction.invoke;
 	exports x590.yava.instruction.operator;
 	exports x590.yava.instruction.array;
-	exports x590.yava.instruction.arrayload;
-	exports x590.yava.instruction.arraystore;
-	exports x590.yava.instruction.cmp;
 	exports x590.yava.instruction.scope;
-	exports x590.yava.instruction.returning;
-	exports x590.yava.instruction.dup;
 	exports x590.yava.instruction.other;
 	
 	exports x590.yava.operation;
@@ -61,8 +57,6 @@ module yava {
 	exports x590.yava.operation.invoke;
 	exports x590.yava.operation.operator;
 	exports x590.yava.operation.array;
-	exports x590.yava.operation.arrayload;
-	exports x590.yava.operation.arraystore;
 	exports x590.yava.operation.variable;
 	exports x590.yava.operation.cmp;
 	exports x590.yava.operation.condition;
@@ -78,4 +72,7 @@ module yava {
 	exports x590.yava.exception.decompilation;
 	exports x590.yava.exception.disassembling;
 	exports x590.yava.exception.parsing;
+	exports x590.yava.serializable;
+	exports x590.yava.attribute.code;
+	exports x590.yava.constpool.constvalue;
 }

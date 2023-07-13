@@ -29,7 +29,8 @@ public final class JavaEnumField extends JavaField {
 
 	public void checkHasEnumInitializer(ClassInfo classinfo) {
 		if (!(getInitializer() instanceof InvokeOperation)) {
-			throw new DecompilationException("Enum constant " + getDescriptor() + " must have enum initializer");
+			throw new DecompilationException("Enum constant " + getDescriptor() + " must have enum initializer." +
+					" Got: " + getInitializer());
 		}
 	}
 
@@ -38,7 +39,7 @@ public final class JavaEnumField extends JavaField {
 	}
 
 	public boolean hasArgumentsInEnumInitializer() {
-		return getEnumInitializer().argumentsCount() > IMPLICIT_ENUM_ARGUMENTS;
+		return getEnumInitializer().factualArgumentsCount() > IMPLICIT_ENUM_ARGUMENTS;
 	}
 
 
@@ -55,8 +56,8 @@ public final class JavaEnumField extends JavaField {
 
 		out.write(getDescriptor().getName());
 
-		if (initializer.argumentsCount() > IMPLICIT_ENUM_ARGUMENTS) {
-			out.print('(').printAll(initializer.getArguments(), IMPLICIT_ENUM_ARGUMENTS, context, ", ").print(')');
+		if (initializer.factualArgumentsCount() > IMPLICIT_ENUM_ARGUMENTS) {
+			out.print('(').printAll(initializer.getFactualArguments(), IMPLICIT_ENUM_ARGUMENTS, context, ", ").print(')');
 		}
 	}
 

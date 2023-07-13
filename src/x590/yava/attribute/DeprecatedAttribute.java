@@ -1,6 +1,8 @@
 package x590.yava.attribute;
 
-public final class DeprecatedAttribute extends EmptyAttribute {
+import x590.yava.io.AssemblingInputStream;
+
+public final class DeprecatedAttribute extends EmptyDataAttribute {
 
 	private static final DeprecatedAttribute INSTANCE = new DeprecatedAttribute();
 
@@ -10,6 +12,11 @@ public final class DeprecatedAttribute extends EmptyAttribute {
 
 	public static DeprecatedAttribute get(String name, int length) {
 		checkLength(name, length);
+		return INSTANCE;
+	}
+
+	public static DeprecatedAttribute get(AssemblingInputStream in) {
+		in.requireNext(';');
 		return INSTANCE;
 	}
 }

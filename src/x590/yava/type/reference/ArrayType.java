@@ -192,10 +192,7 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 
 		this.encodedName = encodedBraces + memberType.getEncodedName();
 
-		this.classEncodedName = encodedBraces +
-				(memberType instanceof RealReferenceType realReference ?
-						realReference.getClassEncodedName() :
-						memberType.getEncodedName());
+		this.classEncodedName = encodedBraces + memberType.getEncodedName();
 	}
 
 
@@ -241,6 +238,11 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 		return memberType.toString() + braces;
 	}
 
+
+	/**
+	 * @return Закодированное имя класса
+	 * Пример: "[Ljava/lang/Object;", "[I", "[[Z"
+	 */
 	@Override
 	public String getClassEncodedName() {
 		return classEncodedName;

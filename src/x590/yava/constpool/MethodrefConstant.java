@@ -1,8 +1,10 @@
 package x590.yava.constpool;
 
 import x590.util.annotation.Nullable;
+import x590.yava.clazz.ClassInfo;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.method.MethodDescriptor;
 
 public class MethodrefConstant extends ReferenceConstant {
@@ -13,7 +15,7 @@ public class MethodrefConstant extends ReferenceConstant {
 		super(in);
 	}
 
-	public MethodrefConstant(int classIndex, int nameAndTypeIndex, ConstantPool pool) {
+	MethodrefConstant(int classIndex, int nameAndTypeIndex, ConstantPool pool) {
 		super(classIndex, nameAndTypeIndex, pool);
 	}
 
@@ -28,9 +30,14 @@ public class MethodrefConstant extends ReferenceConstant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_METHODREF);
-		out.writeShort(getClassIndex());
-		out.writeShort(getNameAndTypeIndex());
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		toDescriptor().writeAsMethodref(out, classinfo);
+	}
+
+	@Override
+	public void serialize(AssemblingOutputStream out) {
+		out .recordByte(TAG_METHODREF)
+			.recordShort(getClassIndex())
+			.recordShort(getNameAndTypeIndex());
 	}
 }

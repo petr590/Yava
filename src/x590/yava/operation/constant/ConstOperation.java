@@ -1,7 +1,7 @@
 package x590.yava.operation.constant;
 
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ConstValueConstant;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.context.StringifyContext;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.operation.Operation;

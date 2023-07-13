@@ -27,8 +27,7 @@ public class ScopeTest {
 
 	@Before
 	public void setup() {
-		scope = new Scope(5, 10, null, Collections.emptyList()) {
-		};
+		scope = new Scope(5, 10, null, Collections.emptyList()) {};
 	}
 
 

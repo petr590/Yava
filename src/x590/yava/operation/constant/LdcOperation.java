@@ -1,6 +1,6 @@
 package x590.yava.operation.constant;
 
-import x590.yava.constpool.ConstValueConstant;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.exception.decompilation.TypeSizeMismatchException;
 import x590.yava.type.TypeSize;
 

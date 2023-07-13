@@ -2,7 +2,7 @@ package x590.yava.exception.decompilation;
 
 import java.io.Serial;
 
-public class NoSuchConstantException extends DecompilationException {
+public class NoSuchConstantException extends IllegalConstantException {
 
 	@Serial
 	private static final long serialVersionUID = -4054909876022589550L;

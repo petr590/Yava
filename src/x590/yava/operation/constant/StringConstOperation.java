@@ -1,7 +1,7 @@
 package x590.yava.operation.constant;
 
 import x590.yava.constpool.ConstantPool;
-import x590.yava.constpool.StringConstant;
+import x590.yava.constpool.constvalue.StringConstant;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.StringifyContext;
 import x590.yava.io.StringifyOutputStream;
@@ -30,7 +30,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 				String[] lines = getValue().split("\n");
 
 				for (int i = 0, length = lines.length; ; ) {
-					out.println().printIndent().print(StringUtil.toLiteral(lines[i] + "\n"));
+					out.println().printIndent().print(StringUtil.stringToLiteral(lines[i] + "\n"));
 
 					if (++i < length)
 						out.write(" +");
@@ -44,7 +44,7 @@ public final class StringConstOperation extends ConstOperation<StringConstant> {
 			}
 		}
 
-		out.print(StringUtil.toLiteral(getValue()));
+		out.print(StringUtil.stringToLiteral(getValue()));
 	}
 
 	public String getValue() {

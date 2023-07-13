@@ -30,8 +30,7 @@ public interface IncrementableOperation extends Operation {
 		private String operator;
 		private @Nullable Operation stringLoadOperation;
 
-		private IncrementData() {
-		}
+		private IncrementData() {}
 
 		public IncrementData(@Nullable Operation operatorOperand, @Nullable CastOperation castOperation,
 							 @Nullable Operation preIncLoadOperation, boolean shortInc,
@@ -98,8 +97,7 @@ public interface IncrementableOperation extends Operation {
 
 	void setReturnType(Type returnType);
 
-	default void setProbableType(Type probableType) {
-	}
+	default void setProbableType(Type probableType) {}
 
 	IncrementData getIncData();
 

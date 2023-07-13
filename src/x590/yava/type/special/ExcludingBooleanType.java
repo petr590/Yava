@@ -15,8 +15,7 @@ public final class ExcludingBooleanType extends Type {
 
 	private static final String NAME = "ExcludingBooleanType";
 
-	private ExcludingBooleanType() {
-	}
+	private ExcludingBooleanType() {}
 
 
 	@Override

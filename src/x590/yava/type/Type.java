@@ -29,7 +29,8 @@ import java.util.function.Function;
 
 @Immutable
 public abstract class Type implements
-		SameDisassemblingStringifyWritable<ClassInfo>, BiStringifyWritable<ClassInfo, String>, Importable {
+		SameDisassemblingStringifyWritable<ClassInfo>,
+		BiStringifyWritable<ClassInfo, String>, Importable {
 
 	/**
 	 * Записывает себя и имя переменной через пробел.
@@ -44,7 +45,7 @@ public abstract class Type implements
 
 	/**
 	 * Записывает левую часть объявления массива, если включены c-style массивы.
-	 * Если нет, то работает просто как {@link #writeTo(StringifyOutputStream, ClassInfo)}
+	 * Если нет, то работает просто как {@link #writeTo(StringifyOutputStream, Object)}
 	 */
 	public void writeLeftDefinition(StringifyOutputStream out, ClassInfo classinfo) {
 		writeTo(out, classinfo);
@@ -54,8 +55,7 @@ public abstract class Type implements
 	 * Записывает правую часть объявления массива, если включены c-style массивы.
 	 * Если нет, то ничего не делает
 	 */
-	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {
-	}
+	public void writeRightDefinition(StringifyOutputStream out, ClassInfo classinfo) {}
 
 
 	/**
@@ -72,7 +72,7 @@ public abstract class Type implements
 
 	/**
 	 * @return Закодированное имя типа: "Ljava/lang/Object;", "I".<br>
-	 * Используется для сравнения типов и для получения хеш-кода
+	 * Используется также для сравнения типов и для получения хеш-кода
 	 */
 	public abstract String getEncodedName();
 

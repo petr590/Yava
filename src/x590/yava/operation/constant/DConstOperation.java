@@ -1,6 +1,6 @@
 package x590.yava.operation.constant;
 
-import x590.yava.constpool.DoubleConstant;
+import x590.yava.constpool.constvalue.DoubleConstant;
 
 public final class DConstOperation extends IntConvertibleConstOperation<DoubleConstant> {
 

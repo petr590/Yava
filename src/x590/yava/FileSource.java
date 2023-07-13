@@ -8,8 +8,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
+/**
+ * Источник, из которого можно загружать файлы
+ */
 public enum FileSource {
+
+	/** Загружает файлы с диска */
 	FILESYSTEM(Files::newInputStream),
+
+	/** Загружает файлы из текущей JDK */
 	JDK(path -> Optional.ofNullable(ClassLoader.getSystemClassLoader().getResourceAsStream(String.valueOf(path)))
 			.orElseThrow(() -> new IOException(String.valueOf(path))));
 

@@ -4,23 +4,26 @@ import x590.util.IntegerUtil;
 import x590.util.annotation.Immutable;
 import x590.yava.Importable;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ConstValueConstant;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.disassembling.DisassemblingException;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
+import x590.yava.io.ExtendedOutputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ClassType;
 import x590.yava.util.StringUtil;
-import x590.yava.writable.StringifyWritable;
+import x590.yava.writable.DisassemblingStringifyWritable;
+import x590.yava.writable.SameDisassemblingStringifyWritable;
 
 import java.lang.constant.Constable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntFunction;
 
-public abstract class ElementValue implements StringifyWritable<ClassInfo>, Importable {
+public abstract class ElementValue implements DisassemblingStringifyWritable<ClassInfo>, Importable {
 
 	public static class ConstElementValue extends ElementValue {
 
@@ -81,7 +84,12 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			value.writeTo(out, classinfo, type);
+			value.writeTo(out, classinfo, type, StringUtil.IMPLICIT);
+		}
+
+		@Override
+		public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+			value.writeDisassembled(out, classinfo, type, StringUtil.IMPLICIT);
 		}
 
 
@@ -96,7 +104,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 	}
 
 
-	public static class StringElementValue extends ElementValue {
+	public static class StringElementValue extends ElementValue implements SameDisassemblingStringifyWritable<ClassInfo> {
 
 		private final String value;
 
@@ -114,8 +122,8 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 
 
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.write(StringUtil.toLiteral(value));
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+			out.write(StringUtil.stringToLiteral(value));
 		}
 
 
@@ -130,7 +138,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 	}
 
 
-	public static class EnumElementValue extends ElementValue {
+	public static class EnumElementValue extends ElementValue implements SameDisassemblingStringifyWritable<ClassInfo> {
 
 		private final ClassType type;
 		private final String constantName;
@@ -160,8 +168,8 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		}
 
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.print(type, classinfo).print('.').print(constantName);
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+			out.printObject(type, classinfo).print('.').print(constantName);
 		}
 
 
@@ -176,7 +184,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 	}
 
 
-	public static class ClassElementValue extends ElementValue {
+	public static class ClassElementValue extends ElementValue implements SameDisassemblingStringifyWritable<ClassInfo> {
 
 		private final ClassType classType;
 
@@ -199,8 +207,8 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		}
 
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.print(classType, classinfo).print(".class");
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+			out.printObject(classType, classinfo).print(".class");
 		}
 
 
@@ -215,7 +223,7 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 	}
 
 
-	public static class AnnotationElementValue extends ElementValue {
+	public static class AnnotationElementValue extends ElementValue implements SameDisassemblingStringifyWritable<ClassInfo> {
 
 		private final Annotation annotation;
 
@@ -238,8 +246,8 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 		}
 
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-			out.print(annotation, classinfo);
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
+			out.printObject(annotation, classinfo);
 		}
 
 
@@ -290,6 +298,16 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 			}
 		}
 
+		@Override
+		public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+			if (values.isEmpty()) {
+				out.write("{}");
+
+			} else {
+				out.print("{ ").printAll(values, classinfo, ", ").print(" }");
+			}
+		}
+
 
 		@Override
 		public boolean equals(Object other) {
@@ -308,39 +326,25 @@ public abstract class ElementValue implements StringifyWritable<ClassInfo>, Impo
 
 	protected static ElementValue read(ExtendedDataInputStream in, ConstantPool pool) {
 
-		char tag = (char) in.readUnsignedByte();
+		char tag = (char)in.readUnsignedByte();
 
-		switch (tag) {
-			case 'B':
-				return new ConstElementValue(PrimitiveType.BYTE, in, pool);
-			case 'S':
-				return new ConstElementValue(PrimitiveType.SHORT, in, pool);
-			case 'C':
-				return new ConstElementValue(PrimitiveType.CHAR, in, pool);
-			case 'I':
-				return new ConstElementValue(PrimitiveType.INT, in, pool);
-			case 'J':
-				return new ConstElementValue(PrimitiveType.LONG, in, pool);
-			case 'F':
-				return new ConstElementValue(PrimitiveType.FLOAT, in, pool);
-			case 'D':
-				return new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
-			case 'Z':
-				return new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);
-			case 's':
-				return new StringElementValue(in, pool);
-			case 'e':
-				return new EnumElementValue(in, pool);
-			case 'c':
-				return new ClassElementValue(in, pool);
-			case '@':
-				return new AnnotationElementValue(in, pool);
-			case '[':
-				return new ArrayElementValue(in, pool);
-			default:
-				throw new DisassemblingException("Illegal anntotation element value tag: " +
-						"'" + tag + "' (" + IntegerUtil.hex1WithPrefix(tag) + ")");
-		}
+		return switch (tag) {
+			case 'B' -> new ConstElementValue(PrimitiveType.BYTE, in, pool);
+			case 'S' -> new ConstElementValue(PrimitiveType.SHORT, in, pool);
+			case 'C' -> new ConstElementValue(PrimitiveType.CHAR, in, pool);
+			case 'I' -> new ConstElementValue(PrimitiveType.INT, in, pool);
+			case 'J' -> new ConstElementValue(PrimitiveType.LONG, in, pool);
+			case 'F' -> new ConstElementValue(PrimitiveType.FLOAT, in, pool);
+			case 'D' -> new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
+			case 'Z' -> new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);
+			case 's' -> new StringElementValue(in, pool);
+			case 'e' -> new EnumElementValue(in, pool);
+			case 'c' -> new ClassElementValue(in, pool);
+			case '@' -> new AnnotationElementValue(in, pool);
+			case '[' -> new ArrayElementValue(in, pool);
+			default -> throw new DisassemblingException("Illegal annotation element value tag: " +
+					"'" + tag + "' (" + IntegerUtil.hex1WithPrefix(tag) + ")");
+		};
 	}
 
 	protected static ElementValue fromUnknownValue(Object value) {

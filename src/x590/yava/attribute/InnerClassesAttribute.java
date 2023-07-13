@@ -3,7 +3,7 @@ package x590.yava.attribute;
 import x590.util.Util;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
-import x590.yava.constpool.ClassConstant;
+import x590.yava.constpool.constvalue.ClassConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.ExtendedDataInputStream;

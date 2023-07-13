@@ -12,26 +12,30 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 
 	private Operation operand1, operand2;
 
-	/**
-	 * Для того чтобы можно было преобразовать операнд перед его присвоением
-	 */
+	/** Для того чтобы можно было преобразовать операнд перед его присвоением */
 	protected Operation processOperand1(Operation operand1) {
 		return operand1;
 	}
 
-	/**
-	 * Для того чтобы можно было преобразовать операнд перед его присвоением
-	 */
+	/** Для того чтобы можно было преобразовать операнд перед его присвоением */
 	protected Operation processOperand2(Operation operand2) {
 		return operand2;
 	}
 
 	public BinaryOperatorOperation(Type type, DecompilationContext context) {
 		super(type);
-		var operand2 = this.operand2 = processOperand2(context.popAsNarrowest(type));
-		var operand1 = this.operand1 = processOperand1(context.popAsNarrowest(type));
+		this.operand2 = processOperand2(context.popAsNarrowest(type));
+		this.operand1 = processOperand1(context.popAsNarrowest(type));
 
-		returnType = operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.BINARY_OPERATOR);
+		returnType = type.castToGeneral(
+				getReturnTypeAsGeneralNarrowest(operand1, operand2, GeneralCastingKind.BINARY_OPERATOR),
+				GeneralCastingKind.BINARY_OPERATOR
+		);
+
+		// Нельзя кэшировать эти поля раньше, так как вызов
+		// getReturnTypeAsGeneralNarrowest может изменить их
+		var operand1 = this.operand1;
+		var operand2 = this.operand2;
 
 		Type implicitGeneralType = operand1.getImplicitType().implicitCastToGeneralNoexcept(operand2.getImplicitType(), GeneralCastingKind.BINARY_OPERATOR);
 
@@ -66,7 +70,7 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 
 	@Override
 	protected Type getDeducedType(Type returnType) {
-		return operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.BINARY_OPERATOR);
+		return getReturnTypeAsGeneralNarrowest(operand1, operand2, GeneralCastingKind.BINARY_OPERATOR);
 	}
 
 
@@ -97,5 +101,11 @@ public abstract class BinaryOperatorOperation extends OperatorOperation {
 	public boolean equals(Operation other) {
 		return this == other || other instanceof BinaryOperatorOperation operation &&
 				super.equals(operation) && operand1.equals(operation.operand1) && operand2.equals(operation.operand2);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s {%s, %s}",
+				getClass().getSimpleName(), operand1, operand2);
 	}
 }

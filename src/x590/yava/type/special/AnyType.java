@@ -13,8 +13,7 @@ public final class AnyType extends Type {
 
 	public static final AnyType INSTANCE = new AnyType();
 
-	private AnyType() {
-	}
+	private AnyType() {}
 
 
 	@Override

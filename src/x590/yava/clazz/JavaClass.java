@@ -20,15 +20,18 @@ import x590.yava.field.JavaEnumField;
 import x590.yava.field.JavaField;
 import x590.yava.io.*;
 import x590.yava.main.Yava;
+import x590.yava.main.performing.AbstractPerforming.PerformingType;
 import x590.yava.method.JavaMethod;
 import x590.yava.modifiers.ClassModifiers;
 import x590.yava.operation.invoke.InvokespecialOperation;
+import x590.yava.serializable.JavaSerializable;
 import x590.yava.type.Type;
 import x590.yava.type.reference.ClassType;
 import x590.yava.type.reference.RealReferenceType;
 import x590.yava.util.IWhitespaceStringBuilder;
 import x590.yava.util.WhitespaceStringBuilder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Predicate;
@@ -40,7 +43,10 @@ import static x590.yava.modifiers.Modifiers.*;
 /**
  * Описывает декомпилируемый класс
  */
-public final class JavaClass extends JavaClassElement {
+public final class JavaClass extends JavaClassElement implements JavaSerializable {
+
+
+	public static final int SIGNATURE = 0xCAFEBABE;
 
 	private static final Map<ClassType, JavaClass> CLASSES = new HashMap<>();
 
@@ -71,7 +77,7 @@ public final class JavaClass extends JavaClassElement {
 	private final Attributes attributes;
 	private final Optional<ClassSignatureAttribute> signature;
 
-	private final String sourceFileName;
+	private final String fileName, sourceFileName;
 	private final @Nullable String directory;
 
 
@@ -112,6 +118,14 @@ public final class JavaClass extends JavaClassElement {
 		return interfaces;
 	}
 
+	private String getFileName(Attributes attributes) {
+		SourceFileAttribute sourceFileAttr = attributes.getNullable(AttributeType.SOURCE_FILE);
+
+		return sourceFileAttr == null ?
+				thisType.getTopLevelClass().getSimpleName() :
+				sourceFileAttr.getSourceFileName().replaceFirst(".java$", "");
+	}
+
 	private String getSourceFileName(Attributes attributes) {
 		SourceFileAttribute sourceFileAttr = attributes.getNullable(AttributeType.SOURCE_FILE);
 
@@ -121,8 +135,8 @@ public final class JavaClass extends JavaClassElement {
 	}
 
 
-	private JavaClass(ExtendedDataInputStream in, @Nullable String directory) {
-		if (in.readInt() != 0xCAFEBABE)
+	private JavaClass(ExtendedDataInputStream in, PerformingType performingType, @Nullable String directory) {
+		if (in.readInt() != SIGNATURE)
 			throw new ClassFormatException("Illegal class header");
 
 		this.version = Version.read(in);
@@ -134,7 +148,7 @@ public final class JavaClass extends JavaClassElement {
 
 		this.interfaces = in.readImmutableList(() -> pool.getClassConstant(in.readUnsignedShort()).toClassType());
 
-		var classinfo = this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
+		var classinfo = this.classinfo = ClassInfo.of(this, modifiers, performingType);
 
 		this.fields = Collections.unmodifiableList(JavaField.readFields(in, classinfo, pool));
 		this.methods = Collections.unmodifiableList(JavaMethod.readMethods(in, classinfo, pool));
@@ -182,34 +196,34 @@ public final class JavaClass extends JavaClassElement {
 		this.visibleInterfaces = getVisibleInterfaces();
 
 
+		this.fileName = getFileName(attributes);
 		this.sourceFileName = getSourceFileName(attributes);
 
 		this.directory = directory;
 
 		CLASSES.put(thisType, this);
 
-
 		methods.forEach(method -> method.beforeDecompilation(classinfo));
 	}
 
-	public static JavaClass read(InputStream in) {
-		return read(in, null);
+	public static JavaClass read(InputStream in, PerformingType performingType) {
+		return read(in, performingType, null);
 	}
 
-	public static JavaClass read(InputStream in, String directory) {
-		return read(new ExtendedDataInputStream(in), directory);
+	public static JavaClass read(InputStream in, PerformingType performingType, String directory) {
+		return read(new ExtendedDataInputStream(in), performingType, directory);
 	}
 
-	public static JavaClass read(ExtendedDataInputStream in) {
-		return read(in, null);
+	public static JavaClass read(ExtendedDataInputStream in, PerformingType performingType) {
+		return read(in, performingType, null);
 	}
 
-	public static JavaClass read(ExtendedDataInputStream in, String directory) {
-		return new JavaClass(in, directory);
+	public static JavaClass read(ExtendedDataInputStream in, PerformingType performingType, String directory) {
+		return new JavaClass(in, performingType, directory);
 	}
 
 
-	private JavaClass(AssemblingInputStream in) {
+	private JavaClass(AssemblingInputStream in, @Nullable String directory) {
 		this.modifiers = ClassModifiers.parse(in);
 		this.thisType = in.nextClassType();
 
@@ -230,10 +244,9 @@ public final class JavaClass extends JavaClassElement {
 
 		this.version = Version.parse(in);
 
-		// TODO
 		this.pool = ConstantPool.newInstance();
 
-		this.classinfo = new ClassInfo(this, version, pool, modifiers, thisType, superType, interfaces);
+		this.classinfo = ClassInfo.of(this, modifiers, PerformingType.ASSEMBLE);
 
 		this.fields = JavaField.parseFields(in, classinfo, pool);
 		this.constants = Collections.emptyList();
@@ -245,13 +258,14 @@ public final class JavaClass extends JavaClassElement {
 		this.innerClasses = Collections.emptyList();
 
 		this.attributes = Attributes.empty();
+		this.fileName = getFileName(attributes);
 		this.sourceFileName = getSourceFileName(attributes);
 
-		this.directory = null;
+		this.directory = directory;
 	}
 
-	public static @Nullable JavaClass parse(AssemblingInputStream in) {
-		return new JavaClass(in);
+	public static @Nullable JavaClass parse(AssemblingInputStream in, @Nullable String directory) {
+		return new JavaClass(in, directory);
 	}
 
 	public static @Nullable JavaClass find(ClassType type) {
@@ -365,7 +379,13 @@ public final class JavaClass extends JavaClassElement {
 	public String getSourceFilePath() {
 		return directory == null ?
 				sourceFileName :
-				directory + separatorChar + getSourceFileName();
+				directory + separatorChar + sourceFileName;
+	}
+
+	public String getFilePath(String extension) {
+		return directory == null ?
+				fileName + extension :
+				directory + separatorChar + fileName + extension;
 	}
 
 
@@ -768,24 +788,57 @@ public final class JavaClass extends JavaClassElement {
 
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-		out.print(modifiersToString(), classinfo)
-				.print(thisType, classinfo)
-				.print(" extends ")
+		out .print(modifiersToString(), classinfo)
+			.print(thisType, classinfo);
+
+		if (!superType.equals(ClassType.OBJECT))
+			out .print(" extends ")
 				.print(superType, classinfo);
 
 		if (!interfaces.isEmpty())
-			out.print(" implements ")
-					.printAll(interfaces, classinfo, ", ");
+			out .print(" implements ")
+				.printAll(interfaces, classinfo, ", ");
 
-		out.print(" {")
+		out.println(" {").increaseIndent();
+
+		if (!fields.isEmpty()) {
+			out .printIndent().println("fields {").increaseIndent()
 				.printAll(fields, classinfo, "")
+				.reduceIndent().printIndent().println('}').println();
+		}
+
+		if (!methods.isEmpty()) {
+			out .printIndent().println("methods {").increaseIndent()
 				.printAll(methods, classinfo, "")
-				.print('}');
+				.reduceIndent().printIndent().println('}');
+		}
+
+		out.reduceIndent().println('}');
 	}
 
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
+	public void serialize(AssemblingOutputStream out) {
+		var buffer = new ByteArrayOutputStream();
 
+		AssemblingOutputStream bufferOut = new AssemblingOutputStream(buffer);
+
+		bufferOut.record(modifiers)
+			.recordShort(pool.classIndexFor(thisType))
+			.recordShort(pool.classIndexFor(superType))
+			.recordShorts(interfaces.stream().mapToInt(pool::classIndexFor).toArray())
+			.recordAll(fields, pool)
+			.recordAll(methods, pool)
+			.record(attributes, pool)
+			.close();
+
+		// Мы не можем записать pool сразу, так как при записи всего остального
+		// pool может быть изменён. Поэтому сначала мы запишем всё в буфер,
+		// а затем запишем pool и буфер
+
+		out .recordInt(SIGNATURE)
+			.record(version)
+			.record(pool)
+			.writeByteArray(buffer.toByteArray());
 	}
 }

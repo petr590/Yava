@@ -5,6 +5,7 @@ import x590.yava.attribute.Attribute;
 import x590.yava.attribute.AttributeNames;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.type.reference.ClassType;
@@ -63,8 +64,7 @@ public class AnnotationsAttribute extends Attribute implements StringifyWritable
 		}
 
 		@Override
-		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		}
+		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {}
 	}
 
 
@@ -81,6 +81,10 @@ public class AnnotationsAttribute extends Attribute implements StringifyWritable
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.printEachUsingFunction(annotations, annotation -> out.printIndent().println(annotation, classinfo));
+	}
+
+	protected void writeDisassembledContent(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printAll(annotations, classinfo, "");
 	}
 
 

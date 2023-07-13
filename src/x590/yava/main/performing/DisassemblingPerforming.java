@@ -9,7 +9,12 @@ import java.io.OutputStream;
 public class DisassemblingPerforming extends DecodingPerforming<DisassemblingOutputStream> {
 
 	public DisassemblingPerforming(Config config) {
-		super(config);
+		super(PerformingType.DISASSEMBLE, config);
+	}
+
+	@Override
+	protected String getOutputFileExtension() {
+		return ".jasm";
 	}
 
 	@Override
@@ -18,12 +23,10 @@ public class DisassemblingPerforming extends DecodingPerforming<DisassemblingOut
 	}
 
 	@Override
-	public void perform(JavaClass clazz) {
-	}
+	public void perform(JavaClass clazz) {}
 
 	@Override
-	public void afterPerforming(JavaClass clazz) {
-	}
+	public void afterPerforming(JavaClass clazz) {}
 
 	@Override
 	public void doWrite(JavaClass clazz) {

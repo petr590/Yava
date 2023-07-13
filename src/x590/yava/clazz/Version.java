@@ -4,16 +4,18 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import x590.util.annotation.Immutable;
+import x590.yava.serializable.JavaSerializable;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.io.AssemblingInputStream;
 import x590.yava.io.ExtendedDataInputStream;
+import x590.yava.io.AssemblingOutputStream;
 
 /**
  * Версия class-файла. Содержит номера версий major и minor.
  * Автоматически определяет версию Java по номеру major.
  */
 @Immutable
-public record Version(int major, int minor) {
+public final class Version implements JavaSerializable {
 
 	// I have not found an official indication of version JDK Beta, JDK 1.0 number,
 	// and I'm too lazy to check it
@@ -54,25 +56,27 @@ public record Version(int major, int minor) {
 
 	private static final Int2ObjectMap<Version> INSTANCES = new Int2ObjectArrayMap<>();
 
-	/**
-	 * Используйте {@link #of(short, short)} вместо этого конструктора
-	 */
-	@Deprecated
-	public Version {
-	}
+	private final int major, minor;
 
 	private Version(int versions) {
-		this(versions & 0xFFFF, versions >>> 16);
+		this.major = versions & 0xFFFF;
+		this.minor = versions >>> 16;
 	}
 
+	public int major() {
+		return major;
+	}
+
+	public int minor() {
+		return minor;
+	}
 
 	public static Version of(short major, short minor) {
 		return INSTANCES.computeIfAbsent(minor << 16 | major & 0xFFFF, Version::new);
 	}
 
 	public static Version read(ExtendedDataInputStream in) {
-		int version = in.readInt();
-		return INSTANCES.computeIfAbsent(version, Version::new);
+		return INSTANCES.computeIfAbsent(in.readInt(), Version::new);
 	}
 
 	private static short safeCastToShort(int value) {
@@ -80,7 +84,7 @@ public record Version(int major, int minor) {
 			throw new ParseException("Version number " + value + " is too big");
 		}
 
-		return (short) value;
+		return (short)value;
 	}
 
 	public static Version parse(AssemblingInputStream in) {
@@ -90,6 +94,10 @@ public record Version(int major, int minor) {
 		short minor = safeCastToShort(in.nextUnsignedInt());
 		in.requireNext(';');
 		return of(major, minor);
+	}
+
+	public void serialize(AssemblingOutputStream out) {
+		out.writeInt(major | minor << 16);
 	}
 
 	@Override

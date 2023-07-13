@@ -7,8 +7,8 @@ import x590.yava.type.Type;
 
 public class XorOperatorInstruction extends OperatorInstruction {
 
-	public XorOperatorInstruction(Type type) {
-		super(type);
+	public XorOperatorInstruction(String mnemonic, Type type) {
+		super(mnemonic, type);
 	}
 
 	@Override

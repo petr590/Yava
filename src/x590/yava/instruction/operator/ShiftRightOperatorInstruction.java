@@ -7,8 +7,8 @@ import x590.yava.type.Type;
 
 public class ShiftRightOperatorInstruction extends OperatorInstruction {
 
-	public ShiftRightOperatorInstruction(Type type) {
-		super(type);
+	public ShiftRightOperatorInstruction(String mnemonic, Type type) {
+		super(mnemonic, type);
 	}
 
 	@Override

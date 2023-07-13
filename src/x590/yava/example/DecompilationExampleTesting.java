@@ -2,13 +2,13 @@ package x590.yava.example;
 
 import x590.util.Logger;
 import x590.yava.FileSource;
+import x590.yava.example.decompiling.Example;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
-public class DecompilationExampleTesting extends ExampleTesting {
+public class DecompilationExampleTesting extends DecodingExampleTesting {
 
 	public static DecompilationExampleTesting INSTANCE = new DecompilationExampleTesting();
 
@@ -17,6 +17,8 @@ public class DecompilationExampleTesting extends ExampleTesting {
 	}
 
 
+	/** @param clazz класс примера, который должен быть помечен аннотацией @{@link Example}.
+	 * @throws IllegalArgumentException если {@code clazz} не помечен этой аннотацией */
 	public void runForExampleClass(Class<?> clazz) {
 		Example exampleAnnotation = getExampleAnnotation(clazz);
 		run(exampleAnnotation.directory(), exampleAnnotation.classes(), exampleAnnotation.args());
@@ -33,6 +35,9 @@ public class DecompilationExampleTesting extends ExampleTesting {
 	}
 
 
+	/** @param classes массив классов для обработки.
+	 * Обрабатываются только классы, помеченные аннотацией @{@link Example}.
+	 * Не все классы должны быть помечены этой аннотацией. */
 	public void runForExampleClasses(Class<?>... classes) {
 
 		List<String> args = new ArrayList<>(classes.length);
@@ -79,31 +84,5 @@ public class DecompilationExampleTesting extends ExampleTesting {
 		Logger.debug("args: (" + args.size() + ") " + args);
 
 		run(args.toArray(String[]::new));
-	}
-
-
-	public void runForJdk(Class<?> clazz) {
-		runForJdk(new Class[]{clazz}, EMPTY_ARGS);
-	}
-
-	public void runForJdk(Class<?> clazz, String... otherArgs) {
-		runForJdk(new Class[]{clazz}, otherArgs);
-	}
-
-	public void runForJdk(Class<?>... classes) {
-		runForJdk(classes, EMPTY_ARGS);
-	}
-
-	public void runForJdk(Class<?>[] classes, String... otherArgs) {
-
-		run(
-				Stream.concat(
-						Stream.of("-jdk"),
-						Stream.concat(
-								Arrays.stream(classes).map(Class::getName),
-								Arrays.stream(otherArgs)
-						)
-				).toArray(String[]::new)
-		);
 	}
 }

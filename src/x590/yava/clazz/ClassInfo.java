@@ -21,6 +21,7 @@ import x590.yava.field.FieldInfo;
 import x590.yava.field.JavaField;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.main.Yava;
+import x590.yava.main.performing.AbstractPerforming.PerformingType;
 import x590.yava.method.JavaMethod;
 import x590.yava.method.MethodDescriptor;
 import x590.yava.method.MethodInfo;
@@ -65,19 +66,25 @@ public final class ClassInfo implements IClassInfo {
 	private Deque<ClassType> enteredClasses = new ArrayDeque<>();
 
 
-	public ClassInfo(JavaClass clazz, Version version, ConstantPool pool, ClassModifiers modifiers,
-					 ClassType thisType, ClassType superType, @Immutable List<ClassType> interfaces) {
+	private ClassInfo(JavaClass clazz, ClassModifiers modifiers, PerformingType performingType) {
 
 		this.clazz = clazz;
-		this.version = version;
-		this.pool = pool;
+		this.version = clazz.getVersion();
+		this.pool = clazz.getConstPool();
 		this.modifiers = modifiers;
-		this.thisType = thisType;
-		this.optionalSuperType = Optional.of(superType);
-		this.optionalInterfaces = Optional.of(interfaces);
-		imports.put(thisType, Integer.MAX_VALUE / 2);
+		this.thisType = clazz.getThisType();
+		this.optionalSuperType = Optional.of(clazz.getSuperType());
+		this.optionalInterfaces = Optional.of(clazz.getInterfaces());
+
+		if (performingType == PerformingType.DECOMPILE) {
+			imports.put(thisType, Integer.MAX_VALUE / 2);
+		}
 
 		INSTANCES.put(thisType, Optional.of(this));
+	}
+
+	public static ClassInfo of(JavaClass clazz, ClassModifiers modifiers, PerformingType performingType) {
+		return new ClassInfo(clazz, modifiers, performingType);
 	}
 
 	public static Optional<ClassInfo> findClassInfo(@Nullable ReferenceType type) {

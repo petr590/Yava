@@ -7,8 +7,7 @@ package x590.yava.type;
  */
 public final class CastStatus {
 
-	private CastStatus() {
-	}
+	private CastStatus() {}
 
 	/**
 	 * Одинаковый тип

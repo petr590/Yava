@@ -3,6 +3,8 @@ package x590.yava.io;
 import x590.util.LoopUtil;
 import x590.util.annotation.Nullable;
 import x590.util.function.TriConsumer;
+import x590.yava.main.Yava;
+import x590.yava.util.StringUtil;
 import x590.yava.writable.DisassemblingWritable;
 import x590.yava.writable.Writable;
 
@@ -15,6 +17,57 @@ public class DisassemblingOutputStream extends ExtendedOutputStream<Disassemblin
 
 	public DisassemblingOutputStream(OutputStream out) {
 		super(out);
+	}
+
+
+	public DisassemblingOutputStream printBoolean(boolean value) {
+		return print(Boolean.toString(value));
+	}
+
+	public DisassemblingOutputStream printByte(byte num) {
+		return print(Byte.toString(num)).print(Yava.getConfig().useLowerSuffixes() ? 'b' : 'B');
+	}
+
+	public DisassemblingOutputStream printShort(short num) {
+		return print(Short.toString(num)).print(Yava.getConfig().useLowerSuffixes() ? 's' : 'S');
+	}
+
+	public DisassemblingOutputStream printChar(char ch) {
+		return print(StringUtil.charToLiteral(ch));
+	}
+
+	public DisassemblingOutputStream printInt(int num) {
+		return print(Integer.toString(num));
+	}
+
+	public DisassemblingOutputStream printLong(long num) {
+		return print(Long.toString(num)).print('L');
+	}
+
+	public DisassemblingOutputStream printFloat(float num) {
+		if (!Float.isFinite(num)) {
+			return print("Float.").print(
+					num == Float.POSITIVE_INFINITY ? "POSITIVE_INFINITY" :
+					num == Float.NEGATIVE_INFINITY ? "NEGATIVE_INFINITY" : "NaN"
+			);
+		}
+
+		return print(Float.toString(num)).print(Yava.getConfig().getFloatSuffix());
+	}
+
+	public DisassemblingOutputStream printDouble(double num) {
+		if (!Double.isFinite(num)) {
+			return print("Double.").print(
+					num == Double.POSITIVE_INFINITY ? "POSITIVE_INFINITY" :
+					num == Double.NEGATIVE_INFINITY ? "NEGATIVE_INFINITY" : "NaN"
+			);
+		}
+
+		write(Double.toString(num));
+
+		var config = Yava.getConfig();
+
+		return config.printDoubleSuffix() ? print(Yava.getConfig().getDoubleSuffix()) : this;
 	}
 
 

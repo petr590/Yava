@@ -5,8 +5,7 @@ package x590.yava.operation;
  */
 public final class Priority {
 
-	private Priority() {
-	}
+	private Priority() {}
 
 	public static final int
 			DEFAULT_PRIORITY = 17,

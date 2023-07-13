@@ -5,8 +5,7 @@ public final class EmptyVariableWrapper implements EmptyableVariableWrapper {
 	public static final EmptyVariableWrapper INSTANCE = new EmptyVariableWrapper();
 
 
-	private EmptyVariableWrapper() {
-	}
+	private EmptyVariableWrapper() {}
 
 	@Override
 	public boolean isEmpty() {
@@ -19,12 +18,10 @@ public final class EmptyVariableWrapper implements EmptyableVariableWrapper {
 	}
 
 	@Override
-	public void assignName() {
-	}
+	public void assignName() {}
 
 	@Override
-	public void reduceType() {
-	}
+	public void reduceType() {}
 
 	@Override
 	public VariableWrapper assign(Variable other) {

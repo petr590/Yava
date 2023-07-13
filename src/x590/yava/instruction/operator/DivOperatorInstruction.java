@@ -7,8 +7,8 @@ import x590.yava.type.Type;
 
 public class DivOperatorInstruction extends OperatorInstruction {
 
-	public DivOperatorInstruction(Type type) {
-		super(type);
+	public DivOperatorInstruction(String mnemonic, Type type) {
+		super(mnemonic, type);
 	}
 
 	@Override

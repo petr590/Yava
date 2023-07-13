@@ -2,8 +2,7 @@ package x590.yava.attribute;
 
 public final class AttributeNames {
 
-	private AttributeNames() {
-	}
+	private AttributeNames() {}
 
 	public static final String
 			CONSTANT_VALUE = "ConstantValue",
@@ -15,16 +14,17 @@ public final class AttributeNames {
 			MODULE = "Module",
 			PERMITTED_SUBCLASSES = "PermittedSubclasses",
 
-	SOURCE_FILE = "SourceFile",
+			SOURCE_FILE = "SourceFile",
 			INNER_CLASSES = "InnerClasses",
 			ENCLOSING_METHOD = "EnclosingMethod",
 
-	CODE = "Code",
+			CODE = "Code",
 			BOOTSTRAP_METHODS = "BootstrapMethods",
+			LINE_NUMBER_TABLE = "LineNumberTable",
 			LOCAL_VARIABLE_TABLE = "LocalVariableTable",
 			LOCAL_VARIABLE_TYPE_TABLE = "LocalVariableTypeTable",
 
-	RUNTIME_VISIBLE_ANNOTATIONS = "RuntimeVisibleAnnotations",
+			RUNTIME_VISIBLE_ANNOTATIONS = "RuntimeVisibleAnnotations",
 			RUNTIME_INVISIBLE_ANNOTATIONS = "RuntimeInvisibleAnnotations",
 			RUNTIME_VISIBLE_TYPE_ANNOTATIONS = "RuntimeVisibleTypeAnnotations",
 			RUNTIME_INVISIBLE_TYPE_ANNOTATIONS = "RuntimeInvisibleTypeAnnotations",

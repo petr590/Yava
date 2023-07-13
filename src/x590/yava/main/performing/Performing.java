@@ -2,6 +2,7 @@ package x590.yava.main.performing;
 
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.JavaClass;
+import x590.yava.main.performing.AbstractPerforming.PerformingType;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -12,6 +13,8 @@ import java.io.UncheckedIOException;
  * декомиплируем, дизассемблируем, ассемблируем
  */
 public interface Performing<S extends OutputStream> {
+
+	PerformingType getType();
 
 	/**
 	 * Читает класс из указанного файла. Должен вызываться до {@link #setup()}

@@ -1,7 +1,7 @@
 package x590.yava.attribute;
 
 import x590.util.annotation.Immutable;
-import x590.yava.constpool.ConstValueConstant;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.constpool.MethodHandleConstant;
 import x590.yava.exception.decompilation.DecompilationException;

@@ -11,8 +11,7 @@ public final class EmptyStringConstOperation extends AbstractOperation {
 
 	public static final EmptyStringConstOperation INSTANCE = new EmptyStringConstOperation();
 
-	private EmptyStringConstOperation() {
-	}
+	private EmptyStringConstOperation() {}
 
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {

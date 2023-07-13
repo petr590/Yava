@@ -1,5 +1,6 @@
 package x590.yava.example;
 
+import x590.util.Logger;
 import x590.yava.main.Main;
 import x590.yava.main.Yava;
 
@@ -14,7 +15,8 @@ import static java.io.File.separatorChar;
 public abstract class ExampleTesting {
 
 	public static final DecompilationExampleTesting DECOMPILING = DecompilationExampleTesting.INSTANCE;
-	public static final ExampleTesting ASSEMBLING = AssemblongExampleTesting.INSTANCE;
+	public static final AssemblingExampleTesting ASSEMBLING = AssemblingExampleTesting.INSTANCE;
+	public static final DisassemblingExampleTesting DISASSEMBLING = DisassemblingExampleTesting.INSTANCE;
 
 
 	private final String postfix;
@@ -107,6 +109,8 @@ public abstract class ExampleTesting {
 	}
 
 	public void run(boolean isDebug, String... args) {
+
+		Logger.debug("args: " + Arrays.toString(args));
 
 		Yava.setDebug(isDebug);
 

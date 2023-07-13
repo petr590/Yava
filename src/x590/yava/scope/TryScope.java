@@ -22,6 +22,5 @@ public class TryScope extends Scope {
 	}
 
 	@Override
-	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
-	}
+	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {}
 }

@@ -14,14 +14,15 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.io.File.separatorChar;
 
 public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> extends AbstractPerforming<S> {
 
-	public DecodingPerforming(Config config) {
-		super(config);
+	public DecodingPerforming(PerformingType type, Config config) {
+		super(type, config);
 	}
 
 	private static final Pattern CLASSNAME_PATTERN =
@@ -47,7 +48,7 @@ public abstract class DecodingPerforming<S extends ExtendedOutputStream<S>> exte
 		try {
 			Timer timer = Timer.startNewTimer();
 
-			JavaClass javaClass = JavaClass.read(in, String.valueOf(path.getParent()));
+			JavaClass javaClass = JavaClass.read(in, getType(), Objects.toString(path.getParent(), "."));
 
 			timer.logElapsed("Class reading");
 

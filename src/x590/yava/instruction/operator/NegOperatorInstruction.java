@@ -7,8 +7,8 @@ import x590.yava.type.Type;
 
 public class NegOperatorInstruction extends OperatorInstruction {
 
-	public NegOperatorInstruction(Type type) {
-		super(type);
+	public NegOperatorInstruction(String mnemonic, Type type) {
+		super(mnemonic, type);
 	}
 
 	@Override

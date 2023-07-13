@@ -7,8 +7,7 @@ public abstract class ConditionOperation extends AbstractOperation implements Bo
 
 	protected boolean inverted;
 
-	protected ConditionOperation() {
-	}
+	protected ConditionOperation() {}
 
 	public ConditionOperation invert() {
 		inverted = !inverted;
@@ -16,8 +15,7 @@ public abstract class ConditionOperation extends AbstractOperation implements Bo
 		return this;
 	}
 
-	protected void onInvert() {
-	}
+	protected void onInvert() {}
 
 	public boolean isAlwaysTrue() {
 		return false;

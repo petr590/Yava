@@ -11,7 +11,7 @@ import x590.yava.attribute.ConstantValueAttribute;
 import x590.yava.attribute.annotation.AnnotationsAttribute;
 import x590.yava.attribute.signature.FieldSignatureAttribute;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ConstValueConstant;
+import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.context.DecompilationContext;
 import x590.yava.exception.decompilation.DecompilationException;
@@ -21,6 +21,7 @@ import x590.yava.main.Yava;
 import x590.yava.method.JavaMethod;
 import x590.yava.modifiers.FieldModifiers;
 import x590.yava.operation.Operation;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.util.IWhitespaceStringBuilder;
 import x590.yava.util.WhitespaceStringBuilder;
 
@@ -31,7 +32,7 @@ import java.util.Objects;
 
 import static x590.yava.modifiers.Modifiers.*;
 
-public class JavaField extends JavaClassElement {
+public class JavaField extends JavaClassElement implements JavaSerializableWithPool {
 
 	private final FieldModifiers modifiers;
 	private final FieldDescriptor descriptor;
@@ -83,7 +84,9 @@ public class JavaField extends JavaClassElement {
 	public static List<JavaField> readFields(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool) {
 		return in.readArrayList(() -> {
 			FieldModifiers modifiers = FieldModifiers.read(in);
-			return modifiers.isEnum() ? new JavaEnumField(in, classinfo, pool, modifiers) : new JavaField(in, classinfo, pool, modifiers);
+			return modifiers.isEnum() ?
+					new JavaEnumField(in, classinfo, pool, modifiers) :
+					new JavaField(in, classinfo, pool, modifiers);
 		});
 	}
 
@@ -278,8 +281,7 @@ public class JavaField extends JavaClassElement {
 		boolean printImplicitInterfaceModifiers = Yava.getConfig().printImplicitModifiers() || !classinfo.getModifiers().isInterface();
 
 		switch (modifiers.and(ACC_ACCESS_FLAGS)) {
-			case ACC_VISIBLE -> {
-			}
+			case ACC_VISIBLE -> {}
 			case ACC_PRIVATE -> str.append("private");
 			case ACC_PROTECTED -> str.append("protected");
 			case ACC_PUBLIC -> {
@@ -353,13 +355,18 @@ public class JavaField extends JavaClassElement {
 
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-		out.print(modifiersToString(classinfo), classinfo)
-				.print(descriptor, classinfo);
+		out .printIndent()
+			.print(modifiersToString(classinfo), classinfo)
+			.print(descriptor, classinfo)
+			.print(attributes, classinfo)
+			.println();
 	}
 
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		// TODO
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .record(modifiers)
+			.record(descriptor, pool)
+			.record(attributes, pool);
 	}
 }

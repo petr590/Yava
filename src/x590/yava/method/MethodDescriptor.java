@@ -9,7 +9,7 @@ import x590.yava.attribute.AttributeType;
 import x590.yava.attribute.Attributes;
 import x590.yava.attribute.annotation.ParameterAnnotationsAttribute;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ClassConstant;
+import x590.yava.constpool.constvalue.ClassConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.constpool.NameAndTypeConstant;
 import x590.yava.constpool.ReferenceConstant;
@@ -18,6 +18,7 @@ import x590.yava.exception.decompilation.IllegalMethodHeaderException;
 import x590.yava.exception.disassembling.InvalidMethodDescriptorException;
 import x590.yava.io.*;
 import x590.yava.modifiers.ClassEntryModifiers;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ArrayType;
@@ -34,7 +35,7 @@ import java.util.function.IntConsumer;
 import java.util.function.ObjIntConsumer;
 import java.util.stream.Collectors;
 
-public final class MethodDescriptor extends Descriptor<MethodDescriptor> implements Importable {
+public final class MethodDescriptor extends Descriptor<MethodDescriptor> implements Importable, JavaSerializableWithPool {
 
 	public static final int
 			IMPLICIT_ENUM_ARGUMENTS = 2,
@@ -53,9 +54,9 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 
 	private MethodKind kindForName(String name) {
 		MethodKind kind = switch (name) {
-			case "<init>" -> MethodKind.CONSTRUCTOR;
+			case "<init>"   -> MethodKind.CONSTRUCTOR;
 			case "<clinit>" -> MethodKind.STATIC_INITIALIZER;
-			default -> MethodKind.PLAIN;
+			default         -> MethodKind.PLAIN;
 		};
 
 		if (kind != MethodKind.PLAIN) {
@@ -294,8 +295,7 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 		boolean canOmitTypes = asLambda && visibleParameterAnnotations.isEmpty() && invisibleParameterAnnotations.isEmpty();
 
 		IntConsumer writeParameterAnnotations = canOmitTypes ?
-				slot -> {
-				} :
+				slot -> {} :
 				slot -> {
 					visibleParameterAnnotations.write(out, classinfo, slot);
 					invisibleParameterAnnotations.write(out, classinfo, slot);
@@ -473,7 +473,24 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printsp(returnType, classinfo);
+		writeNameAndArguments(out, classinfo);
+	}
 
+
+	public void writeAsMethodref(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printsp(returnType, classinfo).print(getDeclaringClass(), classinfo).print('.');
+		writeNameAndArguments(out, classinfo);
+	}
+
+	private void writeNameAndArguments(DisassemblingOutputStream out, ClassInfo classinfo) {
+		if (isPlain()) {
+			out.print(getName());
+		} else {
+			out.print('"').print(getName()).print('"');
+		}
+
+		out.print('(').printAll(arguments, classinfo, ", ").print(')');
 	}
 
 
@@ -485,5 +502,14 @@ public final class MethodDescriptor extends Descriptor<MethodDescriptor> impleme
 		return returnType == this.returnType && arguments.equals(this.arguments) ?
 				this :
 				of(returnType, getDeclaringClass(), getName(), arguments);
+	}
+
+	@Override
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .recordShort(pool.findOrAddUtf8(getName()))
+			.recordShort(pool.findOrAddUtf8(
+					arguments.stream().map(Type::getEncodedName).collect(Collectors.joining("", "(", ")"))
+							+ returnType.getEncodedName()
+			));
 	}
 }

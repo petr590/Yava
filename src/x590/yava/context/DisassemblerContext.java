@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static x590.yava.context.Opcodes.*;
+
 public final class DisassemblerContext extends Context {
 
 	public static final byte[] EMPTY_DATA = {};
@@ -93,7 +95,7 @@ public final class DisassemblerContext extends Context {
 	}
 
 	private int readShort() {
-		return (short) ((bytes[pos + 1] & 0xFF) << 8 | bytes[pos += 2] & 0xFF);
+		return (short)((bytes[pos + 1] & 0xFF) << 8 | bytes[pos += 2] & 0xFF);
 	}
 
 	private int readInt() {
@@ -116,188 +118,190 @@ public final class DisassemblerContext extends Context {
 
 	private @Nullable Instruction readInstruction() {
 		return switch (bytes[pos] & 0xFF) {
-			case 0x00 -> null;
-			case 0x01 -> Instructions.ACONST_NULL;
-			case 0x02 -> Instructions.ICONST_M1;
-			case 0x03 -> Instructions.ICONST_0;
-			case 0x04 -> Instructions.ICONST_1;
-			case 0x05 -> Instructions.ICONST_2;
-			case 0x06 -> Instructions.ICONST_3;
-			case 0x07 -> Instructions.ICONST_4;
-			case 0x08 -> Instructions.ICONST_5;
-			case 0x09 -> Instructions.LCONST_0;
-			case 0x0A -> Instructions.LCONST_1;
-			case 0x0B -> Instructions.FCONST_0;
-			case 0x0C -> Instructions.FCONST_1;
-			case 0x0D -> Instructions.FCONST_2;
-			case 0x0E -> Instructions.DCONST_0;
-			case 0x0F -> Instructions.DCONST_1;
-			case 0x10 -> new IConstInstruction(readByte());
-			case 0x11 -> new IConstInstruction(readShort());
-			case 0x12 -> new LdcInstruction(TypeSize.WORD, this, readUnsignedByte());
-			case 0x13 -> new LdcInstruction(TypeSize.WORD, this, readUnsignedShort());
-			case 0x14 -> new LdcInstruction(TypeSize.LONG, this, readUnsignedShort());
+			case NOP -> null;
+			case ACONST_NULL -> Instructions.ACONST_NULL;
+			case ICONST_M1 -> Instructions.ICONST_M1;
+			case ICONST_0  -> Instructions.ICONST_0;
+			case ICONST_1  -> Instructions.ICONST_1;
+			case ICONST_2  -> Instructions.ICONST_2;
+			case ICONST_3  -> Instructions.ICONST_3;
+			case ICONST_4  -> Instructions.ICONST_4;
+			case ICONST_5  -> Instructions.ICONST_5;
+			case LCONST_0  -> Instructions.LCONST_0;
+			case LCONST_1  -> Instructions.LCONST_1;
+			case FCONST_0  -> Instructions.FCONST_0;
+			case FCONST_1  -> Instructions.FCONST_1;
+			case FCONST_2  -> Instructions.FCONST_2;
+			case DCONST_0  -> Instructions.DCONST_0;
+			case DCONST_1  -> Instructions.DCONST_1;
+			case BIPUSH -> IConstInstruction.of(readByte());
+			case SIPUSH -> IConstInstruction.of(readShort());
+			case LDC    -> new LdcInstruction(TypeSize.WORD, readUnsignedByte());
+			case LDC_W  -> new LdcInstruction(TypeSize.WORD, readUnsignedShort());
+			case LDC2_W -> new LdcInstruction(TypeSize.LONG, readUnsignedShort());
 
-			case 0x15 -> new ILoadInstruction(readUnsignedByte());
-			case 0x16 -> new LLoadInstruction(readUnsignedByte());
-			case 0x17 -> new FLoadInstruction(readUnsignedByte());
-			case 0x18 -> new DLoadInstruction(readUnsignedByte());
-			case 0x19 -> new ALoadInstruction(readUnsignedByte());
-			case 0x1A -> Instructions.ILOAD_0;
-			case 0x1B -> Instructions.ILOAD_1;
-			case 0x1C -> Instructions.ILOAD_2;
-			case 0x1D -> Instructions.ILOAD_3;
-			case 0x1E -> Instructions.LLOAD_0;
-			case 0x1F -> Instructions.LLOAD_1;
-			case 0x20 -> Instructions.LLOAD_2;
-			case 0x21 -> Instructions.LLOAD_3;
-			case 0x22 -> Instructions.FLOAD_0;
-			case 0x23 -> Instructions.FLOAD_1;
-			case 0x24 -> Instructions.FLOAD_2;
-			case 0x25 -> Instructions.FLOAD_3;
-			case 0x26 -> Instructions.DLOAD_0;
-			case 0x27 -> Instructions.DLOAD_1;
-			case 0x28 -> Instructions.DLOAD_2;
-			case 0x29 -> Instructions.DLOAD_3;
-			case 0x2A -> Instructions.ALOAD_0;
-			case 0x2B -> Instructions.ALOAD_1;
-			case 0x2C -> Instructions.ALOAD_2;
-			case 0x2D -> Instructions.ALOAD_3;
+			case ILOAD -> ILoadInstruction.of(readUnsignedByte());
+			case LLOAD -> LLoadInstruction.of(readUnsignedByte());
+			case FLOAD -> FLoadInstruction.of(readUnsignedByte());
+			case DLOAD -> DLoadInstruction.of(readUnsignedByte());
+			case ALOAD -> ALoadInstruction.of(readUnsignedByte());
+			case ILOAD_0 -> Instructions.ILOAD_0;
+			case ILOAD_1 -> Instructions.ILOAD_1;
+			case ILOAD_2 -> Instructions.ILOAD_2;
+			case ILOAD_3 -> Instructions.ILOAD_3;
+			case LLOAD_0 -> Instructions.LLOAD_0;
+			case LLOAD_1 -> Instructions.LLOAD_1;
+			case LLOAD_2 -> Instructions.LLOAD_2;
+			case LLOAD_3 -> Instructions.LLOAD_3;
+			case FLOAD_0 -> Instructions.FLOAD_0;
+			case FLOAD_1 -> Instructions.FLOAD_1;
+			case FLOAD_2 -> Instructions.FLOAD_2;
+			case FLOAD_3 -> Instructions.FLOAD_3;
+			case DLOAD_0 -> Instructions.DLOAD_0;
+			case DLOAD_1 -> Instructions.DLOAD_1;
+			case DLOAD_2 -> Instructions.DLOAD_2;
+			case DLOAD_3 -> Instructions.DLOAD_3;
+			case ALOAD_0 -> Instructions.ALOAD_0;
+			case ALOAD_1 -> Instructions.ALOAD_1;
+			case ALOAD_2 -> Instructions.ALOAD_2;
+			case ALOAD_3 -> Instructions.ALOAD_3;
 
-			case 0x2E -> Instructions.IALOAD;
-			case 0x2F -> Instructions.LALOAD;
-			case 0x30 -> Instructions.FALOAD;
-			case 0x31 -> Instructions.DALOAD;
-			case 0x32 -> Instructions.AALOAD;
-			case 0x33 -> Instructions.BALOAD;
-			case 0x34 -> Instructions.CALOAD;
-			case 0x35 -> Instructions.SALOAD;
+			case IALOAD -> Instructions.IALOAD;
+			case LALOAD -> Instructions.LALOAD;
+			case FALOAD -> Instructions.FALOAD;
+			case DALOAD -> Instructions.DALOAD;
+			case AALOAD -> Instructions.AALOAD;
+			case BALOAD -> Instructions.BALOAD;
+			case CALOAD -> Instructions.CALOAD;
+			case SALOAD -> Instructions.SALOAD;
 
-			case 0x36 -> new IStoreInstruction(readUnsignedByte());
-			case 0x37 -> new LStoreInstruction(readUnsignedByte());
-			case 0x38 -> new FStoreInstruction(readUnsignedByte());
-			case 0x39 -> new DStoreInstruction(readUnsignedByte());
-			case 0x3A -> new AStoreInstruction(readUnsignedByte());
-			case 0x3B -> Instructions.ISTORE_0;
-			case 0x3C -> Instructions.ISTORE_1;
-			case 0x3D -> Instructions.ISTORE_2;
-			case 0x3E -> Instructions.ISTORE_3;
-			case 0x3F -> Instructions.LSTORE_0;
-			case 0x40 -> Instructions.LSTORE_1;
-			case 0x41 -> Instructions.LSTORE_2;
-			case 0x42 -> Instructions.LSTORE_3;
-			case 0x43 -> Instructions.FSTORE_0;
-			case 0x44 -> Instructions.FSTORE_1;
-			case 0x45 -> Instructions.FSTORE_2;
-			case 0x46 -> Instructions.FSTORE_3;
-			case 0x47 -> Instructions.DSTORE_0;
-			case 0x48 -> Instructions.DSTORE_1;
-			case 0x49 -> Instructions.DSTORE_2;
-			case 0x4A -> Instructions.DSTORE_3;
-			case 0x4B -> Instructions.ASTORE_0;
-			case 0x4C -> Instructions.ASTORE_1;
-			case 0x4D -> Instructions.ASTORE_2;
-			case 0x4E -> Instructions.ASTORE_3;
+			case ISTORE -> IStoreInstruction.of(readUnsignedByte());
+			case LSTORE -> LStoreInstruction.of(readUnsignedByte());
+			case FSTORE -> FStoreInstruction.of(readUnsignedByte());
+			case DSTORE -> DStoreInstruction.of(readUnsignedByte());
+			case ASTORE -> AStoreInstruction.of(readUnsignedByte());
+			case ISTORE_0 -> Instructions.ISTORE_0;
+			case ISTORE_1 -> Instructions.ISTORE_1;
+			case ISTORE_2 -> Instructions.ISTORE_2;
+			case ISTORE_3 -> Instructions.ISTORE_3;
+			case LSTORE_0 -> Instructions.LSTORE_0;
+			case LSTORE_1 -> Instructions.LSTORE_1;
+			case LSTORE_2 -> Instructions.LSTORE_2;
+			case LSTORE_3 -> Instructions.LSTORE_3;
+			case FSTORE_0 -> Instructions.FSTORE_0;
+			case FSTORE_1 -> Instructions.FSTORE_1;
+			case FSTORE_2 -> Instructions.FSTORE_2;
+			case FSTORE_3 -> Instructions.FSTORE_3;
+			case DSTORE_0 -> Instructions.DSTORE_0;
+			case DSTORE_1 -> Instructions.DSTORE_1;
+			case DSTORE_2 -> Instructions.DSTORE_2;
+			case DSTORE_3 -> Instructions.DSTORE_3;
+			case ASTORE_0 -> Instructions.ASTORE_0;
+			case ASTORE_1 -> Instructions.ASTORE_1;
+			case ASTORE_2 -> Instructions.ASTORE_2;
+			case ASTORE_3 -> Instructions.ASTORE_3;
 
-			case 0x4F -> Instructions.IASTORE;
-			case 0x50 -> Instructions.LASTORE;
-			case 0x51 -> Instructions.FASTORE;
-			case 0x52 -> Instructions.DASTORE;
-			case 0x53 -> Instructions.AASTORE;
-			case 0x54 -> Instructions.BASTORE;
-			case 0x55 -> Instructions.CASTORE;
-			case 0x56 -> Instructions.SASTORE;
+			case IASTORE -> Instructions.IASTORE;
+			case LASTORE -> Instructions.LASTORE;
+			case FASTORE -> Instructions.FASTORE;
+			case DASTORE -> Instructions.DASTORE;
+			case AASTORE -> Instructions.AASTORE;
+			case BASTORE -> Instructions.BASTORE;
+			case CASTORE -> Instructions.CASTORE;
+			case SASTORE -> Instructions.SASTORE;
 
-			case 0x57 -> Instructions.POP;
-			case 0x58 -> Instructions.POP2;
-			case 0x59 -> Instructions.DUP;
-			case 0x5A -> Instructions.DUP_X1;
-			case 0x5B -> Instructions.DUP_X2;
-			case 0x5C -> Instructions.DUP2;
-			case 0x5D -> Instructions.DUP2_X1;
-			case 0x5E -> Instructions.DUP2_X2;
-			case 0x5F -> Instructions.SWAP;
+			case POP     -> Instructions.POP;
+			case POP2    -> Instructions.POP2;
+			case DUP     -> Instructions.DUP;
+			case DUP_X1  -> Instructions.DUP_X1;
+			case DUP_X2  -> Instructions.DUP_X2;
+			case DUP2    -> Instructions.DUP2;
+			case DUP2_X1 -> Instructions.DUP2_X1;
+			case DUP2_X2 -> Instructions.DUP2_X2;
+			case SWAP    -> Instructions.SWAP;
 
-			case 0x60 -> Instructions.IADD;
-			case 0x61 -> Instructions.LADD;
-			case 0x62 -> Instructions.FADD;
-			case 0x63 -> Instructions.DADD;
-			case 0x64 -> Instructions.ISUB;
-			case 0x65 -> Instructions.LSUB;
-			case 0x66 -> Instructions.FSUB;
-			case 0x67 -> Instructions.DSUB;
-			case 0x68 -> Instructions.IMUL;
-			case 0x69 -> Instructions.LMUL;
-			case 0x6A -> Instructions.FMUL;
-			case 0x6B -> Instructions.DMUL;
-			case 0x6C -> Instructions.IDIV;
-			case 0x6D -> Instructions.LDIV;
-			case 0x6E -> Instructions.FDIV;
-			case 0x6F -> Instructions.DDIV;
-			case 0x70 -> Instructions.IREM;
-			case 0x71 -> Instructions.LREM;
-			case 0x72 -> Instructions.FREM;
-			case 0x73 -> Instructions.DREM;
-			case 0x74 -> Instructions.INEG;
-			case 0x75 -> Instructions.LNEG;
-			case 0x76 -> Instructions.FNEG;
-			case 0x77 -> Instructions.DNEG;
+			case IADD -> Instructions.IADD;
+			case LADD -> Instructions.LADD;
+			case FADD -> Instructions.FADD;
+			case DADD -> Instructions.DADD;
+			case ISUB -> Instructions.ISUB;
+			case LSUB -> Instructions.LSUB;
+			case FSUB -> Instructions.FSUB;
+			case DSUB -> Instructions.DSUB;
+			case IMUL -> Instructions.IMUL;
+			case LMUL -> Instructions.LMUL;
+			case FMUL -> Instructions.FMUL;
+			case DMUL -> Instructions.DMUL;
+			case IDIV -> Instructions.IDIV;
+			case LDIV -> Instructions.LDIV;
+			case FDIV -> Instructions.FDIV;
+			case DDIV -> Instructions.DDIV;
+			case IREM -> Instructions.IREM;
+			case LREM -> Instructions.LREM;
+			case FREM -> Instructions.FREM;
+			case DREM -> Instructions.DREM;
+			case INEG -> Instructions.INEG;
+			case LNEG -> Instructions.LNEG;
+			case FNEG -> Instructions.FNEG;
+			case DNEG -> Instructions.DNEG;
 
-			case 0x78 -> Instructions.ISHL;
-			case 0x79 -> Instructions.LSHL;
-			case 0x7A -> Instructions.ISHR;
-			case 0x7B -> Instructions.LSHR;
-			case 0x7C -> Instructions.IUSHR;
-			case 0x7D -> Instructions.LUSHR;
-			case 0x7E -> Instructions.IAND;
-			case 0x7F -> Instructions.LAND;
-			case 0x80 -> Instructions.IOR;
-			case 0x81 -> Instructions.LOR;
-			case 0x82 -> Instructions.IXOR;
-			case 0x83 -> Instructions.LXOR;
+			case ISHL -> Instructions.ISHL;
+			case LSHL -> Instructions.LSHL;
+			case ISHR -> Instructions.ISHR;
+			case LSHR -> Instructions.LSHR;
+			case IUSHR -> Instructions.IUSHR;
+			case LUSHR -> Instructions.LUSHR;
+			case IAND -> Instructions.IAND;
+			case LAND -> Instructions.LAND;
+			case IOR -> Instructions.IOR;
+			case LOR -> Instructions.LOR;
+			case IXOR -> Instructions.IXOR;
+			case LXOR -> Instructions.LXOR;
 
-			case 0x84 -> new IIncInstruction(readUnsignedByte(), readByte());
+			case IINC -> new IIncInstruction(readUnsignedByte(), readByte());
 
-			case 0x85 -> Instructions.I2L;
-			case 0x86 -> Instructions.I2F;
-			case 0x87 -> Instructions.I2D;
-			case 0x88 -> Instructions.L2I;
-			case 0x89 -> Instructions.L2F;
-			case 0x8A -> Instructions.L2D;
-			case 0x8B -> Instructions.F2I;
-			case 0x8C -> Instructions.F2L;
-			case 0x8D -> Instructions.F2D;
-			case 0x8E -> Instructions.D2I;
-			case 0x8F -> Instructions.D2L;
-			case 0x90 -> Instructions.D2F;
-			case 0x91 -> Instructions.I2B;
-			case 0x92 -> Instructions.I2C;
-			case 0x93 -> Instructions.I2S;
+			case I2L -> Instructions.I2L;
+			case I2F -> Instructions.I2F;
+			case I2D -> Instructions.I2D;
+			case L2I -> Instructions.L2I;
+			case L2F -> Instructions.L2F;
+			case L2D -> Instructions.L2D;
+			case F2I -> Instructions.F2I;
+			case F2L -> Instructions.F2L;
+			case F2D -> Instructions.F2D;
+			case D2I -> Instructions.D2I;
+			case D2L -> Instructions.D2L;
+			case D2F -> Instructions.D2F;
+			case I2B -> Instructions.I2B;
+			case I2C -> Instructions.I2C;
+			case I2S -> Instructions.I2S;
 
-			case 0x94 -> Instructions.LCMP;
-			case 0x95, 0x96 -> Instructions.FCMP;
-			case 0x97, 0x98 -> Instructions.DCMP;
+			case LCMP -> Instructions.LCMP;
+			case FCMPL -> Instructions.FCMPL;
+			case FCMPG -> Instructions.FCMPG;
+			case DCMPL -> Instructions.DCMPL;
+			case DCMPG -> Instructions.DCMPG;
 
-			case 0x99 -> new IfEqInstruction(this, readShort());
-			case 0x9A -> new IfNotEqInstruction(this, readShort());
-			case 0x9B -> new IfLtInstruction(this, readShort());
-			case 0x9C -> new IfGeInstruction(this, readShort());
-			case 0x9D -> new IfGtInstruction(this, readShort());
-			case 0x9E -> new IfLeInstruction(this, readShort());
-			case 0x9F -> new IfIEqInstruction(this, readShort());
-			case 0xA0 -> new IfINotEqInstruction(this, readShort());
-			case 0xA1 -> new IfILtInstruction(this, readShort());
-			case 0xA2 -> new IfIGeInstruction(this, readShort());
-			case 0xA3 -> new IfIGtInstruction(this, readShort());
-			case 0xA4 -> new IfILeInstruction(this, readShort());
-			case 0xA5 -> new IfAEqInstruction(this, readShort());
-			case 0xA6 -> new IfANotEqInstruction(this, readShort());
-			case 0xA7 -> new GotoInstruction(this, readShort());
+			case IFEQ -> new IfEqInstruction(this, readShort());
+			case IFNE -> new IfNotEqInstruction(this, readShort());
+			case IFLT -> new IfLtInstruction(this, readShort());
+			case IFGE -> new IfGeInstruction(this, readShort());
+			case IFGT -> new IfGtInstruction(this, readShort());
+			case IFLE -> new IfLeInstruction(this, readShort());
+			case IF_ICMPEQ -> new IfIEqInstruction(this, readShort());
+			case IF_ICMPNE -> new IfINotEqInstruction(this, readShort());
+			case IF_ICMPLT -> new IfILtInstruction(this, readShort());
+			case IF_ICMPGE -> new IfIGeInstruction(this, readShort());
+			case IF_ICMPGT -> new IfIGtInstruction(this, readShort());
+			case IF_ICMPLE -> new IfILeInstruction(this, readShort());
+			case IF_ACMPEQ -> new IfAEqInstruction(this, readShort());
+			case IF_ACMPNE -> new IfANotEqInstruction(this, readShort());
+			case GOTO -> new GotoInstruction(this, readShort());
 
-//			case 0xA8 -> jsr(readShort());
-//			case 0xA9 -> ret(readUnsignedByte());
+//			case JSR -> jsr(readShort());
+//			case RET -> ret(readUnsignedByte());
 
-			case 0xAA -> {
+			case TABLESWITCH -> {
 				skip(3 - (pos & 0x3)); // alignment by 4 bytes
 
 				int defaultOffset = readInt(),
@@ -309,14 +313,14 @@ public final class DisassemblerContext extends Context {
 
 				Int2IntMap offsetTable = new Int2IntLinkedOpenHashMap(high - low);
 
-				for (int value = low; value <= high; ++value) {
+				for (int value = low; value <= high; value++) {
 					offsetTable.put(value, readInt());
 				}
 
 				yield new SwitchInstruction(this, defaultOffset, offsetTable);
 			}
 
-			case 0xAB -> {
+			case LOOKUPSWITCH -> {
 				skip(3 - (pos & 0x3)); // alignment by 4 bytes
 
 				int defaultOffset = readInt();
@@ -324,69 +328,65 @@ public final class DisassemblerContext extends Context {
 
 				Int2IntMap offsetTable = new Int2IntLinkedOpenHashMap(cases);
 
-				for (; cases != 0; --cases) {
+				for (; cases != 0; cases--) {
 					offsetTable.put(readInt(), readInt());
 				}
 
 				yield new SwitchInstruction(this, defaultOffset, offsetTable);
 			}
 
-			case 0xAC -> Instructions.IRETURN;
-			case 0xAD -> Instructions.LRETURN;
-			case 0xAE -> Instructions.FRETURN;
-			case 0xAF -> Instructions.DRETURN;
-			case 0xB0 -> Instructions.ARETURN;
-			case 0xB1 -> Instructions.VRETURN;
+			case IRETURN -> Instructions.IRETURN;
+			case LRETURN -> Instructions.LRETURN;
+			case FRETURN -> Instructions.FRETURN;
+			case DRETURN -> Instructions.DRETURN;
+			case ARETURN -> Instructions.ARETURN;
+			case RETURN  -> Instructions.VRETURN;
 
-			case 0xB2 -> new GetStaticFieldInstruction(readUnsignedShort());
-			case 0xB3 -> new PutStaticFieldInstruction(readUnsignedShort());
-			case 0xB4 -> new GetInstanceFieldInstruction(readUnsignedShort());
-			case 0xB5 -> new PutInstanceFieldInstruction(readUnsignedShort());
+			case GETSTATIC -> new GetStaticFieldInstruction(readUnsignedShort());
+			case PUTSTATIC -> new PutStaticFieldInstruction(readUnsignedShort());
+			case GETFIELD  -> new GetInstanceFieldInstruction(readUnsignedShort());
+			case PUTFIELD  -> new PutInstanceFieldInstruction(readUnsignedShort());
 
-			case 0xB6 -> new InvokevirtualInstruction(readUnsignedShort());
-			case 0xB7 -> new InvokespecialInstruction(readUnsignedShort());
-			case 0xB8 -> new InvokestaticInstruction(readUnsignedShort());
-			case 0xB9 ->
-					new InvokeinterfaceInstruction(this, readUnsignedShort(), readUnsignedByte(), readUnsignedByte());
-			case 0xBA -> new InvokedynamicInstruction(this, readUnsignedShort(), readUnsignedShort());
+			case INVOKEVIRTUAL   -> new InvokevirtualInstruction(readUnsignedShort());
+			case INVOKESPECIAL   -> new InvokespecialInstruction(readUnsignedShort());
+			case INVOKESTATIC    -> new InvokestaticInstruction(readUnsignedShort());
+			case INVOKEINTERFACE -> new InvokeinterfaceInstruction(this, readUnsignedShort(), readUnsignedByte(), readUnsignedByte());
+			case INVOKEDYNAMIC   -> new InvokedynamicInstruction(this, readUnsignedShort(), readUnsignedShort());
 
-			case 0xBB -> new NewInstruction(readUnsignedShort());
-			case 0xBC -> new NewArrayInstruction(readUnsignedByte());
-			case 0xBD -> new ANewArrayInstruction(readUnsignedShort());
-			case 0xBE -> Instructions.ARRAYLENGTH;
+			case NEW         -> new NewInstruction(readUnsignedShort());
+			case NEWARRAY    -> new NewArrayInstruction(readUnsignedByte());
+			case ANEWARRAY   -> new ANewArrayInstruction(readUnsignedShort());
+			case ARRAYLENGTH -> Instructions.ARRAYLENGTH;
 
-			case 0xBF -> Instructions.ATHROW;
-			case 0xC0 -> new CheckCastInstruction(readUnsignedShort());
-			case 0xC1 -> new InstanceofInstruction(readUnsignedShort());
+			case ATHROW     -> Instructions.ATHROW;
+			case CHECKCAST  -> new CheckCastInstruction(readUnsignedShort());
+			case INSTANCEOF -> new InstanceofInstruction(readUnsignedShort());
 
-			case 0xC2 -> Instructions.MONITORENTER;
-			case 0xC3 -> Instructions.MONITOREXIT;
+			case MONITORENTER -> Instructions.MONITORENTER;
+			case MONITOREXIT  -> Instructions.MONITOREXIT;
 
-			case 0xC4 -> switch (readUnsignedByte()) {
-				case 0x15 -> new ILoadInstruction(readUnsignedShort());
-				case 0x16 -> new LLoadInstruction(readUnsignedShort());
-				case 0x17 -> new FLoadInstruction(readUnsignedShort());
-				case 0x18 -> new DLoadInstruction(readUnsignedShort());
-				case 0x19 -> new ALoadInstruction(readUnsignedShort());
-				case 0x36 -> new IStoreInstruction(readUnsignedShort());
-				case 0x37 -> new LStoreInstruction(readUnsignedShort());
-				case 0x38 -> new FStoreInstruction(readUnsignedShort());
-				case 0x39 -> new DStoreInstruction(readUnsignedShort());
-				case 0x3A -> new AStoreInstruction(readUnsignedShort());
-				case 0x84 -> new IIncInstruction(readUnsignedShort(), readShort());
-//					case 0xA9 -> ret(readUnsignedShort());
+			case WIDE -> switch (readUnsignedByte()) {
+				case ILOAD -> ILoadInstruction.of(readUnsignedShort());
+				case LLOAD -> LLoadInstruction.of(readUnsignedShort());
+				case FLOAD -> FLoadInstruction.of(readUnsignedShort());
+				case DLOAD -> DLoadInstruction.of(readUnsignedShort());
+				case ALOAD -> ALoadInstruction.of(readUnsignedShort());
+				case ISTORE -> IStoreInstruction.of(readUnsignedShort());
+				case LSTORE -> LStoreInstruction.of(readUnsignedShort());
+				case FSTORE -> FStoreInstruction.of(readUnsignedShort());
+				case DSTORE -> DStoreInstruction.of(readUnsignedShort());
+				case ASTORE -> AStoreInstruction.of(readUnsignedShort());
+				case IINC -> new IIncInstruction(readUnsignedShort(), readShort());
+//				case RET -> ret(readUnsignedShort());
 				default -> throw new InvalidOpcodeException("Illegal wide opcode 0x" + IntegerUtil.hex2(bytes[pos]));
 			};
 
-			case 0xC5 -> new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());
+			case MULTIANEWARRAY -> new MultiANewArrayInstruction(readUnsignedShort(), readUnsignedByte());
 
-			case 0xC6 -> new IfNullInstruction(this, readShort());
-			case 0xC7 -> new IfNonNullInstruction(this, readShort());
-			case 0xC8 -> new GotoInstruction(this, readInt());
-			/*case 0xC9 -> jsr_w(readInt());
-			case 0xCA -> breakpoint;
-			case 0xFE -> impdep1;
-			case 0xFF -> impdep2;*/
+			case IFNULL    -> new IfNullInstruction(this, readShort());
+			case IFNONNULL -> new IfNonNullInstruction(this, readShort());
+			case GOTO_W    -> new GotoInstruction(this, readInt());
+//			case JSR_W -> jsr_w(readInt());
 			default -> throw new InvalidOpcodeException(IntegerUtil.hex2WithPrefix(bytes[pos]));
 		};
 	}

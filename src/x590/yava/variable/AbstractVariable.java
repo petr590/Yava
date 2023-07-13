@@ -17,7 +17,7 @@ public abstract class AbstractVariable implements Variable {
 	private Scope enclosingScope;
 	private @Nullable Int2ObjectMap<String> enumMap;
 
-	// Если тип переменной фиксирован, он не должен меняться в принципе
+	/** Если тип переменной фиксирован, он не должен меняться в принципе */
 	private final boolean typeFixed;
 
 	private @Nullable String name;
@@ -27,16 +27,12 @@ public abstract class AbstractVariable implements Variable {
 	 * Наиболее вероятный тип переменной. Если мы, например, инкрементируем переменную, как short, то
 	 * наиболее вероятный тип - short. При сведении типа этот тип будет выбран вместо int, если возможно.
 	 */
-	private Type probableType;
+	private @Nullable Type probableType;
 
-	/**
-	 * {@code true}, если переменная объявлена
-	 */
+	/** {@code true}, если переменная объявлена */
 	private boolean defined;
 
-	/**
-	 * Флаг чтобы избежать бесконечной рекурсии
-	 */
+	/** Флаг, чтобы избежать бесконечной рекурсии */
 	private boolean casting;
 
 	public AbstractVariable(Scope enclosingScope) {
@@ -176,9 +172,12 @@ public abstract class AbstractVariable implements Variable {
 
 		casting = true;
 
-		for (Operation operation : assignedOperations) {
+		final var assignedOperations = this.assignedOperations;
+
+		for (int i = 0, size = assignedOperations.size(); i < size; i++) {
+			Operation operation = assignedOperations.get(i);
 			type = type.castToWidest(operation.getReturnType());
-			operation.castReturnTypeToNarrowest(type);
+			assignedOperations.set(i, operation.useAsNarrowest(type));
 		}
 
 		casting = false;

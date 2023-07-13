@@ -64,8 +64,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 		}
 
 		@Override
-		public void write(StringifyOutputStream out, ClassInfo classinfo, int index) {
-		}
+		public void write(StringifyOutputStream out, ClassInfo classinfo, int index) {}
 	}
 
 
@@ -160,7 +159,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 
 		@Override
 		public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-
+			// TODO
 		}
 	}
 
@@ -201,9 +200,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 	}
 
 
-	public static abstract class Target {
-
-	}
+	public static abstract class Target {}
 
 	public static class TypeParameterTarget extends Target {
 
@@ -237,8 +234,7 @@ public class TypeAnnotationsAttribute extends Attribute {
 
 		public static final EmptyTarget INSTANCE = new EmptyTarget();
 
-		private EmptyTarget() {
-		}
+		private EmptyTarget() {}
 	}
 
 	public static class FormalParameterTarget extends Target {

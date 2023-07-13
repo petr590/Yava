@@ -12,7 +12,7 @@ import x590.yava.JavaClassElement;
 import x590.yava.attribute.AttributeType;
 import x590.yava.attribute.Attributes;
 import x590.yava.attribute.Attributes.Location;
-import x590.yava.attribute.CodeAttribute;
+import x590.yava.attribute.code.CodeAttribute;
 import x590.yava.attribute.signature.MethodSignatureAttribute;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.clazz.DecompilationStats;
@@ -36,6 +36,7 @@ import x590.yava.operation.invoke.RecordSyntheticOperation;
 import x590.yava.operation.load.LoadOperation;
 import x590.yava.operation.returning.ReturnOperation;
 import x590.yava.scope.MethodScope;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.ClassType;
@@ -50,7 +51,7 @@ import java.util.stream.IntStream;
 
 import static x590.yava.modifiers.Modifiers.*;
 
-public final class JavaMethod extends JavaClassElement {
+public final class JavaMethod extends JavaClassElement implements JavaSerializableWithPool {
 
 	private final MethodModifiers modifiers;
 	private final MethodDescriptor descriptor;
@@ -567,8 +568,7 @@ public final class JavaMethod extends JavaClassElement {
 		var classModifiers = classinfo.getModifiers();
 
 		switch (modifiers.and(ACC_ACCESS_FLAGS)) {
-			case ACC_VISIBLE -> {
-			}
+			case ACC_VISIBLE -> {}
 
 			case ACC_PUBLIC -> { // Все нестатические методы интерфейса по умолчанию имеют модификатор public, поэтому в этом случае нам не нужно выводить public
 				if (Yava.getConfig().printImplicitModifiers() || !classModifiers.isInterface())
@@ -633,12 +633,18 @@ public final class JavaMethod extends JavaClassElement {
 
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
-//		out.write(modifiersToString(classinfo), classinfo);
+		out .printIndent()
+			.print(modifiersToString(classinfo), classinfo)
+			.print(descriptor, classinfo)
+			.print(attributes, classinfo)
+			.println();
 	}
 
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		// TODO
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .record(modifiers)
+			.record(descriptor, pool)
+			.record(attributes, pool);
 	}
 }

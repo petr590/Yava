@@ -1,13 +1,19 @@
 package x590.yava.constpool;
 
-import x590.yava.JavaSerializable;
+import x590.yava.clazz.ClassInfo;
+import x590.yava.constpool.constvalue.ClassConstant;
+import x590.yava.constpool.constvalue.StringConstant;
+import x590.yava.exception.WriteException;
+import x590.yava.io.DisassemblingOutputStream;
+import x590.yava.serializable.JavaSerializable;
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.ExtendedDataInputStream;
+import x590.yava.writable.DisassemblingWritable;
 
 /**
  * Описывает константу в пуле констант
  */
-public abstract class Constant implements JavaSerializable {
+public abstract class Constant implements JavaSerializable, DisassemblingWritable<ClassInfo> {
 
 	public static final int
 			TAG_UTF8 = 0x1,
@@ -27,28 +33,29 @@ public abstract class Constant implements JavaSerializable {
 			TAG_MODULE = 0x13,
 			TAG_PACKAGE = 0x14;
 
-	protected Constant() {
-	}
+	protected Constant() {}
 
 	protected static Constant readConstant(ExtendedDataInputStream in) {
 		int tag = in.readUnsignedByte();
 		return switch (tag) {
-			case TAG_UTF8 -> ConstantPool.findOrCreateUtf8Constant(Utf8Constant.decodeUtf8(in));
+			case TAG_UTF8    -> ConstantPool.findOrCreateUtf8Constant(Utf8Constant.decodeUtf8(in));
 			case TAG_INTEGER -> ConstantPool.findOrCreateConstant(in.readInt());
-			case TAG_FLOAT -> ConstantPool.findOrCreateConstant(in.readFloat());
-			case TAG_LONG -> ConstantPool.findOrCreateConstant(in.readLong());
-			case TAG_DOUBLE -> ConstantPool.findOrCreateConstant(in.readDouble());
-			case TAG_CLASS -> new ClassConstant(in);
-			case TAG_STRING -> new StringConstant(in);
-			case TAG_FIELDREF -> new FieldrefConstant(in);
-			case TAG_METHODREF -> new MethodrefConstant(in);
+			case TAG_FLOAT   -> ConstantPool.findOrCreateConstant(in.readFloat());
+			case TAG_LONG    -> ConstantPool.findOrCreateConstant(in.readLong());
+			case TAG_DOUBLE  -> ConstantPool.findOrCreateConstant(in.readDouble());
+
+			case TAG_CLASS               -> new ClassConstant(in);
+			case TAG_STRING              -> new StringConstant(in);
+			case TAG_FIELDREF            -> new FieldrefConstant(in);
+			case TAG_METHODREF           -> new MethodrefConstant(in);
 			case TAG_INTERFACE_METHODREF -> new InterfaceMethodrefConstant(in);
-			case TAG_NAME_AND_TYPE -> new NameAndTypeConstant(in);
-			case TAG_METHOD_HANDLE -> new MethodHandleConstant(in);
-			case TAG_METHOD_TYPE -> new MethodTypeConstant(in);
-			case TAG_INVOKE_DYNAMIC -> new InvokeDynamicConstant(in);
-			case TAG_MODULE -> new ModuleConstant(in);
-			case TAG_PACKAGE -> new PackageConstant(in);
+			case TAG_NAME_AND_TYPE       -> new NameAndTypeConstant(in);
+			case TAG_METHOD_HANDLE       -> new MethodHandleConstant(in);
+			case TAG_METHOD_TYPE         -> new MethodTypeConstant(in);
+			case TAG_INVOKE_DYNAMIC      -> new InvokeDynamicConstant(in);
+			case TAG_MODULE              -> new ModuleConstant(in);
+			case TAG_PACKAGE             -> new PackageConstant(in);
+
 			default -> throw new DisassemblingException("Unknown tag " + tag);
 		};
 	}
@@ -68,6 +75,11 @@ public abstract class Constant implements JavaSerializable {
 	}
 
 	public abstract String getConstantName();
+
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
+		throw new WriteException("Constant " + getConstantName() + " yet not finished");
+	}
 
 	@Override
 	public abstract boolean equals(Object other);

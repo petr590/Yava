@@ -10,7 +10,6 @@ import x590.yava.io.StringifyOutputStream;
 import x590.yava.main.Config;
 import x590.yava.modifiers.MethodModifiers;
 import x590.yava.operation.load.ALoadOperation;
-import x590.yava.operationinstruction.constant.AConstNullOperationInstruction;
 import x590.yava.type.CastingKind;
 import x590.yava.type.GeneralCastingKind;
 import x590.yava.type.Type;
@@ -78,7 +77,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 
 	/**
-	 * Вывод между операцииями (вызывается для всех операций в scope, кроме последней)
+	 * Вывод между операциями (вызывается для всех операций в scope, кроме последней)
 	 */
 	default void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {
 		if (nextOperation.isScope())
@@ -148,8 +147,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Разрешает записывать инициализатор массива без указания {@code new <type>[]}
 	 */
-	default void allowShortArrayInitializer() {
-	}
+	default void allowShortArrayInitializer() {}
 
 	/**
 	 * Разрешает опустить явное преобразование
@@ -157,16 +155,15 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	void allowImplicitCast();
 
 	/**
-	 * Использовать шестнадцатеричную запись числа,
-	 * если {@link Config#constantsUsagePolicy()} не равен {@link Config.UsagePolicy#NEVER}
-	 */
-	default void useHexNumber() {
-	}
-
-	/**
 	 * Запрещает опустить явное преобразование
 	 */
 	void denyImplicitCast();
+
+	/**
+	 * Использовать шестнадцатеричную запись числа,
+	 * если {@link Config#constantsUsagePolicy()} не равен {@link Config.UsagePolicy#NEVER}
+	 */
+	default void useHexNumber() {}
 
 
 	default int getAddingIndex(DecompilationContext context) {
@@ -180,53 +177,10 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 
 
 	/**
-	 * Call {@link #useAsNarrowest(Type)} and then {@link #getReturnType()} instead
+	 * Преобразовывает типы к общему типу
+	 * @return Результат преобразования
 	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	default Type getReturnTypeAsNarrowest(Type type) {
-		return getReturnTypeAs(type, CastingKind.NARROWEST);
-	}
-
-	/**
-	 * Call {@link #useAsWidest(Type)} and then {@link #getReturnType()} instead
-	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	default Type getReturnTypeAsWidest(Type type) {
-		return getReturnTypeAs(type, CastingKind.WIDEST);
-	}
-
-	/**
-	 * Call {@link #useAs(Type, CastingKind)} and then {@link #getReturnType()} instead
-	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	Type getReturnTypeAs(Type type, CastingKind kind);
-
-
-	/**
-	 * Call {@link #useAsNarrowest(Type)} instead
-	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	default void castReturnTypeToNarrowest(Type type) {
-		castReturnTypeTo(type, CastingKind.NARROWEST);
-	}
-
-	/**
-	 * Call {@link #useAsWidest(Type)} instead
-	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	default void castReturnTypeToWidest(Type type) {
-		castReturnTypeTo(type, CastingKind.WIDEST);
-	}
-
-	/**
-	 * Call {@link #useAs(Type, CastingKind)} instead
-	 */
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	void castReturnTypeTo(Type type, CastingKind kind);
-
-
-	@Deprecated(since = "0.8.8", forRemoval = true)
-	Type getReturnTypeAsGeneralNarrowest(Operation other, GeneralCastingKind kind);
+	Type getReturnTypeAsGeneralNarrowest(Operation operand1, Operation operand2, GeneralCastingKind kind);
 
 
 	default Operation useAsNarrowest(Type type) {
@@ -253,8 +207,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Сведение типа операции
 	 */
-	default void reduceType() {
-	}
+	default void reduceType() {}
 
 	/**
 	 * Делает приведение типа для таких выражений, как {@code null} или лямбда,
@@ -267,13 +220,21 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	}
 
 	/**
-	 * Делает приведение типа для выражения {@code null},
+	 * Делает приведение типа для литерала {@code null},
 	 * так как мы не можем обратиться к полю или методу напрямую без приведения.
 	 *
 	 * @param clazz тип, к которому преобразуется выражение
-	 * @see AConstNullOperationInstruction
+	 * @see x590.yava.operation.constant.AConstNullOperation
 	 */
 	default Operation castIfNull(ReferenceType clazz) {
+		return this;
+	}
+
+	/**
+	 * Делает приведение типа для литерала {@code short} или {@code byte},
+	 * так как вызов метода требует явного указания типа
+	 */
+	default Operation castIfShortOrByteLiteral(Type type) {
 		return this;
 	}
 
@@ -281,8 +242,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Добавляет имя переменной (для операций, работающих с переменными)
 	 */
-	default void addPossibleVariableName(String name) {
-	}
+	default void addPossibleVariableName(String name) {}
 
 	/**
 	 * @return Возможное имя для переменной. По умолчанию {@code null}
@@ -364,17 +324,15 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 
 	/**
 	 * Задаёт таблицу значений enum, необходимых для правильной работы {@code switch},
-	 * если операция поддержвает это
+	 * если операция поддерживает это
 	 */
-	default void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {
-	}
+	default void setEnumTable(@Nullable Int2ObjectMap<String> enumTable) {}
 
 	/**
-	 * @param varTable - таблица переменных. Ключ - слот переменной, значение - оперция,
-	 *                 на которую эта переменная заменяется
-	 *                 Реализация по умолчанию работает через рефлексию, так что класс операции в модуле,
-	 *                 который не открывает доступ к приватным полям для модуля yava, должен переопределять
-	 *                 метод
+	 * Реализация по умолчанию работает через рефлексию, так что класс операции в модуле,
+	 * который не открывает доступ к приватным полям для модуля yava, должен переопределять метод.
+	 * @param varTable таблица переменных. Ключ - слот переменной, значение - операция,
+	 * на которую эта переменная заменяется.
 	 * @return Встроенную операцию, т.е. операцию, в которой все использования переменных
 	 * заменены на операции по таблице {@code varTable}. Не изменяет исходную операцию.
 	 * Может вернуть {@code this}, если встроенная операция не отличается от {@code this}.
@@ -383,12 +341,7 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 		Class<?> clazz = this.getClass();
 
 		try {
-			var inlined = inline(clazz, this, varTable, new BooleanHolder());
-
-//			Logger.debugf("Inlined %s (%X) : %s (%X)", this, hashCode(), inlined, inlined.hashCode());
-
-			return inlined;
-
+			return inline(clazz, this, varTable, new BooleanHolder());
 		} catch (IllegalAccessException ex) {
 			throw new IllegalStateException("Class " + clazz.getCanonicalName() +
 					" in module " + clazz.getModule() + " must override the inline(Int2ObjectMap<Operation>) method" +
@@ -443,15 +396,13 @@ public interface Operation extends StringifyWritable<StringifyContext>, Importab
 	/**
 	 * Выполняется после основной декомпиляции кода
 	 */
-	default void postDecompilation(DecompilationContext context) {
-	}
+	default void postDecompilation(DecompilationContext context) {}
 
 
 	/**
 	 * Выполняется после декомпиляции всех классов
 	 */
-	default void afterDecompilation(DecompilationContext context) {
-	}
+	default void afterDecompilation(DecompilationContext context) {}
 
 
 	/**

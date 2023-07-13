@@ -1,6 +1,6 @@
 package x590.yava.operation.constant;
 
-import x590.yava.constpool.LongConstant;
+import x590.yava.constpool.constvalue.LongConstant;
 
 public final class LConstOperation extends IntConvertibleConstOperation<LongConstant> {
 

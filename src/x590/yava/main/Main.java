@@ -16,8 +16,7 @@ import java.util.stream.Collectors;
  */
 public final class Main {
 
-	private Main() {
-	}
+	private Main() {}
 
 	public static void main(String[] args) {
 
@@ -51,9 +50,9 @@ public final class Main {
 		List<JavaClass> stringifiableClasses = classes.stream().filter(JavaClass::canStringify)
 				.collect(Collectors.toList());
 
-		forEach(stringifiableClasses, performing, Performing::perform);
-		forEach(stringifiableClasses, performing, Performing::afterPerforming);
-		forEach(stringifiableClasses, performing, Performing::write);
+		forEachClass(stringifiableClasses, performing, Performing::perform);
+		forEachClass(stringifiableClasses, performing, Performing::afterPerforming);
+		forEachClass(stringifiableClasses, performing, Performing::write);
 
 		performing.finalizePerforming();
 
@@ -63,10 +62,12 @@ public final class Main {
 			ex.printStackTrace();
 			System.exit(1);
 		}
+
+		Yava.close();
 	}
 
-	private static <E extends Exception> void forEach(List<JavaClass> classes, Performing<?> performing,
-													  ThrowingBiConsumer<Performing<?>, JavaClass, E> action) {
+	private static <E extends Exception> void forEachClass(List<JavaClass> classes, Performing<?> performing,
+														   ThrowingBiConsumer<Performing<?>, JavaClass, E> action) {
 
 		for (Iterator<JavaClass> iter = classes.iterator(); iter.hasNext(); ) {
 			try {

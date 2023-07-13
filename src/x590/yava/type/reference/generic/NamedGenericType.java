@@ -37,7 +37,7 @@ public final class NamedGenericType extends IndefiniteGenericType {
 		StringBuilder nameBuilder = new StringBuilder();
 
 		for (int ch = in.read(); ch != ';' && ch != UncheckedInputStream.EOF_CHAR; ch = in.read())
-			nameBuilder.append((char) ch);
+			nameBuilder.append((char)ch);
 
 		return INSTANCES.computeIfAbsent(nameBuilder.toString(), NamedGenericType::new);
 	}

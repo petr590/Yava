@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.Version;
 import x590.yava.constpool.ConstantPool;
-import x590.yava.constpool.IntegerConstant;
+import x590.yava.constpool.constvalue.IntegerConstant;
 import x590.yava.context.DecompilationContext;
 import x590.yava.context.StringifyContext;
 import x590.yava.io.StringifyOutputStream;

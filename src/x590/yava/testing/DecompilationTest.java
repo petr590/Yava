@@ -1,6 +1,7 @@
 package x590.yava.testing;
 
 import org.junit.Test;
+import x590.util.annotation.Nullable;
 import x590.yava.example.ExampleTesting;
 
 import java.io.*;
@@ -46,7 +47,7 @@ public class DecompilationTest {
 
 
 	/**
-	 * @param packageName - имя пакета в формате "java.lang"
+	 * @param packageName имя пакета в формате "java.lang"
 	 * @return Набор полных имён классов в пакете и всех подпакетах в виде "java.lang.Object"
 	 */
 	public static Set<String> findAllClassNamesInPackage(String packageName) {
@@ -54,7 +55,7 @@ public class DecompilationTest {
 	}
 
 	/**
-	 * @param packageName - имя пакета в формате "java.lang"
+	 * @param packageName имя пакета в формате "java.lang"
 	 * @return Поток полных имён классов в пакете и всех подпакетах в виде "java.lang.Object"
 	 */
 	public static Stream<String> findAllClassNamesAsStreamInPackage(String packageName) {
@@ -65,7 +66,7 @@ public class DecompilationTest {
 
 
 	/**
-	 * @param packageName - имя пакета в формате "java.lang" или "java/lang"
+	 * @param packageName имя пакета в формате "java.lang" или "java/lang"
 	 * @return Набор полных имён классов в пакете и всех подпакетах в виде "java/lang/Object.class"
 	 */
 	public static Set<String> findAllClassPathsInPackage(String packageName) {
@@ -73,7 +74,7 @@ public class DecompilationTest {
 	}
 
 	/**
-	 * @param packageName - имя пакета в формате "java.lang" или "java/lang"
+	 * @param packageName имя пакета в формате "java.lang" или "java/lang"
 	 * @return Поток полных имён классов в пакете и всех подпакетах в виде "java/lang/Object.class"
 	 */
 	public static Stream<String> findAllClassPathsAsStreamInPackage(String packageName) {
@@ -91,7 +92,9 @@ public class DecompilationTest {
 																	 Function<String, String> converter, Function<String, Stream<String>> recursiveFinder) {
 
 		InputStream stream = ClassLoader.getSystemClassLoader().getResourceAsStream(packagePath);
-		assert stream != null;
+
+		if (stream == null)
+			return Stream.empty();
 
 		var reader = new BufferedReader(new InputStreamReader(stream));
 
@@ -99,6 +102,7 @@ public class DecompilationTest {
 				.collect(Collectors.partitioningBy(line -> line.endsWith(".class")));
 
 		return partitioned.get(Boolean.FALSE).stream()
+				.filter(packageName -> !packageName.contains("."))
 				.map(recursiveFinder)
 				.reduce(
 						partitioned.get(Boolean.TRUE).stream().map(converter),
@@ -106,7 +110,7 @@ public class DecompilationTest {
 				);
 	}
 
-	private static Class<?> findClass(String name) {
+	private static @Nullable Class<?> findClass(String name) {
 		try {
 			return Class.forName(name);
 		} catch (ClassNotFoundException ex) {

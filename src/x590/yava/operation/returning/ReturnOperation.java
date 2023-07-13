@@ -64,6 +64,6 @@ public abstract class ReturnOperation extends AbstractOperation implements VoidO
 	@Override
 	public boolean equals(Operation other) {
 		return this == other || this.getClass() == other.getClass() &&
-				operand.equals(((ReturnOperation) other).operand);
+				operand.equals(((ReturnOperation)other).operand);
 	}
 }

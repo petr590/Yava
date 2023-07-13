@@ -3,13 +3,14 @@ package x590.yava.attribute.signature;
 import x590.util.CollectionUtil;
 import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
+import x590.yava.Keywords;
+import x590.yava.attribute.AttributeNames;
 import x590.yava.attribute.ExceptionsAttribute;
+import x590.yava.attribute.Sizes;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.exception.decompilation.DecompilationException;
-import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedStringInputStream;
-import x590.yava.io.StringifyOutputStream;
+import x590.yava.io.*;
 import x590.yava.method.MethodDescriptor;
 import x590.yava.type.Type;
 import x590.yava.type.reference.ReferenceType;
@@ -27,7 +28,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	private final GenericParameters<GenericDeclarationType> parameters;
 	private final @Immutable List<Type> arguments;
 	private final Type returnType;
-	private final @Immutable List<ReferenceType> exceptionTypes;
+	private final @Immutable List<? extends ReferenceType> exceptionTypes;
 
 	public MethodSignatureAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(name, length);
@@ -54,6 +55,29 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		}
 	}
 
+	public MethodSignatureAttribute(String name, AssemblingInputStream in, ConstantPool pool) {
+		super(name, Sizes.CONSTPOOL_INDEX);
+
+		if (in.advanceIfHasNext('<')) {
+			this.parameters = GenericParameters.of(in.nextGenericDeclarationTypesStream().toList());
+			in.requireNext('>');
+		} else {
+			this.parameters = GenericParameters.empty();
+		}
+
+		this.returnType = in.nextParametrizedType();
+
+		this.arguments = in.nextParametrizedMethodArguments().toList();
+
+		if (in.advanceIfHasNext(Keywords.THROWS)) {
+			this.exceptionTypes = in.nextParametrizedReferenceTypesStream().toList();
+		} else {
+			this.exceptionTypes = Collections.emptyList();
+		}
+
+		in.requireNext(';');
+	}
+
 	public GenericParameters<GenericDeclarationType> getParameters() {
 		return parameters;
 	}
@@ -66,7 +90,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		return returnType;
 	}
 
-	public @Immutable List<ReferenceType> getExceptionTypes() {
+	public @Immutable List<? extends ReferenceType> getExceptionTypes() {
 		return exceptionTypes;
 	}
 
@@ -82,7 +106,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		classinfo.addImportsFor(arguments);
 	}
 
-	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute excepionsAttr) {
+	public void checkTypes(MethodDescriptor descriptor, int skip, @Nullable ExceptionsAttribute exceptionsAttr) {
 
 		List<Type> descriptorArguments = descriptor.getArguments();
 
@@ -98,9 +122,9 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 		}
 
 		if (!exceptionTypes.isEmpty()) {
-			if (excepionsAttr == null || !CollectionUtil.collectionsEquals(exceptionTypes, excepionsAttr.getExceptionTypes(), Type::equalsIgnoreSignature)) {
-				throw new DecompilationException("Method signature doesn't matches the \"Excepions\" attribute: " + argumentsToString(exceptionTypes) +
-						" and " + (excepionsAttr == null ? "<null>" : argumentsToString(excepionsAttr.getExceptionTypes())));
+			if (exceptionsAttr == null || !CollectionUtil.collectionsEquals(exceptionTypes, exceptionsAttr.getExceptionTypes(), Type::equalsIgnoreSignature)) {
+				throw new DecompilationException("Method signature doesn't matches the \"" + AttributeNames.EXCEPTIONS + "\" attribute: " + argumentsToString(exceptionTypes) +
+						" and " + (exceptionsAttr == null ? "<null>" : argumentsToString(exceptionsAttr.getExceptionTypes())));
 			}
 		}
 	}
@@ -123,5 +147,23 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 
 		if (!parameters.isEmpty())
 			out.printsp(parameters, classinfo);
+	}
+
+	@Override
+	protected void writeDisassembledContent(DisassemblingOutputStream out, ClassInfo classinfo) {
+		out.printIndent();
+
+		if (!parameters.isEmpty()) {
+			out.print('<').printAll(parameters.getTypes(), classinfo, ", ").printsp('>');
+		}
+
+		out .printsp(returnType, classinfo)
+			.print('(').printAll(arguments, classinfo, ", ").print(')');
+
+		if (!exceptionTypes.isEmpty()) {
+			out.printsp().printsp(Keywords.THROWS).printAll(exceptionTypes, classinfo, ", ");
+		}
+
+		out.println(';');
 	}
 }

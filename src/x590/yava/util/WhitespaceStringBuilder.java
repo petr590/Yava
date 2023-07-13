@@ -11,8 +11,7 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 
 	private final List<String> values = new ArrayList<>();
 
-	public WhitespaceStringBuilder() {
-	}
+	public WhitespaceStringBuilder() {}
 
 	public WhitespaceStringBuilder(String str) {
 		values.add(str);
@@ -96,7 +95,6 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 		}
 
 		@Override
-		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		}
+		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {}
 	}
 }

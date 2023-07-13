@@ -1,21 +1,21 @@
 package x590.yava.attribute;
 
+import x590.yava.constpool.ConstantPool;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 
 public final class UnknownAttribute extends Attribute {
 
 	private final byte[] data;
 
-	protected UnknownAttribute(String name, int length, ExtendedDataInputStream in) {
+	UnknownAttribute(String name, int length, ExtendedDataInputStream in) {
 		super(name, length);
 		this.data = new byte[length];
 		in.readFully(data);
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		serializeHeader(out);
-		out.write(data);
+	public void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+		out.writeByteArray(data);
 	}
 }

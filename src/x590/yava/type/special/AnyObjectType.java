@@ -10,8 +10,7 @@ public final class AnyObjectType extends Type {
 
 	public static final AnyObjectType INSTANCE = new AnyObjectType();
 
-	private AnyObjectType() {
-	}
+	private AnyObjectType() {}
 
 
 	@Override

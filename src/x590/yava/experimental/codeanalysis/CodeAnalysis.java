@@ -7,6 +7,7 @@ import x590.yava.clazz.JavaClass;
 import x590.yava.constpool.MethodrefConstant;
 import x590.yava.instruction.invoke.InvokeInstruction;
 import x590.yava.main.Yava;
+import x590.yava.main.performing.AbstractPerforming.PerformingType;
 import x590.yava.method.JavaMethod;
 import x590.yava.method.MethodDescriptor;
 import x590.yava.testing.DecompilationTest;
@@ -73,7 +74,7 @@ public class CodeAnalysis {
 
 			try (InputStream in = classLoader.getResource(file).openStream()) {
 
-				classes.add(JavaClass.read(in));
+				classes.add(JavaClass.read(in, PerformingType.DECOMPILE));
 
 			} catch (IOException ex) {
 				ex.printStackTrace();

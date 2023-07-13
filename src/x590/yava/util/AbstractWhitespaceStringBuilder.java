@@ -7,8 +7,7 @@ public abstract class AbstractWhitespaceStringBuilder implements IWhitespaceStri
 
 	protected boolean printTrailingSpace;
 
-	public AbstractWhitespaceStringBuilder() {
-	}
+	public AbstractWhitespaceStringBuilder() {}
 
 	public AbstractWhitespaceStringBuilder(boolean printTrailingSpace) {
 		this.printTrailingSpace = printTrailingSpace;

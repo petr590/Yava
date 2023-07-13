@@ -1,7 +1,7 @@
 package x590.yava.constpool;
 
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 
 public final class NameAndTypeConstant extends Constant {
 
@@ -52,10 +52,10 @@ public final class NameAndTypeConstant extends Constant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_NAME_AND_TYPE);
-		out.writeShort(nameIndex);
-		out.writeShort(descriptorIndex);
+	public void serialize(AssemblingOutputStream out) {
+		out .recordByte(TAG_NAME_AND_TYPE)
+			.recordShort(nameIndex)
+			.recordShort(descriptorIndex);
 	}
 
 

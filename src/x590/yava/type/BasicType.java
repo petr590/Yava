@@ -7,6 +7,7 @@ import x590.util.annotation.Nullable;
  */
 public abstract class BasicType extends Type {
 
+	@Override
 	public @Nullable String getBinaryName() {
 		return getEncodedName();
 	}

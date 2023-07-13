@@ -13,7 +13,7 @@ import static x590.yava.type.primitive.PrimitiveType.*;
 
 public final class PrimitiveTypeTest {
 
-	protected static final Type BYTE_SHORT = UncertainIntegralType.getInstance(1, 2);
+	static final Type BYTE_SHORT = UncertainIntegralType.getInstance(1, 2);
 
 	@Test
 	public void testUncertainIntegralType() {
@@ -137,8 +137,8 @@ public final class PrimitiveTypeTest {
 
 		assertNull(ClassType.BYTE.implicitCastToGeneralNoexcept(ClassType.SHORT, GeneralCastingKind.EQUALS_COMPARISON));
 
-		assertEquals(BOOLEAN, ClassType.BOOLEAN.implicitCastToGeneralNoexcept(ClassType.BOOLEAN, GeneralCastingKind.BINARY_OPERATOR));
-		assertEquals(ClassType.BOOLEAN, ClassType.BOOLEAN.implicitCastToGeneralNoexcept(ClassType.BOOLEAN, GeneralCastingKind.TERNARY_OPERATOR));
+		assertEquals(PrimitiveType.BOOLEAN, ClassType.BOOLEAN.implicitCastToGeneralNoexcept(ClassType.BOOLEAN, GeneralCastingKind.BINARY_OPERATOR));
+		assertEquals(ClassType.BOOLEAN,     ClassType.BOOLEAN.implicitCastToGeneralNoexcept(ClassType.BOOLEAN, GeneralCastingKind.TERNARY_OPERATOR));
 	}
 
 	private void testWrappedImplicitCastToGeneral(PrimitiveType narrowest, PrimitiveType widest) {
@@ -153,9 +153,22 @@ public final class PrimitiveTypeTest {
 	}
 
 	@Test
+	public void testSubtypeOf() {
+		assertFalse(INT.isDefinitelySubtypeOf(BYTE));
+		assertFalse(INT.isDefinitelySubtypeOf(SHORT));
+		assertFalse(INT.isDefinitelySubtypeOf(CHAR));
+	}
+
+	@Test
 	public void testNames() {
+		testNamesFor(BYTE, "byte", "B");
+		testNamesFor(SHORT, "short", "S");
+		testNamesFor(CHAR, "char", "C");
 		testNamesFor(INT, "int", "I");
 		testNamesFor(LONG, "long", "J");
+		testNamesFor(FLOAT, "float", "F");
+		testNamesFor(DOUBLE, "double", "D");
+		testNamesFor(BOOLEAN, "boolean", "Z");
 	}
 
 	private void testNamesFor(PrimitiveType type, String name, String encodedName) {

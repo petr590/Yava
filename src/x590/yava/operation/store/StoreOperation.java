@@ -1,6 +1,7 @@
 package x590.yava.operation.store;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.context.DecompilationContext;
@@ -29,7 +30,6 @@ public abstract class StoreOperation extends OperationWithVariable
 
 
 	public StoreOperation(Type requiredType, DecompilationContext context, int slot) {
-
 		this.slot = slot;
 		var value = this.value = context.popAsNarrowest(requiredType);
 
@@ -45,6 +45,8 @@ public abstract class StoreOperation extends OperationWithVariable
 		variable.addAssignedOperation(value);
 
 		this.value = value = value.useAsNarrowest(variable.getType());
+
+		Logger.debugf("Value = %s", value);
 
 		this.incData = init(context, value, variable.getType());
 	}

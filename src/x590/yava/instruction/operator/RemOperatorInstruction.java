@@ -7,8 +7,8 @@ import x590.yava.type.Type;
 
 public class RemOperatorInstruction extends OperatorInstruction {
 
-	public RemOperatorInstruction(Type type) {
-		super(type);
+	public RemOperatorInstruction(String mnemonic, Type type) {
+		super(mnemonic, type);
 	}
 
 	@Override

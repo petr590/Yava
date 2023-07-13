@@ -4,7 +4,7 @@ import x590.yava.attribute.AttributeType;
 import x590.yava.attribute.Attributes;
 import x590.yava.attribute.BootstrapMethodsAttribute.BootstrapMethod;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 
 public final class InvokeDynamicConstant extends Constant {
 
@@ -41,10 +41,10 @@ public final class InvokeDynamicConstant extends Constant {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_INVOKE_DYNAMIC);
-		out.writeShort(bootstrapMethodIndex);
-		out.writeShort(nameAndTypeIndex);
+	public void serialize(AssemblingOutputStream out) {
+		out .recordByte(TAG_INVOKE_DYNAMIC)
+			.recordShort(bootstrapMethodIndex)
+			.recordShort(nameAndTypeIndex);
 	}
 
 

@@ -2,12 +2,12 @@ package x590.yava.attribute;
 
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.ConstableValueConstant;
+import x590.yava.constpool.constvalue.ConstableValueConstant;
 import x590.yava.constpool.ConstantPool;
 import x590.yava.field.FieldDescriptor;
 import x590.yava.io.AssemblingInputStream;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.type.Type;
 import x590.yava.util.StringUtil;
@@ -35,8 +35,7 @@ public final class ConstantValueAttribute extends Attribute {
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		serializeHeader(out);
+	public void serializeData(AssemblingOutputStream out, ConstantPool pool) {
 		out.writeShort(valueIndex);
 	}
 }

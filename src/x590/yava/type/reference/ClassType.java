@@ -5,7 +5,7 @@ import x590.util.annotation.Immutable;
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.clazz.IClassInfo;
-import x590.yava.constpool.ClassConstant;
+import x590.yava.constpool.constvalue.ClassConstant;
 import x590.yava.exception.disassembling.InvalidClassNameException;
 import x590.yava.exception.disassembling.InvalidTypeNameException;
 import x590.yava.io.ExtendedOutputStream;
@@ -426,7 +426,7 @@ public class ClassType extends RealReferenceType {
 			ch = in.read();
 
 			if (prevCh == '$') {
-				nameBuilder.append(Character.isLetter((char) ch) ? '.' : '$');
+				nameBuilder.append(Character.isLetter((char)ch) ? '.' : '$');
 				binaryNameBuilder.append('$');
 			}
 
@@ -495,7 +495,7 @@ public class ClassType extends RealReferenceType {
 				}
 			}
 
-			char chr = (char) ch;
+			char chr = (char)ch;
 
 			classEncodedNameBuilder.append(chr);
 			nameBuilder.append(chr);

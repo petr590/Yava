@@ -25,7 +25,12 @@ public class DecompilingPerforming extends DecodingPerforming<StringifyOutputStr
 	private final Map<JavaClass, IntObjectPair<List<? extends JavaMethod>>> methodsStat = new LinkedHashMap<>();
 
 	public DecompilingPerforming(Config config) {
-		super(config);
+		super(PerformingType.DECOMPILE, config);
+	}
+
+	@Override
+	protected String getOutputFileExtension() {
+		return ".java";
 	}
 
 	@Override

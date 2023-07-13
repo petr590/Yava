@@ -17,12 +17,12 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	private final ConditionOperation condition;
 	private Operation operand1, operand2;
 
-	private static Type getGeneralType(Operation operand1, Operation operand2) {
-		return operand1.getReturnTypeAsGeneralNarrowest(operand2, GeneralCastingKind.TERNARY_OPERATOR);
+	private Type getGeneralType(Operation operand1, Operation operand2) {
+		return getReturnTypeAsGeneralNarrowest(operand1, operand2, GeneralCastingKind.TERNARY_OPERATOR);
 	}
 
 	public TernaryOperatorOperation(ConditionOperation condition, Operation operand1, Operation operand2) {
-		super(getGeneralType(operand1, operand2));
+		super(operand1.getReturnType().castToGeneral(operand2.getReturnType(), GeneralCastingKind.TERNARY_OPERATOR));
 		this.condition = condition;
 		this.operand1 = operand1;
 		this.operand2 = operand2;
@@ -36,7 +36,7 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 	@Override
 	public void writeTo(StringifyOutputStream out, StringifyContext context) {
 		if (isBooleanCondition()) {
-			out.print(((IConstOperation) operand1).getValue() != 0 ? condition : condition.invert(), context);
+			out.print(((IConstOperation)operand1).getValue() != 0 ? condition : condition.invert(), context);
 		} else {
 			out.print(condition, context).print(" ? ")
 					.printPrioritied(this, operand1, context, Associativity.LEFT).print(" : ")
@@ -49,12 +49,14 @@ public final class TernaryOperatorOperation extends ReturnableOperation {
 				operand1 instanceof IConstOperation iconst1 &&
 				operand2 instanceof IConstOperation iconst2 &&
 				(iconst1.getValue() == 1 && iconst2.getValue() == 0 ||
-						iconst1.getValue() == 0 && iconst2.getValue() == 1);
+				 iconst1.getValue() == 0 && iconst2.getValue() == 1);
 	}
 
 	@Override
 	public int getPriority() {
-		return isBooleanCondition() ? condition.getPriority() : Priority.TERNARY_OPERATOR;
+		return isBooleanCondition() ?
+				condition.getPriority() :
+				Priority.TERNARY_OPERATOR;
 	}
 
 	@Override

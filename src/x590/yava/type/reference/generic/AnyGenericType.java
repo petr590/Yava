@@ -10,8 +10,7 @@ public final class AnyGenericType extends IndefiniteGenericType {
 
 	public static final AnyGenericType INSTANCE = new AnyGenericType();
 
-	private AnyGenericType() {
-	}
+	private AnyGenericType() {}
 
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {

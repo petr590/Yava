@@ -50,6 +50,10 @@ public final class Yava {
 		instance = new Yava(args);
 	}
 
+	public static void init(PerformingType performingType, Config config) {
+		init(Collections.emptyList(), performingType, config);
+	}
+
 	public static void init(@Immutable List<String> files, PerformingType performingType, Config config) {
 		if (instance != null)
 			throw new IllegalStateException("Yava already initialized");
@@ -57,8 +61,12 @@ public final class Yava {
 		instance = new Yava(files, performingType, config);
 	}
 
-	public static void init(PerformingType performingType, Config config) {
-		init(Collections.emptyList(), performingType, config);
+	public static void close() {
+		if (instance == null) {
+			throw new IllegalStateException("Yava yet not initialized");
+		}
+
+		instance = null;
 	}
 
 

@@ -2,7 +2,7 @@ package x590.yava.constpool;
 
 import x590.yava.clazz.ClassInfo;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
 import x590.yava.writable.StringifyWritable;
 
@@ -23,9 +23,8 @@ public final class PackageConstant extends ConstantWithUtf8String implements Str
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.write(TAG_PACKAGE);
-		out.write(valueIndex);
+	public void serialize(AssemblingOutputStream out) {
+		out.recordByte(TAG_PACKAGE).writeShort(valueIndex);
 	}
 
 	@Override

@@ -1,5 +1,14 @@
-Fixed a bug with infinities and NaN type float with the flag `-c=never'.
+Added support for many instructions in assembler
+Added labels for transition instructions
 
-Fixed a bug with hex representation of negative numeric constants.
+Fixed a bug with calling the varargs method
 
-The inference of variable names is supplemented with methods such as xToY, length, size, count.
+Fixed a bug with constants: float and double were always output as float, although they should be as int; long was output in hex form
+
+Fixed bug with increment of byte, short and char values
+
+Deprecated methods have been removed from the Operation class. Their use has been replaced by other methods.
+
+Added the ability to disassemble .class files.
+
+Added assembly and disassembly support for Exceptions, Deprecated, Synthetic, Code, LineNumberTable, LocalVariableTable attributes.

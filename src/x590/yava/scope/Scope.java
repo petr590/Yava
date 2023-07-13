@@ -530,12 +530,10 @@ public abstract class Scope extends AbstractOperation {
 	}
 
 
-	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {
-	}
+	protected void writeHeader(StringifyOutputStream out, StringifyContext context) {}
 
 	@Override
-	public void writeBack(StringifyOutputStream out, StringifyContext context) {
-	}
+	public void writeBack(StringifyOutputStream out, StringifyContext context) {}
 
 	@Override
 	public void writeSeparator(StringifyOutputStream out, StringifyContext context, Operation nextOperation) {

@@ -2,15 +2,11 @@ package x590.yava.constpool;
 
 import x590.yava.exception.disassembling.DisassemblingException;
 import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedDataOutputStream;
+import x590.yava.io.AssemblingOutputStream;
 
-public final class Utf8Constant extends Constant implements ICachedConstant<String> {
+public final class Utf8Constant extends Constant {
 
 	private final String value;
-
-	protected Utf8Constant(ExtendedDataInputStream in) {
-		this.value = decodeUtf8(in);
-	}
 
 	public Utf8Constant(String value) {
 		this.value = value;
@@ -20,12 +16,7 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 		return value;
 	}
 
-	@Override
-	public String getValueAsObject() {
-		return value;
-	}
-
-	protected static String decodeUtf8(ExtendedDataInputStream in) {
+	static String decodeUtf8(ExtendedDataInputStream in) {
 		int length = in.readUnsignedShort();
 		StringBuilder result = new StringBuilder();
 
@@ -57,8 +48,8 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 								(b2 & 0x3F) << 10 | (b4 & 0xF) << 6 | (b5 & 0x3F);
 
 						if ((c & 0xFFFF0000) != 0)
-							result.append((char) (c >>> 16));
-						result.append((char) c);
+							result.append((char)(c >>> 16));
+						result.append((char)c);
 
 						i += 5;
 						continue;
@@ -70,12 +61,10 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 				i += 2;
 			}
 
-			result.append((char) ch);
+			result.append((char)ch);
 		}
 
-		assert i == length;
-
-		if (i > length)
+		if (i != length)
 			throw new DisassemblingException("String decoding failed");
 
 		return result.toString();
@@ -92,11 +81,8 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 	}
 
 	@Override
-	public void serialize(ExtendedDataOutputStream out) {
-		out.writeByte(TAG_UTF8);
-		byte[] bytes = value.getBytes();
-		out.writeShort(bytes.length);
-		out.write(bytes);
+	public void serialize(AssemblingOutputStream out) {
+		out.recordByte(TAG_UTF8).writeByteArraySized(value.getBytes());
 	}
 
 
@@ -106,6 +92,6 @@ public final class Utf8Constant extends Constant implements ICachedConstant<Stri
 	}
 
 	public boolean equals(Utf8Constant other) {
-		return this == other || this.value.equals(other.value);
+		return this == other || value.equals(other.value);
 	}
 }
