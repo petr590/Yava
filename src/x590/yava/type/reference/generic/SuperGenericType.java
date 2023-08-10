@@ -6,7 +6,7 @@ import x590.yava.type.reference.ClassType;
 import x590.yava.type.reference.ReferenceType;
 
 /**
- * Дженерик, ограниченный снизу
+ * Wildcard-дженерик, ограниченный снизу, такой как {@code ? super T}
  */
 public final class SuperGenericType extends BoundedGenericType {
 
@@ -31,5 +31,10 @@ public final class SuperGenericType extends BoundedGenericType {
 	@Override
 	protected String bound() {
 		return "super";
+	}
+
+	@Override
+	public ReferenceType replaceWildcardIndicatorsToBound(int index, GenericParameters<GenericDeclarationType> parameters) {
+		return parameters.get(index);
 	}
 }

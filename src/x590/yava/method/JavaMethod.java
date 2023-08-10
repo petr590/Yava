@@ -51,6 +51,9 @@ import java.util.stream.IntStream;
 
 import static x590.yava.modifiers.Modifiers.*;
 
+/**
+ * Представляет отдельный метод в классе
+ */
 public final class JavaMethod extends JavaClassElement implements JavaSerializableWithPool {
 
 	private final MethodModifiers modifiers;
@@ -488,9 +491,9 @@ public final class JavaMethod extends JavaClassElement implements JavaSerializab
 
 			out.printsp().print(
 					returnType.isPrimitive() ?
-							returnType == PrimitiveType.VOID ? "{}" :
-									returnType == PrimitiveType.BOOLEAN ? "false" : "0" :
-							"null");
+							(returnType == PrimitiveType.VOID ? "{}" :
+							 returnType == PrimitiveType.BOOLEAN ? "false" : "0") :
+					"null");
 
 			if (exceptionMessage != null) {
 				out.print(" /* ").print(exceptionMessage).print(" */");
@@ -537,8 +540,7 @@ public final class JavaMethod extends JavaClassElement implements JavaSerializab
 			out.write(';');
 
 		} else if (decompilationContext == null) {
-			out.print(';').print(" /* ").print(exceptionMessage != null ? exceptionMessage : "The reason for the exclusion is unknown")
-					.print(" */");
+			out.print("; /* ").print(exceptionMessage != null ? exceptionMessage : "The reason for the exclusion is unknown").print(" */");
 
 		} else {
 			out.print(methodScope, stringifyContext);
@@ -580,13 +582,11 @@ public final class JavaMethod extends JavaClassElement implements JavaSerializab
 					str.append("private");
 			}
 
-			case ACC_PROTECTED -> {
+			case ACC_PROTECTED ->
 				str.append("protected");
-			}
 
-			default -> {
+			default ->
 				throw new IllegalModifiersException(this, modifiers, ILLEGAL_ACCESS_MODIFIERS_MESSAGE);
-			}
 		}
 
 		if (modifiers.isStatic())
@@ -634,7 +634,7 @@ public final class JavaMethod extends JavaClassElement implements JavaSerializab
 	@Override
 	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo) {
 		out .printIndent()
-			.print(modifiersToString(classinfo), classinfo)
+			.print(modifiers.toStringBuilder(true, true), classinfo)
 			.print(descriptor, classinfo)
 			.print(attributes, classinfo)
 			.println();

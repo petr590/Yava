@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Описывает объявление дженерика. Хранит имя и супертип
+ * Описывает объявление дженерика. Хранит имя и супертипы
  */
 public final class GenericDeclarationType extends ReferenceType {
 
@@ -122,7 +122,7 @@ public final class GenericDeclarationType extends ReferenceType {
 
 	@Override
 	public String toString() {
-		return "decl(" + (types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
+		return "GenericDeclarationType(" + (types.size() == 1 && types.get(0).equals(ClassType.OBJECT) ? name : name + " extends " +
 				types.stream().map(Type::toString).collect(Collectors.joining(" & "))) + ')';
 	}
 
@@ -157,7 +157,8 @@ public final class GenericDeclarationType extends ReferenceType {
 
 	@Override
 	public String getNameForVariable() {
-		throw new UnsupportedOperationException("Variable cannot have generic declaration type");
+//		throw new UnsupportedOperationException("Variable cannot have generic declaration type");
+		return "_u_";
 	}
 
 	@Override
@@ -172,7 +173,7 @@ public final class GenericDeclarationType extends ReferenceType {
 
 
 	@Override
-	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+	public ReferenceType replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
 		return DefiniteGenericType.fromDeclaration(this);
 	}
 

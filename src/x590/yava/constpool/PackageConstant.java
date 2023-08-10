@@ -8,8 +8,12 @@ import x590.yava.writable.StringifyWritable;
 
 public final class PackageConstant extends ConstantWithUtf8String implements StringifyWritable<ClassInfo> {
 
-	public PackageConstant(ExtendedDataInputStream in) {
+	PackageConstant(ExtendedDataInputStream in) {
 		super(in);
+	}
+
+	PackageConstant(int valueIndex, ConstantPool pool) {
+		super(valueIndex, pool);
 	}
 
 	@Override
@@ -19,7 +23,7 @@ public final class PackageConstant extends ConstantWithUtf8String implements Str
 
 	@Override
 	public String getConstantName() {
-		return "Package";
+		return PACKAGE;
 	}
 
 	@Override

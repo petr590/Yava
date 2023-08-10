@@ -57,7 +57,7 @@ public final class FloatConstant extends SingleConstableValueConstant<Float> {
 
 	@Override
 	public String getConstantName() {
-		return "Float";
+		return FLOAT;
 	}
 
 	@Override

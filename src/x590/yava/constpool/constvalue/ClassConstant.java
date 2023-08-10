@@ -104,7 +104,7 @@ public final class ClassConstant extends ConstValueConstant {
 
 	@Override
 	public String getConstantName() {
-		return "Class";
+		return CLASS;
 	}
 
 	@Override

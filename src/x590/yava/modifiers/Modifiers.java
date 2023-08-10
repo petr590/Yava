@@ -18,35 +18,41 @@ import static x590.yava.exception.parsing.IllegalModifierException.*;
 public abstract class Modifiers implements JavaSerializable {
 
 	public static final int
-			ACC_NONE = 0x0000,
-			ACC_VISIBLE = 0x0000, // class, field, method
-			ACC_PUBLIC = 0x0001, // class, field, method
-			ACC_PRIVATE = 0x0002, // nested class, field, method
-			ACC_PROTECTED = 0x0004, // nested class, field, method
-			ACC_STATIC = 0x0008, // nested class, field, method
-			ACC_FINAL = 0x0010, // class, field, method
-			ACC_SUPER = 0x0020, // class (deprecated)
+			ACC_NONE         = 0x0000,
+			ACC_VISIBLE      = 0x0000, // class, field, method
+			ACC_PUBLIC       = 0x0001, // class, field, method
+			ACC_PRIVATE      = 0x0002, // nested class, field, method
+			ACC_PROTECTED    = 0x0004, // nested class, field, method
+			ACC_STATIC       = 0x0008, // nested class, field, method
+			ACC_FINAL        = 0x0010, // class, field, method
+			ACC_SUPER        = 0x0020, // class (deprecated)
 			ACC_SYNCHRONIZED = 0x0020, // method
-			ACC_VOLATILE = 0x0040, // field
-			ACC_TRANSIENT = 0x0080, // field
-			ACC_BRIDGE = 0x0040, // method
-			ACC_VARARGS = 0x0080, // method
-			ACC_NATIVE = 0x0100, // method
-			ACC_INTERFACE = 0x0200, // class
-			ACC_ABSTRACT = 0x0400, // class, method
-			ACC_STRICTFP = 0x0800, // class, method
-			ACC_SYNTHETIC = 0x1000, // class, field, method
-			ACC_ANNOTATION = 0x2000, // class
-			ACC_ENUM = 0x4000, // class, field
+			ACC_VOLATILE     = 0x0040, // field
+			ACC_TRANSIENT    = 0x0080, // field
+			ACC_BRIDGE       = 0x0040, // method
+			ACC_VARARGS      = 0x0080, // method
+			ACC_NATIVE       = 0x0100, // method
+			ACC_INTERFACE    = 0x0200, // class
+			ACC_ABSTRACT     = 0x0400, // class, method
+			ACC_STRICTFP     = 0x0800, // class, method
+			ACC_SYNTHETIC    = 0x1000, // class, field, method
+			ACC_ANNOTATION   = 0x2000, // class
+			ACC_ENUM         = 0x4000, // class, field
 
-	ACC_MODULE = 0x8000, // module class
-			ACC_OPEN = 0x0020, // module attribute
-			ACC_MANDATED = 0x8000, // module entry
-			ACC_TRANSITIVE = 0x0020, // module requirement
+			ACC_MODULE       = 0x8000, // module class
+			ACC_OPEN         = 0x0020, // module attribute
+			ACC_MANDATED     = 0x8000, // module entry
+			ACC_TRANSITIVE   = 0x0020, // module requirement
 			ACC_STATIC_PHASE = 0x0040, // module requirement
 
-	ACC_ACCESS_FLAGS = ACC_VISIBLE | ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED,
+			ACC_ACCESS_FLAGS        = ACC_VISIBLE | ACC_PUBLIC | ACC_PRIVATE | ACC_PROTECTED,
 			ACC_SYNTHETIC_OR_BRIDGE = ACC_SYNTHETIC | ACC_BRIDGE;
+
+	public static final String DISASSEMBLING_PREFIX = "+";
+
+	public static String modifierToString(String modifier, boolean disassembling) {
+		return disassembling ? DISASSEMBLING_PREFIX + modifier : modifier;
+	}
 
 
 	private static final Int2IntMap ILLEGAL_MODIFIERS = new Int2IntArrayMap();
@@ -61,27 +67,40 @@ public abstract class Modifiers implements JavaSerializable {
 		addBothModifiers(ACC_NATIVE, ACC_STRICTFP);
 	}
 
+	private static void addBothModifiers(int modifier1, int modifier2) {
+		ILLEGAL_MODIFIERS.put(modifier1, modifier2);
+		ILLEGAL_MODIFIERS.put(modifier2, modifier1);
+	}
 
-	public static boolean canMerge(int modifiers, int newModifiers) {
+
+	public static boolean cantMerge(int modifiers, int newModifiers) {
 		for (int offset = 0, modifier = newModifiers; modifier != 0; modifier >>>= 1, offset++) {
 			if ((modifier & 0x1) != 0 &&
 					(ILLEGAL_MODIFIERS.getOrDefault(0x1 << offset, 0) & modifiers) != 0) {
 
-				return false;
+				return true;
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 
-	protected static int parseModifiers(AssemblingInputStream in, ToIntFunction<String> function) {
+	protected static int parseModifiers(AssemblingInputStream in, ToIntFunction<String> function, ToIntFunction<String> specialFunction) {
 		int modifiers = ACC_NONE;
 
 		while (true) {
 			String str = in.previewString();
 
-			int newModifiers = function.applyAsInt(str);
+			int newModifiers;
+
+			if (str.equals(DISASSEMBLING_PREFIX)) {
+				in.nextString();
+				str = in.previewString();
+				newModifiers = specialFunction.applyAsInt(str);
+			} else {
+				newModifiers = function.applyAsInt(str);
+			}
 
 			if (newModifiers == -1) {
 				if (isModifier(str)) {
@@ -97,7 +116,7 @@ public abstract class Modifiers implements JavaSerializable {
 				throw new IllegalModifierException(duplicatedModifier(str));
 			}
 
-			if (!canMerge(modifiers, newModifiers)) {
+			if (cantMerge(modifiers, newModifiers)) {
 				throw new IllegalModifierException(conflictingModifier(str));
 			}
 
@@ -105,12 +124,6 @@ public abstract class Modifiers implements JavaSerializable {
 		}
 
 		return modifiers;
-	}
-
-
-	private static void addBothModifiers(int modifier1, int modifier2) {
-		ILLEGAL_MODIFIERS.put(modifier1, modifier2);
-		ILLEGAL_MODIFIERS.put(modifier2, modifier1);
 	}
 
 
@@ -172,18 +185,18 @@ public abstract class Modifiers implements JavaSerializable {
 	}
 
 
-	protected IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return new WhitespaceStringBuilder().printTrailingSpace(forWriting)
-				.appendIf(!forWriting && isSynthetic(), "synthetic");
+	protected IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return new WhitespaceStringBuilder().printTrailingSpace(!writeHiddenModifiers || disassembling)
+				.appendIf(writeHiddenModifiers && isSynthetic(), modifierToString("synthetic", disassembling));
 	}
 
 	public String toSimpleString() {
-		return toStringBuilder(false).toString();
+		return toStringBuilder(true, false).toString();
 	}
 
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " { " + toStringBuilder(false).toString() + " }";
+		return this.getClass().getSimpleName() + " { " + toStringBuilder(true, false).toString() + " }";
 	}
 
 	@Override

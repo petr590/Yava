@@ -1,5 +1,7 @@
 package x590.yava.attribute.code;
 
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import x590.util.IntegerUtil;
@@ -16,6 +18,7 @@ import x590.yava.type.primitive.PrimitiveType;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static x590.yava.Keywords.BOOLEAN;
@@ -26,6 +29,8 @@ import static x590.yava.Keywords.BYTE;
 import static x590.yava.Keywords.SHORT;
 import static x590.yava.Keywords.INT;
 import static x590.yava.Keywords.LONG;
+import static x590.yava.Keywords.CASE;
+import static x590.yava.Keywords.DEFAULT;
 import static x590.yava.context.Opcodes.*;
 
 public class CodeAttribute extends Attribute {
@@ -34,6 +39,10 @@ public class CodeAttribute extends Attribute {
 	private final byte[] code;
 	private final ExceptionTable exceptionTable;
 	private final Attributes attributes;
+
+
+	private static final long NONE_POS = Long.MAX_VALUE;
+	private static final long TIME_COST_MULTIPLIER = 3;
 
 	public CodeAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		super(name, length);
@@ -306,7 +315,7 @@ public class CodeAttribute extends Attribute {
 					case "sipush" -> out.writeOpcodeWithShort(in.nextShort(), SIPUSH);
 
 					case "ldc", "ldc_w", "ldc2_w" -> {
-						int index = in.nextConstant(pool);
+						int index = in.nextLiteralConstant(pool);
 						if ((short)index != index) {
 							throw BytecodeParseException.tooLargeValue(index, "constant pool index", instruction);
 						}
@@ -360,13 +369,91 @@ public class CodeAttribute extends Attribute {
 
 					case "ret" -> out.writeOpcodeWithByte(in.nextUnsignedByte(), RET);
 
-//					case "tableswitch" -> {
-//						// TODO
-//					}
-//
-//					case "lookupswitch" -> {
-//						// TODO
-//					}
+					case "switch", "tableswitch", "lookupswitch" -> {
+						in.requireNext('{');
+
+						Int2IntMap table = new Int2IntArrayMap();
+						long longDefaultPos = NONE_POS;
+
+						while (!in.advanceIfHasNext('}')) {
+							String str = in.nextString();
+
+							switch (str) {
+								case CASE -> {
+									int index = in.nextInt(),
+										label = in.requireNext(':').nextLabel(labelsManager.shortPosFrom(out));
+
+									if (table.containsKey(index)) {
+										throw new ParseException("duplicated \"case " + index + "\" statement");
+									}
+
+									table.put(index, label);
+								}
+
+								case DEFAULT -> {
+									if (longDefaultPos != NONE_POS) {
+										throw new ParseException("duplicated \"default\" statement");
+									}
+
+									longDefaultPos = in.requireNext(':').nextLabel(labelsManager);
+								}
+
+								default -> throw ParseException.expectedButGot("\"case\" or \"default\"", str);
+							}
+						}
+
+						if (longDefaultPos == NONE_POS) {
+							throw new ParseException("\"default\" statement is not specified");
+						}
+
+
+						int low = table.keySet().intStream().min().orElse(0),
+							high = table.keySet().intStream().max().orElse(0);
+
+						int size = table.size();
+
+
+						// Если кому интересно, скопировано отсюда: https://habr.com/ru/articles/174065/
+						// Размеры инструкции в int-ах
+						long tableSpaceCost = ((long) high - low + 1) + 4,
+							 lookupSpaceCost = 3 + size * 2L;
+
+						int switchOpcode = (size > 0 &&
+								tableSpaceCost + 3 /* Количество сравнений */ * TIME_COST_MULTIPLIER <=
+								lookupSpaceCost + size * TIME_COST_MULTIPLIER) ?
+								TABLESWITCH : LOOKUPSWITCH;
+
+
+						out.write(switchOpcode);
+
+						int padding = (4 - out.size()) & 0x3;
+						for (int i = 0; i < padding; i++) {
+							out.write(0);
+						}
+
+						int defaultPos = (int)longDefaultPos;
+						out.writeInt(defaultPos);
+
+
+						if (switchOpcode == TABLESWITCH) {
+							out.writeInt(low);
+							out.writeInt(high);
+
+							for (int i = low; i < high; i++) {
+								out.writeInt(table.getOrDefault(i, defaultPos));
+							}
+
+						} else {
+							out.writeInt(size);
+
+							table.int2IntEntrySet().stream()
+								.sorted(Comparator.comparingInt(Int2IntMap.Entry::getIntKey))
+								.forEach(entry -> {
+									out.writeInt(entry.getIntKey());
+									out.writeInt(entry.getIntValue());
+								});
+						}
+					}
 
 					case "getstatic" -> out.writeOpcodeWithShort(in.nextFieldref(pool), GETSTATIC);
 					case "putstatic" -> out.writeOpcodeWithShort(in.nextFieldref(pool), PUTSTATIC);

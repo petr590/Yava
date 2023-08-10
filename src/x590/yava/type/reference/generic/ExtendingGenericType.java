@@ -5,7 +5,7 @@ import x590.yava.io.ExtendedStringInputStream;
 import x590.yava.type.reference.ReferenceType;
 
 /**
- * Дженерик, ограниченный сверху
+ * Wildcard-дженерик, ограниченный сверху, такой как {@code ? extends T}
  */
 public final class ExtendingGenericType extends BoundedGenericType {
 
@@ -19,7 +19,7 @@ public final class ExtendingGenericType extends BoundedGenericType {
 
 	@Override
 	public @Nullable ReferenceType getSuperType() {
-		return getType();
+		return getBound();
 	}
 
 	@Override
@@ -30,5 +30,10 @@ public final class ExtendingGenericType extends BoundedGenericType {
 	@Override
 	protected String bound() {
 		return "extends";
+	}
+
+	@Override
+	public ReferenceType replaceWildcardIndicatorsToBound(int index, GenericParameters<GenericDeclarationType> parameters) {
+		return getBound();
 	}
 }

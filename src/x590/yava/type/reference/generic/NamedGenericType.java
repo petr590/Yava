@@ -70,7 +70,7 @@ public final class NamedGenericType extends IndefiniteGenericType {
 
 	@Override
 	public String toString() {
-		return "indef(" + name + ')';
+		return "NamedGenericType(" + name + ')';
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public final class NamedGenericType extends IndefiniteGenericType {
 	}
 
 	@Override
-	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+	public ReferenceType replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
 		ReferenceType definiteGenericType = DefiniteGenericType.fromNullableDeclaration(
 				parameters.findOrGetGenericType(name, () -> classinfo.findGenericType(name).orElse(null))
 		);

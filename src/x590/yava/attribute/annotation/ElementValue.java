@@ -1,18 +1,24 @@
 package x590.yava.attribute.annotation;
 
 import x590.util.IntegerUtil;
+import x590.util.Pair;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nullable;
 import x590.yava.Importable;
+import x590.yava.Keywords;
+import x590.yava.attribute.Sizes;
 import x590.yava.clazz.ClassInfo;
-import x590.yava.constpool.constvalue.ConstValueConstant;
+import x590.yava.constpool.Constant;
+import x590.yava.constpool.constvalue.*;
 import x590.yava.constpool.ConstantPool;
+import x590.yava.exception.decompilation.IncompatibleConstantTypeException;
 import x590.yava.exception.disassembling.DisassemblingException;
-import x590.yava.io.DisassemblingOutputStream;
-import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.ExtendedOutputStream;
-import x590.yava.io.StringifyOutputStream;
+import x590.yava.exception.parsing.ParseException;
+import x590.yava.io.*;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.type.Type;
 import x590.yava.type.primitive.PrimitiveType;
+import x590.yava.type.reference.ArrayType;
 import x590.yava.type.reference.ClassType;
 import x590.yava.util.StringUtil;
 import x590.yava.writable.DisassemblingStringifyWritable;
@@ -20,24 +26,48 @@ import x590.yava.writable.SameDisassemblingStringifyWritable;
 
 import java.lang.constant.Constable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 
-public abstract class ElementValue implements DisassemblingStringifyWritable<ClassInfo>, Importable {
+public abstract class ElementValue implements
+		DisassemblingStringifyWritable<ClassInfo>, Importable, JavaSerializableWithPool {
+
+
+	private static final int
+			TAG_BYTE = 'B',
+			TAG_SHORT = 'S',
+			TAG_CHAR = 'C',
+			TAG_INT = 'I',
+			TAG_LONG = 'J',
+			TAG_FLOAT = 'F',
+			TAG_DOUBLE = 'D',
+			TAG_BOOLEAN = 'Z',
+			TAG_STRING = 's',
+			TAG_ENUM = 'e',
+			TAG_CLASS = 'c',
+			TAG_ANNOTATION = '@',
+			TAG_ARRAY = '[';
+
 
 	public static class ConstElementValue extends ElementValue {
 
-		private final Type type;
+		private final PrimitiveType type;
 		private final ConstValueConstant value;
 
-		private ConstElementValue(Type type, ExtendedDataInputStream in, ConstantPool pool) {
+		private ConstElementValue(PrimitiveType type, ExtendedDataInputStream in, ConstantPool pool) {
 			this.type = type;
 			this.value = pool.get(in.readUnsignedShort());
 		}
 
-		private ConstElementValue(Type type, ConstValueConstant value) {
+		private ConstElementValue(PrimitiveType type, ConstValueConstant value) {
 			this.type = type;
 			this.value = value;
+
+			if (!value.canUseAs(type)) {
+				throw new IncompatibleConstantTypeException(value, type);
+			}
 		}
 
 		private ConstElementValue(byte value) {
@@ -74,6 +104,22 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 
 		public ConstValueConstant getConstant() {
 			return value;
+		}
+
+		@Override
+		protected int getDataLength() {
+			return Sizes.CONSTPOOL_INDEX;
+		}
+
+		@Override
+		protected int getTag() {
+			assert type != PrimitiveType.VOID;
+			return type.getEncodedName().charAt(0);
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out.writeShort(pool.findOrAddConstant(value));
 		}
 
 
@@ -120,6 +166,21 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 			return value;
 		}
 
+		@Override
+		protected int getDataLength() {
+			return Sizes.CONSTPOOL_INDEX;
+		}
+
+		@Override
+		protected int getTag() {
+			return TAG_STRING;
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out.writeShort(pool.findOrAddUtf8(value));
+		}
+
 
 		@Override
 		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
@@ -143,14 +204,20 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 		private final ClassType type;
 		private final String constantName;
 
+		private EnumElementValue(ClassType type, String constantName) {
+			this.type = type;
+			this.constantName = constantName;
+		}
+
 		private EnumElementValue(ExtendedDataInputStream in, ConstantPool pool) {
 			this.type = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 			this.constantName = pool.getUtf8String(in.readUnsignedShort());
 		}
 
-		private EnumElementValue(ClassType type, String constantName) {
-			this.type = type;
-			this.constantName = constantName;
+		private EnumElementValue(AssemblingInputStream in) {
+			Pair<String, String> classAndName = in.nextClassAndName();
+			this.type = ClassType.fromDescriptor(classAndName.first());
+			this.constantName = classAndName.second();
 		}
 
 		public ClassType getType() {
@@ -159,6 +226,22 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 
 		public String getConstantName() {
 			return constantName;
+		}
+
+		@Override
+		protected int getDataLength() {
+			return Sizes.CONSTPOOL_INDEX * 2;
+		}
+
+		@Override
+		protected int getTag() {
+			return TAG_ENUM;
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out .recordShort(pool.utf8IndexFor(type))
+				.recordShort(pool.findOrAddUtf8(constantName));
 		}
 
 
@@ -186,29 +269,49 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 
 	public static class ClassElementValue extends ElementValue implements SameDisassemblingStringifyWritable<ClassInfo> {
 
-		private final ClassType classType;
+		private final Type type;
+
+		private ClassElementValue(Type type) {
+			this.type = type;
+		}
 
 		private ClassElementValue(ExtendedDataInputStream in, ConstantPool pool) {
-			this.classType = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
+			this.type = Type.parseType(pool.getUtf8String(in.readUnsignedShort()));
 		}
 
-		private ClassElementValue(ClassType classType) {
-			this.classType = classType;
+		private ClassElementValue(AssemblingInputStream in) {
+			this.type = in.nextType();
+			in.requireNext(".class");
 		}
 
-		public ClassType getClassType() {
-			return classType;
+		public Type getType() {
+			return type;
+		}
+
+		@Override
+		protected int getDataLength() {
+			return Sizes.CONSTPOOL_INDEX;
+		}
+
+		@Override
+		protected int getTag() {
+			return TAG_CLASS;
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out.writeShort(pool.utf8IndexFor(type));
 		}
 
 
 		@Override
 		public void addImports(ClassInfo classinfo) {
-			classinfo.addImport(classType);
+			classinfo.addImport(type);
 		}
 
 		@Override
 		public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-			out.printObject(classType, classinfo).print(".class");
+			out.printObject(type, classinfo).print(".class");
 		}
 
 
@@ -218,7 +321,7 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 		}
 
 		public boolean equals(ClassElementValue other) {
-			return this == other || classType.equals(other.classType);
+			return this == other || type.equals(other.type);
 		}
 	}
 
@@ -237,6 +340,21 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 
 		public Annotation getAnnotation() {
 			return annotation;
+		}
+
+		@Override
+		protected int getDataLength() {
+			return annotation.getFullLength();
+		}
+
+		@Override
+		protected int getTag() {
+			return TAG_ANNOTATION;
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out.write(annotation, pool);
 		}
 
 
@@ -270,12 +388,73 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 			this.values = in.readImmutableList(() -> ElementValue.read(in, pool));
 		}
 
+		private ArrayElementValue(@Nullable Type elementType, AssemblingInputStream in, ConstantPool pool) {
+			if (in.advanceIfHasNext('}')) {
+				this.values = Collections.emptyList();
+
+			} else {
+				List<ElementValue> values = new ArrayList<>();
+
+				Function<AssemblingInputStream, ElementValue> elementValueCreator;
+
+				if (elementType == null) {
+					elementValueCreator = inp -> parse(inp, pool);
+
+				} else if (elementType instanceof PrimitiveType primitiveType) {
+					elementValueCreator = inp -> new ConstElementValue(
+							primitiveType,
+							pool.get(pool.findOrAddNumber(inp.nextNumber()))
+					);
+
+				} else if (elementType.equals(ClassType.STRING)) {
+					elementValueCreator = inp -> new StringElementValue(inp.nextStringLiteral());
+
+				} else if (elementType.equals(ClassType.ENUM)) {
+					elementValueCreator = EnumElementValue::new;
+
+				} else if (elementType.equals(ClassType.CLASS)) {
+					elementValueCreator = ClassElementValue::new;
+
+				} else {
+					throw new ParseException("Illegal array element type " + elementType);
+				}
+
+				do {
+					values.add(elementValueCreator.apply(in));
+
+					if (!in.advanceIfHasNext(',')) {
+						in.requireNext('}');
+						break;
+					}
+
+				} while (!in.advanceIfHasNext('}'));
+
+
+				this.values = Collections.unmodifiableList(values);
+			}
+		}
+
 		private ArrayElementValue(@Immutable List<? extends ElementValue> values) {
 			this.values = values;
 		}
 
 		public @Immutable List<? extends ElementValue> getValues() {
 			return values;
+		}
+
+		@Override
+		protected int getDataLength() {
+			return Sizes.LENGTH + values.stream().mapToInt(ElementValue::getFullLength).sum();
+		}
+
+		@Override
+		protected int getTag() {
+			return TAG_ARRAY;
+		}
+
+		@Override
+		protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+			out.writeAll(values, pool);
 		}
 
 
@@ -320,6 +499,22 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 	}
 
 
+	public int getFullLength() {
+		return Sizes.BYTE + getDataLength();
+	}
+
+	protected abstract int getDataLength();
+
+	protected abstract int getTag();
+
+	@Override
+	public final void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out.writeByte(getTag());
+		serializeData(out, pool);
+	}
+
+	protected abstract void serializeData(AssemblingOutputStream out, ConstantPool pool);
+
 	@Override
 	public abstract boolean equals(Object other);
 
@@ -329,22 +524,84 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 		char tag = (char)in.readUnsignedByte();
 
 		return switch (tag) {
-			case 'B' -> new ConstElementValue(PrimitiveType.BYTE, in, pool);
-			case 'S' -> new ConstElementValue(PrimitiveType.SHORT, in, pool);
-			case 'C' -> new ConstElementValue(PrimitiveType.CHAR, in, pool);
-			case 'I' -> new ConstElementValue(PrimitiveType.INT, in, pool);
-			case 'J' -> new ConstElementValue(PrimitiveType.LONG, in, pool);
-			case 'F' -> new ConstElementValue(PrimitiveType.FLOAT, in, pool);
-			case 'D' -> new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
-			case 'Z' -> new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);
-			case 's' -> new StringElementValue(in, pool);
-			case 'e' -> new EnumElementValue(in, pool);
-			case 'c' -> new ClassElementValue(in, pool);
-			case '@' -> new AnnotationElementValue(in, pool);
-			case '[' -> new ArrayElementValue(in, pool);
+			case TAG_BYTE       -> new ConstElementValue(PrimitiveType.BYTE, in, pool);
+			case TAG_SHORT      -> new ConstElementValue(PrimitiveType.SHORT, in, pool);
+			case TAG_CHAR       -> new ConstElementValue(PrimitiveType.CHAR, in, pool);
+			case TAG_INT        -> new ConstElementValue(PrimitiveType.INT, in, pool);
+			case TAG_LONG       -> new ConstElementValue(PrimitiveType.LONG, in, pool);
+			case TAG_FLOAT      -> new ConstElementValue(PrimitiveType.FLOAT, in, pool);
+			case TAG_DOUBLE     -> new ConstElementValue(PrimitiveType.DOUBLE, in, pool);
+			case TAG_BOOLEAN    -> new ConstElementValue(PrimitiveType.BOOLEAN, in, pool);
+			case TAG_STRING     -> new StringElementValue(in, pool);
+			case TAG_ENUM       -> new EnumElementValue(in, pool);
+			case TAG_CLASS      -> new ClassElementValue(in, pool);
+			case TAG_ANNOTATION -> new AnnotationElementValue(in, pool);
+			case TAG_ARRAY      -> new ArrayElementValue(in, pool);
 			default -> throw new DisassemblingException("Illegal annotation element value tag: " +
 					"'" + tag + "' (" + IntegerUtil.hex1WithPrefix(tag) + ")");
 		};
+	}
+
+	protected static ElementValue parse(AssemblingInputStream in, ConstantPool pool) {
+		if (in.advanceIfHasNext(Keywords.ENUM)) {
+			return new EnumElementValue(in);
+		}
+
+		if (in.advanceIfHasNext(Keywords.TRUE)) {
+			return new ConstElementValue(PrimitiveType.BOOLEAN, pool.get(pool.findOrAddInteger(1)));
+		}
+
+		if (in.advanceIfHasNext(Keywords.FALSE)) {
+			return new ConstElementValue(PrimitiveType.BOOLEAN, pool.get(pool.findOrAddInteger(0)));
+		}
+
+		if (in.advanceIfHasNext('(')) {
+			var type = in.nextPrimitiveType();
+
+			if (type == PrimitiveType.VOID) {
+				throw ParseException.expectedButGot("primitive type", "void");
+			}
+
+			in.requireNext(')');
+
+			return new ConstElementValue(type, pool.get(pool.findOrAddNumber(in.nextNumber())));
+		}
+
+		if (in.advanceIfHasNext('@')) {
+			return new AnnotationElementValue(new Annotation(in, pool));
+		}
+
+		if (in.advanceIfHasNext('{')) {
+			return new ArrayElementValue(null, in, pool);
+		}
+
+		Type type = in.nextTypeIfExists();
+
+		if (type != null) {
+			if (in.advanceIfHasNext(".class")) {
+				return new ClassElementValue(type);
+			}
+
+			if (type instanceof ArrayType arrayType && in.advanceIfHasNext('{')) {
+				return new ArrayElementValue(arrayType.getElementType(), in, pool);
+			}
+		}
+
+		int ch = in.tryReadCharLiteral();
+
+		if (ch != AssemblingInputStream.EOF_CHAR) {
+			return new ConstElementValue(PrimitiveType.CHAR, pool.get(pool.findOrAddInteger(ch)));
+		}
+
+		Constant constant = pool.get(in.nextLiteralConstant(pool));
+
+		if (constant instanceof IntegerConstant integerConstant) return new ConstElementValue(PrimitiveType.INT, integerConstant);
+		if (constant instanceof LongConstant longConstant)       return new ConstElementValue(PrimitiveType.LONG, longConstant);
+		if (constant instanceof FloatConstant floatConstant)     return new ConstElementValue(PrimitiveType.FLOAT, floatConstant);
+		if (constant instanceof DoubleConstant doubleConstant)   return new ConstElementValue(PrimitiveType.DOUBLE, doubleConstant);
+		if (constant instanceof StringConstant stringConstant)   return new StringElementValue(stringConstant.getString());
+
+		throw ParseException.expectedButGot("element value", constant.getConstantName());
 	}
 
 	protected static ElementValue fromUnknownValue(Object value) {
@@ -367,7 +624,7 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 				return new EnumElementValue(ClassType.fromClass(en.getDeclaringClass()), en.name());
 
 			if (value instanceof Class<?> clazz)
-				return new ClassElementValue(ClassType.fromClass(clazz));
+				return new ClassElementValue(Type.fromClass(clazz));
 
 		} else {
 
@@ -409,11 +666,11 @@ public abstract class ElementValue implements DisassemblingStringifyWritable<Cla
 	}
 
 
-	private static List<ElementValue> arrayToElementValues(int size, IntFunction<? extends ElementValue> elementSuppiler) {
+	private static List<ElementValue> arrayToElementValues(int size, IntFunction<? extends ElementValue> elementSupplier) {
 		List<ElementValue> list = new ArrayList<>(size);
 
 		for (int i = 0; i < size; i++) {
-			list.add(elementSuppiler.apply(i));
+			list.add(elementSupplier.apply(i));
 		}
 
 		return list;

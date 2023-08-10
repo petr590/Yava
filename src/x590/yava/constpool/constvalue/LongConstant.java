@@ -66,7 +66,7 @@ public final class LongConstant extends SingleConstableValueConstant<Long> {
 
 	@Override
 	public String getConstantName() {
-		return "Long";
+		return LONG;
 	}
 
 	@Override

@@ -26,14 +26,10 @@ public final class ModuleModifiers extends ModuleEntryModifiers {
 		return (value & ACC_OPEN) != 0;
 	}
 
-	public boolean isNotOpen() {
-		return (value & ACC_OPEN) == 0;
-	}
-
 
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isOpen(), "open");
 	}
 }

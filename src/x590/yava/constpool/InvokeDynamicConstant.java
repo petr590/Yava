@@ -12,9 +12,15 @@ public final class InvokeDynamicConstant extends Constant {
 	private final int nameAndTypeIndex;
 	private NameAndTypeConstant nameAndType;
 
-	public InvokeDynamicConstant(ExtendedDataInputStream in) {
+	InvokeDynamicConstant(ExtendedDataInputStream in) {
 		bootstrapMethodIndex = in.readUnsignedShort();
 		nameAndTypeIndex = in.readUnsignedShort();
+	}
+
+	InvokeDynamicConstant(int bootstrapMethodIndex, int nameAndTypeIndex, ConstantPool pool) {
+		this.bootstrapMethodIndex = bootstrapMethodIndex;
+		this.nameAndTypeIndex = nameAndTypeIndex;
+		init(pool);
 	}
 
 	@Override
@@ -22,8 +28,16 @@ public final class InvokeDynamicConstant extends Constant {
 		nameAndType = pool.get(nameAndTypeIndex);
 	}
 
+	public int getBootstrapMethodIndex() {
+		return bootstrapMethodIndex;
+	}
+
 	public BootstrapMethod getBootstrapMethod(Attributes attributes) {
 		return attributes.get(AttributeType.BOOTSTRAP_METHODS).getBootstrapMethod(bootstrapMethodIndex);
+	}
+
+	public int getNameAndTypeIndex() {
+		return nameAndTypeIndex;
 	}
 
 	public NameAndTypeConstant getNameAndType() {
@@ -32,7 +46,7 @@ public final class InvokeDynamicConstant extends Constant {
 
 	@Override
 	public String getConstantName() {
-		return "MethodType";
+		return INVOKE_DYNAMIC;
 	}
 
 	@Override

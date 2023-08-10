@@ -114,10 +114,10 @@ public class AttributeType<A extends Attribute> implements AttributeReader<A>, A
 			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.DEPRECATED, reader(DeprecatedAttribute::get), simpleParser(DeprecatedAttribute::get));
 
 	public static final EmptyableAttributeType<AnnotationsAttribute> RUNTIME_VISIBLE_ANNOTATIONS =
-			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS, reader(AnnotationsAttribute::new), AnnotationsAttribute.emptyVisible());
+			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.RUNTIME_VISIBLE_ANNOTATIONS, reader(AnnotationsAttribute::new), parser(AnnotationsAttribute::new), AnnotationsAttribute.emptyVisible());
 
 	public static final EmptyableAttributeType<AnnotationsAttribute> RUNTIME_INVISIBLE_ANNOTATIONS =
-			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS, reader(AnnotationsAttribute::new), AnnotationsAttribute.emptyInvisible());
+			create(CLASS_FIELD_OR_METHOD_LOCATION, AttributeNames.RUNTIME_INVISIBLE_ANNOTATIONS, reader(AnnotationsAttribute::new), parser(AnnotationsAttribute::new), AnnotationsAttribute.emptyInvisible());
 
 
 	// Class, field, method, code

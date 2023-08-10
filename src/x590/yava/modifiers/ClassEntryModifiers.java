@@ -22,7 +22,7 @@ public abstract class ClassEntryModifiers extends Modifiers {
 	}
 
 	public boolean isPackageVisible() {
-		return (value & ACC_ACCESS_FLAGS) == 0;
+		return (value & ACC_ACCESS_FLAGS) == ACC_NONE;
 	}
 
 
@@ -43,14 +43,6 @@ public abstract class ClassEntryModifiers extends Modifiers {
 		return (value & ACC_PRIVATE) == 0;
 	}
 
-	public boolean isNotProtected() {
-		return (value & ACC_PROTECTED) == 0;
-	}
-
-	public boolean isNotPackageVisible() {
-		return (value & ACC_ACCESS_FLAGS) != 0;
-	}
-
 
 	public boolean isNotStatic() {
 		return (value & ACC_STATIC) == 0;
@@ -62,8 +54,8 @@ public abstract class ClassEntryModifiers extends Modifiers {
 
 
 	@Override
-	protected IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	protected IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isPublic(), "public")
 				.appendIf(isPrivate(), "private")
 				.appendIf(isProtected(), "protected")

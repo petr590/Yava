@@ -11,4 +11,14 @@
 
 Добавлена возможность дизассемблирования .class файлов.
 
-Добавлена поддержка ассемблирования и дизассемблирования для атрибутов Exceptions, Deprecated, Synthetic, Code, LineNumberTable, LocalVariableTable.
+Добавлена поддержка ассемблирования и дизассемблирования для атрибутов Exceptions, Deprecated, Synthetic, Code, LineNumberTable, LocalVariableTable, RuntimeVisibleAnnotations, RuntimeInvisibleAnnotations.
+
+Добавлена поддержка ассемблирования и дизассемблирования инструкций tableswitch и lookupswitch.
+
+Добавлены Javadoc к некоторым методам и классам.
+
+Классы example и test перенесены в отдельные папки, в модуль yava.test.
+
+Исправлен баг, когда переменная имела wildcard-тип.
+
+Некоторые классы отрефакторены как sealed (ура, новая фича Java 19).

@@ -8,8 +8,12 @@ import x590.yava.writable.StringifyWritable;
 
 public final class ModuleConstant extends ConstantWithUtf8String implements StringifyWritable<ClassInfo> {
 
-	public ModuleConstant(ExtendedDataInputStream in) {
+	ModuleConstant(ExtendedDataInputStream in) {
 		super(in);
+	}
+
+	ModuleConstant(int valueIndex, ConstantPool pool) {
+		super(valueIndex, pool);
 	}
 
 	@Override
@@ -19,7 +23,7 @@ public final class ModuleConstant extends ConstantWithUtf8String implements Stri
 
 	@Override
 	public String getConstantName() {
-		return "Module";
+		return MODULE;
 	}
 
 	@Override

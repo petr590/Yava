@@ -92,7 +92,7 @@ public final class IntegerConstant extends ConstableValueConstant<Integer> {
 
 	@Override
 	public String getConstantName() {
-		return "Integer";
+		return INTEGER;
 	}
 
 	@Override

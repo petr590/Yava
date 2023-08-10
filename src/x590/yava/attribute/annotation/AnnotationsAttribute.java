@@ -3,11 +3,10 @@ package x590.yava.attribute.annotation;
 import x590.util.annotation.Immutable;
 import x590.yava.attribute.Attribute;
 import x590.yava.attribute.AttributeNames;
+import x590.yava.attribute.Sizes;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
-import x590.yava.io.DisassemblingOutputStream;
-import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.StringifyOutputStream;
+import x590.yava.io.*;
 import x590.yava.type.reference.ClassType;
 import x590.yava.writable.StringifyWritable;
 
@@ -15,17 +14,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class AnnotationsAttribute extends Attribute implements StringifyWritable<ClassInfo> {
+public sealed class AnnotationsAttribute extends Attribute implements StringifyWritable<ClassInfo> {
 
 	private final @Immutable List<Annotation> annotations;
+
+	private AnnotationsAttribute(String name, int length, @Immutable List<Annotation> annotations) {
+		super(name, length);
+		this.annotations = annotations;
+	}
 
 	public AnnotationsAttribute(String name, int length, ExtendedDataInputStream in, ConstantPool pool) {
 		this(name, length, Annotation.readAnnotations(in, pool));
 	}
 
-	private AnnotationsAttribute(String name, int length, @Immutable List<Annotation> annotations) {
-		super(name, length);
-		this.annotations = annotations;
+	public AnnotationsAttribute(String name, AssemblingInputStream in, ConstantPool pool) {
+		super(name);
+		this.annotations = Annotation.parseAnnotations(in.requireNext('{'), pool);
+		in.requireNext('}');
+
+		initLength(
+				Sizes.LENGTH + annotations.stream().mapToInt(Annotation::getFullLength).sum()
+		);
 	}
 
 
@@ -85,6 +94,11 @@ public class AnnotationsAttribute extends Attribute implements StringifyWritable
 
 	protected void writeDisassembledContent(DisassemblingOutputStream out, ClassInfo classinfo) {
 		out.printAll(annotations, classinfo, "");
+	}
+
+	@Override
+	protected void serializeData(AssemblingOutputStream out, ConstantPool pool) {
+		out.writeAll(annotations, pool);
 	}
 
 

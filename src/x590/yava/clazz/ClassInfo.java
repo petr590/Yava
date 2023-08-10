@@ -3,6 +3,7 @@ package x590.yava.clazz;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import x590.util.annotation.Immutable;
+import x590.util.annotation.Nonnull;
 import x590.util.annotation.Nullable;
 import x590.util.function.Functions;
 import x590.util.holder.BooleanHolder;
@@ -55,8 +56,8 @@ public final class ClassInfo implements IClassInfo {
 	private final ClassType thisType;
 
 	private @Nullable ClassType genericThisType;
-	private final Optional<ClassType> optionalSuperType;
-	private final Optional<@Immutable List<? extends ClassType>> optionalInterfaces;
+	private final Optional<@Nonnull ClassType> optionalSuperType;
+	private final Optional<@Immutable @Nonnull List<? extends ClassType>> optionalInterfaces;
 
 	private @Nullable Attributes attributes;
 
@@ -141,7 +142,7 @@ public final class ClassInfo implements IClassInfo {
 		}
 
 		var parameters = getSignatureParameters();
-		return this.genericThisType = thisType.withSignature(parameters.replaceUndefiniteGenericsToDefinite(this, parameters));
+		return this.genericThisType = thisType.withSignature(parameters.replaceIndefiniteGenericsToDefinite(this, parameters));
 	}
 
 	public ClassType getSuperType() {
@@ -166,12 +167,12 @@ public final class ClassInfo implements IClassInfo {
 		if (attributes != null)
 			return attributes;
 
-		throw new IllegalStateException("Attributes yet not setted");
+		throw new IllegalStateException("Attributes yet not set");
 	}
 
 	void setAttributes(Attributes attributes) {
 		if (this.attributes != null)
-			throw new IllegalStateException("Attributes already setted");
+			throw new IllegalStateException("Attributes already set");
 
 		this.attributes = attributes;
 	}
@@ -206,8 +207,8 @@ public final class ClassInfo implements IClassInfo {
 			addImport(type);
 	}
 
-	public void addImportsFor(Collection<? extends Importable> importables) {
-		importables.forEach(importable -> importable.addImports(this));
+	public void addImportsFor(Collection<? extends Importable> importableValues) {
+		importableValues.forEach(importable -> importable.addImports(this));
 	}
 
 	void bindEnvironmentTo(ClassInfo other) {
@@ -219,7 +220,12 @@ public final class ClassInfo implements IClassInfo {
 		enteredClasses = other.enteredClasses;
 	}
 
-	void uniqImports() {
+	/**
+	 * Убирает совпадающие импорты. Из нескольких импортов с одинаковым именем
+	 * оставляет самый часто используемый.
+	 * @throws IllegalStateException если метод уже вызывался для этого объекта
+	 */
+	void uniqueImports() {
 		if (importsUniqued)
 			throw new IllegalStateException("Imports already uniqued");
 

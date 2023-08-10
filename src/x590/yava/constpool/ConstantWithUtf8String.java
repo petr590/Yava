@@ -7,8 +7,13 @@ abstract class ConstantWithUtf8String extends Constant {
 	final int valueIndex;
 	String value;
 
-	public ConstantWithUtf8String(ExtendedDataInputStream in) {
+	ConstantWithUtf8String(ExtendedDataInputStream in) {
 		this.valueIndex = in.readUnsignedShort();
+	}
+
+	ConstantWithUtf8String(int valueIndex, ConstantPool pool) {
+		this.valueIndex = valueIndex;
+		init(pool);
 	}
 
 	@Override

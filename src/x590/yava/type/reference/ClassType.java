@@ -86,30 +86,30 @@ public class ClassType extends RealReferenceType {
 
 
 	public static final ClassType
-			OBJECT = initFromClass(Object.class),
-			STRING = initFromClass(String.class),
-			CLASS = initFromClass(Class.class),
-			ENUM = initFromClass(Enum.class),
-			RECORD = initFromClass(Record.class),
-			THROWABLE = initFromClass(Throwable.class),
-			METHOD_TYPE = initFromClass(MethodType.class),
-			METHOD_HANDLE = initFromClass(MethodHandle.class),
+			OBJECT         = initFromClass(Object.class),
+			STRING         = initFromClass(String.class),
+			CLASS          = initFromClass(Class.class),
+			ENUM           = initFromClass(Enum.class),
+			RECORD         = initFromClass(Record.class),
+			THROWABLE      = initFromClass(Throwable.class),
+			METHOD_TYPE    = initFromClass(MethodType.class),
+			METHOD_HANDLE  = initFromClass(MethodHandle.class),
 			STRING_BUILDER = initFromClass(StringBuilder.class),
 
-	ANNOTATION = initFromClass(Annotation.class),
-			OVERRIDE = initFromClass(Override.class),
-			CLONEABLE = initFromClass(Cloneable.class),
+			ANNOTATION   = initFromClass(Annotation.class),
+			OVERRIDE     = initFromClass(Override.class),
+			CLONEABLE    = initFromClass(Cloneable.class),
 			SERIALIZABLE = initFromClass(Serializable.class),
 
-	BYTE = initWrapperFromClass(Byte.class, PrimitiveType.BYTE),
-			SHORT = initWrapperFromClass(Short.class, PrimitiveType.SHORT),
+			BYTE      = initWrapperFromClass(Byte.class, PrimitiveType.BYTE),
+			SHORT     = initWrapperFromClass(Short.class, PrimitiveType.SHORT),
 			CHARACTER = initWrapperFromClass(Character.class, PrimitiveType.CHAR),
-			INTEGER = initWrapperFromClass(Integer.class, PrimitiveType.INT),
-			LONG = initWrapperFromClass(Long.class, PrimitiveType.LONG),
-			FLOAT = initWrapperFromClass(Float.class, PrimitiveType.FLOAT),
-			DOUBLE = initWrapperFromClass(Double.class, PrimitiveType.DOUBLE),
-			BOOLEAN = initWrapperFromClass(Boolean.class, PrimitiveType.BOOLEAN),
-			VOID = initWrapperFromClass(Void.class, PrimitiveType.VOID);
+			INTEGER   = initWrapperFromClass(Integer.class, PrimitiveType.INT),
+			LONG      = initWrapperFromClass(Long.class, PrimitiveType.LONG),
+			FLOAT     = initWrapperFromClass(Float.class, PrimitiveType.FLOAT),
+			DOUBLE    = initWrapperFromClass(Double.class, PrimitiveType.DOUBLE),
+			BOOLEAN   = initWrapperFromClass(Boolean.class, PrimitiveType.BOOLEAN),
+			VOID      = initWrapperFromClass(Void.class, PrimitiveType.VOID);
 
 
 	private static ClassType initFromClass(Class<?> clazz) {
@@ -360,7 +360,8 @@ public class ClassType extends RealReferenceType {
 			this.simpleName = clazz.getSimpleName();
 			this.fullSimpleName = simpleName;
 
-			this.kind = classEncodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
+			this.kind =
+					classEncodedName.endsWith("/package-info") ? ClassKind.PACKAGE_INFO :
 					classEncodedName.equals("module-info") ? ClassKind.MODULE_INFO : ClassKind.PLAIN;
 		}
 
@@ -405,19 +406,18 @@ public class ClassType extends RealReferenceType {
 
 		in.mark();
 
-		StringBuilder
-				classEncodedNameBuilder = new StringBuilder(),
-				binaryNameBuilder = new StringBuilder(),
-				nameBuilder = new StringBuilder();
+		var classEncodedNameBuilder = new StringBuilder();
+		var binaryNameBuilder = new StringBuilder();
+		var nameBuilder = new StringBuilder();
 
 		int nameStartPos = 0,
-				packageEndPos = 0,
-				enclosingClassNameEndPos = 0;
+			packageEndPos = 0,
+			enclosingClassNameEndPos = 0;
 
 		GenericParameters<ReferenceType> signature = GenericParameters.empty();
 		ClassType rawType = null;
 
-		// Некоторые названия классов (такие как package-info и module-info)
+		// Некоторые названия классов (такие, как package-info и module-info)
 		// содержат тире, и эта переменная нужна для полной проверки валидности названия
 		int dashIndex = 0;
 
@@ -468,9 +468,8 @@ public class ClassType extends RealReferenceType {
 							break Loop;
 						}
 
-						default -> {
-							throw new InvalidClassNameException(in, in.distanceToMark());
-						}
+						default ->
+								throw new InvalidClassNameException(in, in.distanceToMark());
 					}
 				}
 
@@ -490,9 +489,8 @@ public class ClassType extends RealReferenceType {
 				case '\b', '\t', '\n', 0xB /* '\v' */, '\f', '\r', ' ', '!',
 						'"', '#', '%', '&', '\'', '(', ')', '*', '+',
 						',', '.', ':', '=', '>', '?', '@', '[', '\\',
-						']', '^', '`', '{', '|', '}', '~', 0x7F /* DEL */ -> {
-					throw new InvalidClassNameException(in, in.distanceToMark());
-				}
+						']', '^', '`', '{', '|', '}', '~', 0x7F /* DEL */ ->
+						throw new InvalidClassNameException(in, in.distanceToMark());
 			}
 
 			char chr = (char)ch;
@@ -593,8 +591,8 @@ public class ClassType extends RealReferenceType {
 
 	/**
 	 * @return Полное имя класса без параметров типа<br>
-	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
-	 * вернёт "java.util.Map.Entry"
+	 * Пример: для класса {@code "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"}
+	 * вернёт {@code "java.util.Map.Entry"}
 	 */
 	@Override
 	public String getName() {
@@ -608,17 +606,17 @@ public class ClassType extends RealReferenceType {
 
 	/**
 	 * @return Имя класса без пакета, внешних классов и параметров типа<br>
-	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
-	 * вернёт "Entry"
+	 * Пример: для класса {@code "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"}
+	 * вернёт {@code "Entry"}
 	 */
 	public String getSimpleName() {
 		return simpleName;
 	}
 
 	/**
-	 * @return Имя класса без пакета и параметров типа, но включая имена внешних класстов<br>
-	 * Пример: для класса "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"
-	 * вернёт "Map.Entry"
+	 * @return Имя класса без пакета и параметров типа, но включая имена внешних классов<br>
+	 * Пример: для класса {@code "java/util/Map$Entry<Ljava/lang/Object;Ljava/lang/Object;>"}
+	 * вернёт {@code "Map.Entry"}
 	 */
 	public String getFullSimpleName() {
 		return fullSimpleName;
@@ -626,7 +624,7 @@ public class ClassType extends RealReferenceType {
 
 	/**
 	 * @return Имя класса пакета<br>
-	 * Пример: "java.lang"
+	 * Пример: {@code "java.lang"}
 	 */
 	public String getPackageName() {
 		return packageName;
@@ -659,7 +657,7 @@ public class ClassType extends RealReferenceType {
 
 
 	/**
-	 * Возвращает не параметрезированный тип
+	 * Возвращает не параметризованный тип
 	 */
 	public ClassType getRawType() {
 		return rawType;
@@ -780,8 +778,8 @@ public class ClassType extends RealReferenceType {
 
 
 	@Override
-	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> methodParameters) {
-		return replaceParameters(parameter -> parameter.replaceUndefiniteGenericsToDefinite(classinfo, methodParameters));
+	public ReferenceType replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> methodParameters) {
+		return replaceParameters(parameter -> parameter.replaceIndefiniteGenericsToDefinite(classinfo, methodParameters));
 	}
 
 	@Override
@@ -795,8 +793,8 @@ public class ClassType extends RealReferenceType {
 		if (signature.isEmpty())
 			return this;
 
-		var parameters = signature.getTypes();
-		List<ReferenceType> replacedGenericParameters = null;
+		List<ReferenceType> parameters = signature.getTypes();
+		List<ReferenceType> replacedGenericParameters = null; // Ленивая инициализация параметров
 
 		for (int i = 0, size = parameters.size(); i < size; i++) {
 			ReferenceType parameter = parameters.get(i);

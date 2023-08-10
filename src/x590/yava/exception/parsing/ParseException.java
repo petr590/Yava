@@ -7,14 +7,7 @@ public class ParseException extends RuntimeException {
 	@Serial
 	private static final long serialVersionUID = -1811782000015693429L;
 
-
-	public record Actual(String value, String quotes) {
-		public static Actual of(String value) {
-			return new Actual(value, "\"");
-		}
-	}
-
-	public static final Actual END_OF_FILE = new Actual("end of file", "");
+	private static final String END_OF_FILE = "end of file";
 
 
 	public ParseException() {
@@ -25,25 +18,73 @@ public class ParseException extends RuntimeException {
 		super(message);
 	}
 
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением, которое содержит
+	 * {@code expected} без кавычек и {@code actual}, окружённое кавычками "
+	 */
 	public static ParseException expectedButGot(String expected, String actual) {
 		return expectedButGot(expected, actual, "\"");
 	}
 
-	public static ParseException expectedButGot(String expected, Actual actual) {
-		return expectedButGot(expected, actual.value, actual.quotes);
-	}
-
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением, которое содержит
+	 * {@code expected} без кавычек и {@code actual}, окружённое кавычками {@code quote}
+	 */
 	public static ParseException expectedButGot(String expected, String actual, String quote) {
 		return new ParseException("expected " + expected + ", got " + quote + actual + quote);
 	}
 
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением, которое содержит
+	 * {@code expected}, окружённое кавычками {@code expectedQuote} и
+	 * {@code actual}, окружённое кавычками {@code actualQuote}
+	 */
+	public static ParseException expectedButGot(String expected, String actual, String expectedQuote, String actualQuote) {
+		return new ParseException("expected " + expectedQuote + expected + expectedQuote
+				+ ", got " + actualQuote + actual + actualQuote);
+	}
+
+
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением, которое содержит
+	 * {@code expected} и {@code actual}, окружённые кавычками '
+	 */
 	public static ParseException expectedButGot(char expected, char actual) {
 		return expectedButGot(expected, actual, "'");
 	}
 
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением, которое содержит
+	 * {@code expected} и {@code actual}, окружённые кавычками {@code quote}
+	 */
 	public static ParseException expectedButGot(char expected, char actual, String quote) {
 		return new ParseException("expected " + quote + expected + quote + ", got " + quote + actual + quote);
 	}
+
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением о конце файла,
+	 * которое содержит {@code expected} без кавычек
+	 */
+	public static ParseException expectedButGotEof(String expected) {
+		return expectedButGotEof(expected, "");
+	}
+
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением о конце файла,
+	 * которое содержит {@code expected}, окружённые кавычками {@code quote}
+	 */
+	public static ParseException expectedButGotEof(String expected, String quote) {
+		return new ParseException("expected " + quote + expected + quote + ", got " + END_OF_FILE);
+	}
+
+	/**
+	 * @return Новый экземпляр {@link ParseException} с сообщением о конце файла,
+	 * которое содержит {@code expected}, окружённые кавычками '
+	 */
+	public static ParseException expectedButGotEof(char expected) {
+		return new ParseException("expected '" + expected + "', got " + END_OF_FILE);
+	}
+
 
 	public ParseException(Throwable cause) {
 		super(cause);

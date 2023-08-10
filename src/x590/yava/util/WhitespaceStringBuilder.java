@@ -5,7 +5,6 @@ import x590.yava.io.ExtendedOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 
@@ -13,17 +12,9 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 
 	public WhitespaceStringBuilder() {}
 
-	public WhitespaceStringBuilder(String str) {
-		values.add(str);
-	}
-
-	public WhitespaceStringBuilder(boolean printTrailingSpace) {
-		super(printTrailingSpace);
-	}
-
 	public WhitespaceStringBuilder(String str, boolean printTrailingSpace) {
-		this(str);
-		this.printTrailingSpace = printTrailingSpace;
+		super(printTrailingSpace);
+		values.add(str);
 	}
 
 
@@ -51,7 +42,7 @@ public class WhitespaceStringBuilder extends AbstractWhitespaceStringBuilder {
 
 	@Override
 	public String toString() {
-		return values.stream().collect(Collectors.joining(" "));
+		return String.join(" ", values);
 	}
 
 	@Override

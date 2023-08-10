@@ -4,16 +4,13 @@ module yava {
 	requires transitive x590.util;
 	requires transitive x590.argparser;
 	requires transitive it.unimi.dsi.fastutil;
-	requires junit;
 
-	opens x590.yava.test to junit;
-	opens x590.yava.testing to junit;
-	opens x590.yava.testing.parsing to junit;
-	
 	exports x590.yava;
 	exports x590.yava.main;
 	exports x590.yava.main.performing;
+
 	exports x590.yava.writable;
+	exports x590.yava.serializable;
 	
 	exports x590.yava.type;
 	exports x590.yava.type.primitive;
@@ -25,9 +22,12 @@ module yava {
 	exports x590.yava.field;
 	exports x590.yava.method;
 	exports x590.yava.modifiers;
+
 	exports x590.yava.constpool;
+	exports x590.yava.constpool.constvalue;
 	
 	exports x590.yava.attribute;
+	exports x590.yava.attribute.code;
 	exports x590.yava.attribute.annotation;
 	exports x590.yava.attribute.signature;
 	
@@ -38,6 +38,7 @@ module yava {
 	exports x590.yava.instruction.binary;
 	exports x590.yava.instruction.load;
 	exports x590.yava.instruction.store;
+	exports x590.yava.instruction.increment;
 	exports x590.yava.instruction.cast;
 	exports x590.yava.instruction.constant;
 	exports x590.yava.instruction.field;
@@ -67,12 +68,9 @@ module yava {
 	
 	exports x590.yava.io;
 	exports x590.yava.util;
+
 	exports x590.yava.exception;
-	exports x590.yava.instruction.increment;
 	exports x590.yava.exception.decompilation;
 	exports x590.yava.exception.disassembling;
 	exports x590.yava.exception.parsing;
-	exports x590.yava.serializable;
-	exports x590.yava.attribute.code;
-	exports x590.yava.constpool.constvalue;
 }

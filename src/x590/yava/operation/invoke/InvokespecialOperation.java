@@ -25,7 +25,7 @@ public final class InvokespecialOperation extends InvokeNonstaticOperation {
 	private enum SuperState {
 		SUPERCLASS,     // метод суперкласса
 		SUPERINTERFACE, // метод суперинтерфейса
-		NONE           // не через super
+		NONE            // не через super
 	}
 
 	private final SuperState superState;

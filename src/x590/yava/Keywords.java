@@ -89,11 +89,19 @@ public final class Keywords {
 			DEFAULT, STRICTFP
 	);
 
+	public static final @Immutable Set<String> PRIMITIVES = Set.of(
+			BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, BOOLEAN, VOID
+	);
+
 	public static boolean isKeyword(String str) {
 		return KEYWORDS.contains(str);
 	}
 
 	public static boolean isModifier(String str) {
 		return MODIFIERS.contains(str);
+	}
+
+	public static boolean isPrimitive(String str) {
+		return PRIMITIVES.contains(str);
 	}
 }

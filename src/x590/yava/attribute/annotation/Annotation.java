@@ -2,14 +2,14 @@ package x590.yava.attribute.annotation;
 
 import x590.util.annotation.Immutable;
 import x590.yava.Importable;
+import x590.yava.attribute.Sizes;
 import x590.yava.attribute.annotation.ElementValue.AnnotationElementValue;
 import x590.yava.attribute.annotation.ElementValue.ArrayElementValue;
 import x590.yava.attribute.annotation.ElementValue.ClassElementValue;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.ConstantPool;
-import x590.yava.io.DisassemblingOutputStream;
-import x590.yava.io.ExtendedDataInputStream;
-import x590.yava.io.StringifyOutputStream;
+import x590.yava.io.*;
+import x590.yava.serializable.JavaSerializableWithPool;
 import x590.yava.type.reference.ClassType;
 import x590.yava.writable.DisassemblingStringifyWritable;
 
@@ -20,21 +20,44 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public final class Annotation implements DisassemblingStringifyWritable<ClassInfo>, Importable {
+public final class Annotation implements
+		DisassemblingStringifyWritable<ClassInfo>, Importable, JavaSerializableWithPool {
 
 	private static final ClassType REPEATABLE = ClassType.fromClass(Repeatable.class);
 
 	private final ClassType type;
 	private final @Immutable List<Element> elements;
 
+	private Annotation(ClassType type, @Immutable List<Element> elements) {
+		this.type = type;
+		this.elements = elements;
+	}
+
 	private Annotation(ExtendedDataInputStream in, ConstantPool pool) {
 		this.type = ClassType.fromTypeDescriptor(pool.getUtf8String(in.readUnsignedShort()));
 		this.elements = in.readImmutableList(() -> new Element(in, pool));
 	}
 
-	private Annotation(ClassType type, @Immutable List<Element> elements) {
-		this.type = type;
-		this.elements = elements;
+	Annotation(AssemblingInputStream in, ConstantPool pool) {
+		this.type = in.nextClassType();
+
+		if (in.advanceIfHasNext('(')) {
+
+			List<Element> elements = new ArrayList<>();
+
+			if (!in.advanceIfHasNext(')')) {
+				do {
+					elements.add(new Element(in, pool));
+				} while (in.advanceIfHasNext(", "));
+			}
+
+			in.requireNext(')');
+
+			this.elements = Collections.unmodifiableList(elements);
+
+		} else {
+			this.elements = Collections.emptyList();
+		}
 	}
 
 	public static Annotation fromReflectAnnotation(java.lang.annotation.Annotation reflectAnnotation) {
@@ -83,7 +106,7 @@ public final class Annotation implements DisassemblingStringifyWritable<ClassInf
 				var element = elements.get(0);
 
 				if (element.getName().equals("value") &&
-						element.getValue() instanceof ArrayElementValue array) {
+					element.getValue() instanceof ArrayElementValue array) {
 
 					List<? extends ElementValue> values = array.getValues();
 
@@ -105,11 +128,11 @@ public final class Annotation implements DisassemblingStringifyWritable<ClassInf
 
 									if (foundValue.isPresent() &&
 											foundValue.get() instanceof ClassElementValue classValue &&
-											classValue.getClassType().equals(annotation.type)) {
+											classValue.getType().equals(annotation.type)) {
 
 
 										annotations.addAll(repeatedAnnotations.stream()
-												.map(value -> value.getAnnotation()).toList());
+												.map(AnnotationElementValue::getAnnotation).toList());
 
 										return;
 									}
@@ -124,20 +147,43 @@ public final class Annotation implements DisassemblingStringifyWritable<ClassInf
 		});
 	}
 
+	public static List<Annotation> parseAnnotations(AssemblingInputStream in, ConstantPool pool) {
+		List<Annotation> annotations = new ArrayList<>();
+
+		while (in.advanceIfHasNext('@')) {
+			annotations.add(new Annotation(in, pool));
+		}
+
+		return annotations;
+	}
+
 
 	public ClassType getType() {
 		return type;
 	}
 
-	public List<Element> getElements() {
+	public @Immutable List<Element> getElements() {
 		return elements;
 	}
 
 
 	public Optional<ElementValue> findValue(String name) {
 		return elements.stream()
-				.filter(element -> element.getName().equals("value"))
+				.filter(element -> element.getName().equals(name))
 				.map(Element::getValue).findAny();
+	}
+
+
+	public int getFullLength() {
+		return Sizes.CONSTPOOL_INDEX +
+				Sizes.LENGTH + elements.stream().mapToInt(Element::getFullLength).sum();
+	}
+
+
+	@Override
+	public void addImports(ClassInfo classinfo) {
+		classinfo.addImport(type);
+		classinfo.addImportsFor(elements);
 	}
 
 
@@ -169,11 +215,10 @@ public final class Annotation implements DisassemblingStringifyWritable<ClassInf
 		out.println();
 	}
 
-
 	@Override
-	public void addImports(ClassInfo classinfo) {
-		classinfo.addImport(type);
-		classinfo.addImportsFor(elements);
+	public void serialize(AssemblingOutputStream out, ConstantPool pool) {
+		out .recordShort(pool.findOrAddUtf8(type.getEncodedName()))
+			.recordAll(elements, pool);
 	}
 
 

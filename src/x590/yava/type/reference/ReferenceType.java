@@ -181,7 +181,12 @@ public abstract class ReferenceType extends BasicType {
 	protected abstract boolean canCastToWidestImpl(Type other);
 
 	@Override
-	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+	public ReferenceType replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return this;
+	}
+
+	@Override
+	public ReferenceType replaceWildcardIndicatorsToBound(int index, GenericParameters<GenericDeclarationType> parameters) {
 		return this;
 	}
 
@@ -231,22 +236,23 @@ public abstract class ReferenceType extends BasicType {
 			var foundClassinfo = ClassInfo.findIClassInfo(classType.getRawType());
 
 			if (foundClassinfo.isPresent()) {
-				var parameters = foundClassinfo.get().getSignatureParameters();
-				var signature = classType.getSignature();
+				var classParameters = foundClassinfo.get().getSignatureParameters();
+				var objectParameters = classType.getSignature();
 
-				if (parameters.size() == signature.size()) {
-					final int size = parameters.size();
+				final int size = classParameters.size();
+
+				if (size == objectParameters.size()) {
 
 					Map<GenericDeclarationType, ReferenceType> replaceTable = new HashMap<>(size);
 
 					for (int i = 0; i < size; i++) {
-						replaceTable.put(parameters.get(i), signature.get(i));
+						replaceTable.put(classParameters.get(i), objectParameters.get(i));
 					}
 
 					return rootParameters.replaceAllTypes(replaceTable);
 
-				} else if (!parameters.isEmpty() && !signature.isEmpty()) {
-					Logger.warning("Signature of " + classType + " is not matches with parameters " + parameters);
+				} else if (!classParameters.isEmpty() && !objectParameters.isEmpty()) {
+					Logger.warning("Signature of " + classType + " is not matches with parameters " + classParameters);
 				}
 			}
 		}

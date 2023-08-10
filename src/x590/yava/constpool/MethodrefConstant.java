@@ -21,7 +21,7 @@ public class MethodrefConstant extends ReferenceConstant {
 
 	@Override
 	public String getConstantName() {
-		return "Methodref";
+		return METHODREF;
 	}
 
 	public MethodDescriptor toDescriptor() {

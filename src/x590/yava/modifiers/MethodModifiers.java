@@ -35,12 +35,16 @@ public final class MethodModifiers extends ClassEntryModifiers {
 					case FINAL -> ACC_FINAL;
 					case ABSTRACT -> ACC_ABSTRACT;
 					case SYNCHRONIZED -> ACC_SYNCHRONIZED;
-					case "bridge" -> ACC_BRIDGE; // ?
-					case "varargs" -> ACC_VARARGS; // ?
 					case NATIVE -> ACC_NATIVE;
 					case STRICTFP -> ACC_STRICTFP;
-					case "synthetic" -> ACC_SYNTHETIC; // ?
 
+					default -> -1;
+				},
+
+				str -> switch (str) {
+					case "bridge" -> ACC_BRIDGE;
+					case "varargs" -> ACC_VARARGS;
+					case "synthetic" -> ACC_SYNTHETIC;
 					default -> -1;
 				}
 		));
@@ -76,43 +80,14 @@ public final class MethodModifiers extends ClassEntryModifiers {
 	}
 
 
-	public boolean isNotAbstract() {
-		return (value & ACC_ABSTRACT) == 0;
-	}
-
-	public boolean isNotNative() {
-		return (value & ACC_NATIVE) == 0;
-	}
-
-	public boolean isNotSynchronized() {
-		return (value & ACC_SYNCHRONIZED) == 0;
-	}
-
-	public boolean isNotBridge() {
-		return (value & ACC_BRIDGE) == 0;
-	}
-
-	public boolean isNotSyntheticOrBridge() {
-		return (value & ACC_SYNTHETIC_OR_BRIDGE) == 0;
-	}
-
-	public boolean isNotVarargs() {
-		return (value & ACC_VARARGS) == 0;
-	}
-
-	public boolean isNotStrictfp() {
-		return (value & ACC_STRICTFP) == 0;
-	}
-
-
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isAbstract(), "abstract")
 				.appendIf(isNative(), "native")
 				.appendIf(isSynchronized(), "synchronized")
-				.appendIf(!forWriting && isBridge(), "bridge")
-				.appendIf(!forWriting && isVarargs(), "varargs")
+				.appendIf(writeHiddenModifiers && isBridge(), modifierToString("bridge", disassembling))
+				.appendIf(writeHiddenModifiers && isVarargs(), modifierToString("varargs", disassembling))
 				.appendIf(isStrictfp(), "strictfp");
 	}
 }

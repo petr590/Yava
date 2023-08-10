@@ -31,18 +31,9 @@ public final class ModuleRequirementModifiers extends ModuleEntryModifiers {
 	}
 
 
-	public boolean isNotTransitive() {
-		return (value & ACC_TRANSITIVE) == 0;
-	}
-
-	public boolean isNotStaticPhase() {
-		return (value & ACC_STATIC_PHASE) == 0;
-	}
-
-
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isTransitive(), "transitive")
 				.appendIf(isStaticPhase(), "static");
 	}

@@ -121,7 +121,8 @@ public interface IClassInfo {
 	}
 
 	default ReferenceType findOrCreateGenericType(String name) {
-		return findGenericType(name).map(type -> type.replaceUndefiniteGenericsToDefinite(this, GenericParameters.empty()))
+		return findGenericType(name)
+				.map(type -> type.replaceIndefiniteGenericsToDefinite(this, GenericParameters.empty()))
 				.orElseGet(() -> NamedGenericType.of(name));
 	}
 }

@@ -57,7 +57,7 @@ public final class DoubleConstant extends SingleConstableValueConstant<Double> {
 
 	@Override
 	public String getConstantName() {
-		return "Double";
+		return DOUBLE;
 	}
 
 	@Override

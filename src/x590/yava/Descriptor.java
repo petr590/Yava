@@ -2,6 +2,8 @@ package x590.yava;
 
 import x590.util.annotation.Immutable;
 import x590.yava.clazz.ClassInfo;
+import x590.yava.field.FieldDescriptor;
+import x590.yava.method.MethodDescriptor;
 import x590.yava.type.Type;
 import x590.yava.type.reference.RealReferenceType;
 import x590.yava.type.reference.ReferenceType;
@@ -10,7 +12,11 @@ import x590.yava.writable.DisassemblingWritable;
 
 import java.util.Map;
 
-public abstract class Descriptor<D extends Descriptor<D>> implements DisassemblingWritable<ClassInfo> {
+/**
+ * Дескриптор поля или метода
+ */
+public abstract sealed class Descriptor<D extends Descriptor<D>> implements DisassemblingWritable<ClassInfo>
+		permits FieldDescriptor, MethodDescriptor {
 
 	private final RealReferenceType declaringClass;
 	private final String name;

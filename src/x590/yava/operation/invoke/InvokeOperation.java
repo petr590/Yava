@@ -77,11 +77,6 @@ public abstract class InvokeOperation extends OperationWithDescriptor<MethodDesc
 		return factualArguments.size();
 	}
 
-
-	public InvokeOperation(DecompilationContext context, int index) {
-		this(context, getDescriptor(context, index));
-	}
-
 	public InvokeOperation(DecompilationContext context, MethodDescriptor descriptor) {
 		super(descriptor);
 

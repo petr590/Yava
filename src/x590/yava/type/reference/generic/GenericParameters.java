@@ -15,6 +15,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * Список generic параметров
+ */
 public final class GenericParameters<T extends ReferenceType>
 		implements SameDisassemblingStringifyWritable<ClassInfo>, Importable, Iterable<T> {
 
@@ -113,8 +116,8 @@ public final class GenericParameters<T extends ReferenceType>
 	}
 
 
-	public GenericParameters<ReferenceType> replaceUndefiniteGenericsToDefinite(ClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
-		return replaceTypes(type -> type.replaceUndefiniteGenericsToDefinite(classinfo, parameters));
+	public GenericParameters<ReferenceType> replaceIndefiniteGenericsToDefinite(ClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return replaceTypes(type -> type.replaceIndefiniteGenericsToDefinite(classinfo, parameters));
 	}
 
 	public GenericParameters<ReferenceType> replaceAllTypes(Map<GenericDeclarationType, ReferenceType> replaceTable) {
@@ -133,6 +136,11 @@ public final class GenericParameters<T extends ReferenceType>
 		return types.iterator();
 	}
 
+
+	/**
+	 * @return Параметр под индексом {@code index}
+	 * @throws IndexOutOfBoundsException если индекс вне диапазона ({@code index < 0 || index >= size()})
+	 */
 	public T get(int index) {
 		return types.get(index);
 	}

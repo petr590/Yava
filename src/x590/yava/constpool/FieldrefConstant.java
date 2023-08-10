@@ -21,7 +21,7 @@ public final class FieldrefConstant extends ReferenceConstant {
 
 	@Override
 	public String getConstantName() {
-		return "Fieldref";
+		return FIELDREF;
 	}
 
 	public FieldDescriptor toDescriptor() {

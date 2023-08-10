@@ -58,7 +58,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	public MethodSignatureAttribute(String name, AssemblingInputStream in, ConstantPool pool) {
 		super(name, Sizes.CONSTPOOL_INDEX);
 
-		if (in.advanceIfHasNext('<')) {
+		if (in.requireNext('{').advanceIfHasNext('<')) {
 			this.parameters = GenericParameters.of(in.nextGenericDeclarationTypesStream().toList());
 			in.requireNext('>');
 		} else {
@@ -75,7 +75,7 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 			this.exceptionTypes = Collections.emptyList();
 		}
 
-		in.requireNext(';');
+		in.requireNext(';').requireNext('}');
 	}
 
 	public GenericParameters<GenericDeclarationType> getParameters() {
@@ -134,11 +134,14 @@ public final class MethodSignatureAttribute extends SignatureAttribute {
 	}
 
 	public MethodDescriptor createGenericDescriptor(ClassInfo classinfo, MethodDescriptor descriptor) {
-		return MethodDescriptor.of(returnType.replaceUndefiniteGenericsToDefinite(classinfo, parameters), descriptor.getDeclaringClass(), descriptor.getName(),
+		return MethodDescriptor.of(
+				returnType.replaceIndefiniteGenericsToDefinite(classinfo, parameters),
+				descriptor.getDeclaringClass(), descriptor.getName(),
 				Stream.concat(
 						descriptor.getArguments().stream().limit(descriptor.getArgumentsCount() - arguments.size()),
-						arguments.stream().map(arg -> arg.replaceUndefiniteGenericsToDefinite(classinfo, parameters))
-				).toList());
+						arguments.stream().map(arg -> arg.replaceIndefiniteGenericsToDefinite(classinfo, parameters))
+				).toList()
+		);
 	}
 
 

@@ -43,6 +43,10 @@ public abstract sealed class ConstValueConstant extends Constant
 		throw new IllegalStateException("Constant " + getConstantName() + " cannot be used as double");
 	}
 
+	public boolean canUseAs(Type type) {
+		return getType().canCastToNarrowest(type);
+	}
+
 
 	public abstract Operation toOperation();
 

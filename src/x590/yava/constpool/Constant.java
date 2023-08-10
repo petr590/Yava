@@ -16,22 +16,41 @@ import x590.yava.writable.DisassemblingWritable;
 public abstract class Constant implements JavaSerializable, DisassemblingWritable<ClassInfo> {
 
 	public static final int
-			TAG_UTF8 = 0x1,
-			TAG_INTEGER = 0x3,
-			TAG_FLOAT = 0x4,
-			TAG_LONG = 0x5,
-			TAG_DOUBLE = 0x6,
-			TAG_CLASS = 0x7,
-			TAG_STRING = 0x8,
-			TAG_FIELDREF = 0x9,
-			TAG_METHODREF = 0xA,
+			TAG_UTF8                = 0x1,
+			TAG_INTEGER             = 0x3,
+			TAG_FLOAT               = 0x4,
+			TAG_LONG                = 0x5,
+			TAG_DOUBLE              = 0x6,
+			TAG_CLASS               = 0x7,
+			TAG_STRING              = 0x8,
+			TAG_FIELDREF            = 0x9,
+			TAG_METHODREF           = 0xA,
 			TAG_INTERFACE_METHODREF = 0xB,
-			TAG_NAME_AND_TYPE = 0xC,
-			TAG_METHOD_HANDLE = 0xF,
-			TAG_METHOD_TYPE = 0x10,
-			TAG_INVOKE_DYNAMIC = 0x12,
-			TAG_MODULE = 0x13,
-			TAG_PACKAGE = 0x14;
+			TAG_NAME_AND_TYPE       = 0xC,
+			TAG_METHOD_HANDLE       = 0xF,
+			TAG_METHOD_TYPE         = 0x10,
+			TAG_INVOKE_DYNAMIC      = 0x12,
+			TAG_MODULE              = 0x13,
+			TAG_PACKAGE             = 0x14;
+
+	public static final String
+			UTF8                = "Utf8",
+			INTEGER             = "Integer",
+			FLOAT               = "Float",
+			LONG                = "Long",
+			DOUBLE              = "Double",
+			CLASS               = "Class",
+			STRING              = "String",
+			FIELDREF            = "Fieldref",
+			METHODREF           = "Methodref",
+			INTERFACE_METHODREF = "InterfaceMethodref",
+			NAME_AND_TYPE       = "NameAndType",
+			METHOD_HANDLE       = "MethodHandle",
+			METHOD_TYPE         = "MethodType",
+			INVOKE_DYNAMIC      = "InvokeDynamic",
+			MODULE              = "Module",
+			PACKAGE             = "Package";
+
 
 	protected Constant() {}
 

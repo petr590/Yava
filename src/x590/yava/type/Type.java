@@ -15,8 +15,6 @@ import x590.yava.type.primitive.IntegralType;
 import x590.yava.type.primitive.PrimitiveType;
 import x590.yava.type.reference.*;
 import x590.yava.type.reference.generic.*;
-import x590.yava.type.special.AnyObjectType;
-import x590.yava.type.special.AnyType;
 import x590.yava.writable.BiStringifyWritable;
 import x590.yava.writable.SameDisassemblingStringifyWritable;
 
@@ -97,16 +95,6 @@ public abstract class Type implements
 	 */
 	public abstract String getNameForVariable();
 
-
-	/**
-	 * Является ли тип базовым (т.е. java типом).
-	 * Есть некоторые специальные типы, использующиеся при декомпиляции,
-	 * такие, как {@link AnyType} (любой тип),
-	 * {@link AnyObjectType} (любой ссылочный тип) и др.
-	 */
-	public final boolean isBasic() {
-		return this instanceof BasicType;
-	}
 
 	/**
 	 * Гарантирует, что объект - экземпляр класса {@link PrimitiveType}
@@ -464,16 +452,30 @@ public abstract class Type implements
 
 
 	/**
-	 * Заменяет все неопределённые generic параметры на определённые
-	 * и возвращает получившийся тип
+	 * Заменяет каждое объявление дженерика на определение и возвращает получившийся тип.
+	 * Этот метод объявлен в классе {@link Type} для корректной работы
+	 * {@link ArrayType#replaceIndefiniteGenericsToDefinite(IClassInfo, GenericParameters)}.
 	 */
-	public Type replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+	public Type replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
 		return this;
 	}
 
 	/**
-	 * Заменяет все generic параметры: каждый ключ заменяется на значение
-	 * и возвращает получившийся тип
+	 * Заменяет все wildcard типы на соответствующую границу и возвращает получившийся тип.
+	 * Заменяет только тип верхнего уровня, т.е. для типа {@code List<?>} вернёт {@code List<?>},
+	 * а для {@code ?} вернёт тот тип, от которого наследуется параметр класса.
+	 * @param index индекс параметра в {@code parameters}
+	 * @param parameters параметры, объявленные в классе
+	 * @throws IndexOutOfBoundsException если индекс вне диапазона
+	 */
+	public Type replaceWildcardIndicatorsToBound(int index, GenericParameters<GenericDeclarationType> parameters) {
+		return this;
+	}
+
+	/**
+	 * Заменяет все generic параметры: каждый ключ заменяется на значение и возвращает получившийся тип.
+	 * Этот метод объявлен в классе {@link Type} для корректной работы
+	 * {@link ArrayType#replaceAllTypes(Map)}.
 	 */
 	public Type replaceAllTypes(@Immutable Map<GenericDeclarationType, ReferenceType> replaceTable) {
 		return this;
@@ -560,40 +562,44 @@ public abstract class Type implements
 	 * Парсит любой тип, кроме {@link PrimitiveType#VOID}
 	 */
 	public static BasicType parseType(ExtendedStringInputStream in) {
-		switch (in.get()) {
-			case 'B':
+		return switch (in.get()) {
+			case 'B' -> {
 				in.incPos();
-				return PrimitiveType.BYTE;
-			case 'C':
+				yield PrimitiveType.BYTE;
+			}
+			case 'C' -> {
 				in.incPos();
-				return PrimitiveType.CHAR;
-			case 'S':
+				yield PrimitiveType.CHAR;
+			}
+			case 'S' -> {
 				in.incPos();
-				return PrimitiveType.SHORT;
-			case 'I':
+				yield PrimitiveType.SHORT;
+			}
+			case 'I' -> {
 				in.incPos();
-				return PrimitiveType.INT;
-			case 'J':
+				yield PrimitiveType.INT;
+			}
+			case 'J' -> {
 				in.incPos();
-				return PrimitiveType.LONG;
-			case 'F':
+				yield PrimitiveType.LONG;
+			}
+			case 'F' -> {
 				in.incPos();
-				return PrimitiveType.FLOAT;
-			case 'D':
+				yield PrimitiveType.FLOAT;
+			}
+			case 'D' -> {
 				in.incPos();
-				return PrimitiveType.DOUBLE;
-			case 'Z':
+				yield PrimitiveType.DOUBLE;
+			}
+			case 'Z' -> {
 				in.incPos();
-				return PrimitiveType.BOOLEAN;
-			case 'L':
-				return ClassType.read(in.next());
-			case '[':
-				return ArrayType.read(in);
-			case 'T':
-				return NamedGenericType.read(in.next());
-			default:
-				throw new InvalidTypeNameException(in, in.distanceToMark());
-		}
+				yield PrimitiveType.BOOLEAN;
+			}
+			case 'L' -> ClassType.read(in.next());
+			case '[' -> ArrayType.read(in);
+			case 'T' -> NamedGenericType.read(in.next());
+			default -> throw new InvalidTypeNameException(in, in.distanceToMark());
+		};
 	}
 
 
@@ -626,13 +632,6 @@ public abstract class Type implements
 		}
 	}
 
-
-	/**
-	 * Парсит возвращаемый тип метода, который может быть {@link PrimitiveType#VOID}
-	 */
-	public static BasicType parseReturnType(String in) {
-		return in.charAt(0) == 'V' ? PrimitiveType.VOID : parseType(in);
-	}
 
 	/**
 	 * Парсит возвращаемый тип метода, который может быть {@link PrimitiveType#VOID}

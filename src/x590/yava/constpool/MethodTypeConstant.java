@@ -2,6 +2,7 @@ package x590.yava.constpool;
 
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.constvalue.ConstValueConstant;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
 import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
@@ -12,16 +13,25 @@ import x590.yava.type.reference.ClassType;
 
 public final class MethodTypeConstant extends ConstValueConstant {
 
-	public final int descriptorIndex;
+	private final int descriptorIndex;
 	private Utf8Constant descriptor;
 
 	MethodTypeConstant(ExtendedDataInputStream in) {
 		descriptorIndex = in.readUnsignedShort();
 	}
 
+	MethodTypeConstant(int descriptorIndex, ConstantPool pool) {
+		this.descriptorIndex = descriptorIndex;
+		init(pool);
+	}
+
 	@Override
 	protected void init(ConstantPool pool) {
 		descriptor = pool.get(descriptorIndex);
+	}
+
+	public int getDescriptorIndex() {
+		return descriptorIndex;
 	}
 
 	public Utf8Constant getDescriptor() {
@@ -35,7 +45,7 @@ public final class MethodTypeConstant extends ConstValueConstant {
 
 	@Override
 	public String getConstantName() {
-		return "MethodType";
+		return METHOD_TYPE;
 	}
 
 	@Override
@@ -44,13 +54,18 @@ public final class MethodTypeConstant extends ConstValueConstant {
 	}
 
 	@Override
+	public String toString() {
+		return String.format("MethodTypeConstant { %s }", descriptor);
+	}
+
+	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.write("#MethodType#");
 	}
 
 	@Override
-	public String toString() {
-		return String.format("MethodTypeConstant { %s }", descriptor);
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo, Type type, int flags) {
+		out.print("#MethodType(").print(descriptor.getString()).print(")");
 	}
 
 	@Override

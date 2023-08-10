@@ -7,7 +7,11 @@ import x590.util.function.ObjIntBooleanFunction;
 import x590.util.io.UncheckedInputStream;
 import x590.yava.Keywords;
 import x590.yava.attribute.code.CodeAttribute;
+import x590.yava.constpool.Constant;
 import x590.yava.constpool.ConstantPool;
+import x590.yava.constpool.MethodHandleConstant.ReferenceKind;
+import x590.yava.constpool.NameAndTypeConstant;
+import x590.yava.constpool.ReferenceConstant;
 import x590.yava.exception.parsing.ParseException;
 import x590.yava.type.Type;
 import x590.yava.type.Types;
@@ -22,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -58,6 +64,11 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		this.in = in;
 	}
 
+	/**
+	 * @return Адрес следующей метки.
+	 * Если метка ещё не была объявлена, возвращает 0 и добавляет запись в {@code labelsManager}
+	 * о том, что эта метка должна быть инициализирована позже
+	 */
 	public int nextLabel(CodeAttribute.LabelsManager labelsManager) {
 		String name = nextString();
 
@@ -71,6 +82,9 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 
+	/**
+	 * Предикат, который проверяет, является ли символ началом или частью выражения
+	 */
 	private record CharPredicate(IntPredicate startPredicate, IntPredicate partPredicate) {
 
 		public static final CharPredicate
@@ -81,6 +95,10 @@ public class AssemblingInputStream extends UncheckedInputStream {
 				INTEGRAL_NUMBER = new CharPredicate(CharPredicate::isIntegralNumberStart, CharPredicate::isIntegralNumberPart),
 				ANY_NUMBER = new CharPredicate(CharPredicate::isAnyNumberStart, CharPredicate::isAnyNumberPart);
 
+		/**
+		 * @return Предикат, который позволяет читать
+		 * не больше символов, чем указано в {@code maxCount}
+		 */
 		public static CharPredicate withLength(int maxCount) {
 			var predicate = new IntPredicate() {
 				private int count;
@@ -128,9 +146,13 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		}
 	}
 
+	/**
+	 * Обрабатывает случаи, когда символ не соответствует ожидаемому,
+	 * а также когда достигнут конец потока
+	 */
 	private record NonMatchingCharHandler(
 			Char2ObjectFunction<String> nonMatchingCharHandler,
-			Supplier<String> eofGetter
+			Supplier<String> eofHandler
 	) {
 
 		private static final Map<String, NonMatchingCharHandler> THROWING_HANDLERS = new HashMap<>();
@@ -139,12 +161,12 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 		public static NonMatchingCharHandler throwingParseException(String expected) {
 			return THROWING_HANDLERS.computeIfAbsent(expected,
-					(String exp) -> new NonMatchingCharHandler(
+					exp -> new NonMatchingCharHandler(
 							actual -> {
 								throw ParseException.expectedButGot(exp, String.valueOf(actual));
 							},
 							() -> {
-								throw ParseException.expectedButGot(exp, ParseException.END_OF_FILE);
+								throw ParseException.expectedButGotEof(exp);
 							}
 					)
 			);
@@ -154,8 +176,8 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			return nonMatchingCharHandler.get(ch);
 		}
 
-		public String getEof() {
-			return eofGetter.get();
+		public String handleEof() {
+			return eofHandler.get();
 		}
 	}
 
@@ -222,12 +244,15 @@ public class AssemblingInputStream extends UncheckedInputStream {
 
 
 	/**
-	 * @return Следующую строку, которая содержит либо название, либо другой непробельный символ.
+	 * @return Следующую строку, которая содержит либо название, либо другой непробельный символ
 	 */
 	public String nextString() {
 		return nextString(CharPredicate.STRING, NonMatchingCharHandler.DEFAULT_HANDLER);
 	}
 
+	/**
+	 * @return Следующую строку, которая содержит название
+	 */
 	public String nextName() {
 		String str = tryReadStringLiteral();
 
@@ -242,31 +267,81 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	 * @return Следующий тип
 	 */
 	public Type nextType() {
-		String name = nextString(CharPredicate.TYPE, NonMatchingCharHandler.throwingParseException("type name"));
+		return nextType(
+				NonMatchingCharHandler.throwingParseException("type name"),
+				name -> { throw ParseException.expectedButGot("type name", name); }
+		);
+	}
+
+	/**
+	 * @return Следующий тип или {@code null}, если его нет
+	 */
+	public @Nullable Type nextTypeIfExists() {
+		return nextType(
+				new NonMatchingCharHandler(
+					ch -> {
+						buffer(ch);
+						return null;
+					},
+					() -> null
+				),
+				name -> {
+					buffer(name);
+					return null;
+				}
+		);
+	}
+
+	private @Nullable Type nextType(NonMatchingCharHandler nonMatchingCharHandler, Function<String, Type> nonMatchingNameHandler) {
+		String name = nextString(CharPredicate.TYPE, nonMatchingCharHandler);
+
+		if (name == null) {
+			return null;
+		}
 
 		int nestingLevel = 0;
 
-		while (advanceIfHasNext('[') && advanceIfHasNext(']')) {
-			nestingLevel++;
+		for (; advanceIfHasNext('['); nestingLevel++) {
+			if (!advanceIfHasNext(']')) {
+				buffer('[');
+				break;
+			}
+		}
+
+		String[] parts = name.split("\\.");
+
+		for (int i = 0, size = parts.length; i < size; i++) {
+			String part = parts[i];
+
+			if (Keywords.isKeyword(part)) {
+				int cutIndex = i;
+
+				if (i == 0) {
+					if (!Keywords.isPrimitive(part)) {
+						return nonMatchingNameHandler.apply(name);
+					}
+
+					cutIndex += 1;
+				}
+
+				name = Arrays.stream(parts, 0, cutIndex).collect(Collectors.joining("."));
+				buffer(Arrays.stream(parts, cutIndex, parts.length).map(str -> '.' + str).collect(Collectors.joining()));
+
+				break;
+			}
 		}
 
 		Type type = switch (name) {
-			case BYTE -> PrimitiveType.BYTE;
-			case SHORT -> PrimitiveType.SHORT;
-			case CHAR -> PrimitiveType.CHAR;
-			case INT -> PrimitiveType.INT;
-			case LONG -> PrimitiveType.LONG;
-			case FLOAT -> PrimitiveType.FLOAT;
-			case DOUBLE -> PrimitiveType.DOUBLE;
+			case BYTE    -> PrimitiveType.BYTE;
+			case SHORT   -> PrimitiveType.SHORT;
+			case CHAR    -> PrimitiveType.CHAR;
+			case INT     -> PrimitiveType.INT;
+			case LONG    -> PrimitiveType.LONG;
+			case FLOAT   -> PrimitiveType.FLOAT;
+			case DOUBLE  -> PrimitiveType.DOUBLE;
 			case BOOLEAN -> PrimitiveType.BOOLEAN;
-			case VOID -> PrimitiveType.VOID;
-			default -> {
-				if (Keywords.isKeyword(name)) {
-					throw ParseException.expectedButGot("type", name);
-				}
-
-				yield ClassType.fromDescriptor(name.replace('.', '/'));
-			}
+			case VOID    -> PrimitiveType.VOID;
+			default      -> ClassType.fromDescriptor(name.replace('.', '/'));
 		};
 
 		return nestingLevel == 0 ? type : type.arrayTypeAsType(nestingLevel);
@@ -298,6 +373,9 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 
+	/**
+	 * @return Следующий тип, который может быть параметризован
+	 */
 	public Type nextParametrizedType() {
 		Type type = nextType();
 
@@ -312,10 +390,16 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return type;
 	}
 
+	/**
+	 * @return Следующий ссылочный тип, который может быть параметризован
+	 */
 	public RealReferenceType nextParametrizedReferenceType() {
 		return castOrThrowParseException(nextParametrizedType(), RealReferenceType.class);
 	}
 
+	/**
+	 * @return Следующий тип, представляющий параметр дженерика
+	 */
 	public ReferenceType nextParameterType() {
 		if (advanceIfHasNext('?')) {
 			if (advanceIfHasNext(EXTENDS)) {
@@ -332,6 +416,9 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return nextParametrizedReferenceType();
 	}
 
+	/**
+	 * @return Следующий тип, представляющий объявление дженерика
+	 */
 	public GenericDeclarationType nextGenericDeclarationType() {
 		String name = nextString(CharPredicate.GENERIC_DECLARATION_TYPE, NonMatchingCharHandler.throwingParseException("generic type name"));
 
@@ -356,6 +443,10 @@ public class AssemblingInputStream extends UncheckedInputStream {
 	}
 
 
+	/**
+	 * @return Следующий список аргументов метода.
+	 * Каждый аргумент запрашивается у переданной функции
+	 */
 	public <T extends Type> Stream<T> nextMethodArguments(Supplier<? extends T> nextTypeFunction) {
 		if (requireNext('(').advanceIfHasNext(')')) {
 			return Stream.empty();
@@ -366,12 +457,28 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return stream;
 	}
 
+	/**
+	 * @return Следующий список аргументов метода
+	 */
 	public Stream<Type> nextMethodArguments() {
 		return nextMethodArguments(this::nextType);
 	}
 
+	/**
+	 * @return Следующий список аргументов метода, которые могут быть параметризованы
+	 */
 	public Stream<Type> nextParametrizedMethodArguments() {
 		return nextMethodArguments(this::nextParametrizedType);
+	}
+
+
+	/**
+	 * @return Следующий дескриптор метода, включающий в себя возвращаемый тип и аргументы
+	 */
+	private String nextMethodDescriptor() {
+		Type returnType = nextType();
+		return nextMethodArguments().map(Type::getEncodedName)
+				.collect(Collectors.joining("", "(", ")")) + returnType.getEncodedName();
 	}
 
 
@@ -509,6 +616,40 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return nextString(CharPredicate.INTEGRAL_NUMBER, NonMatchingCharHandler.throwingParseException(expected));
 	}
 
+	/**
+	 * @return Индекс следующей константы в переданном пуле констант.
+	 * Константа может быть Integer, Long, Float, Double или String
+	 */
+	public int nextLiteralConstant(ConstantPool pool) {
+		String str = tryReadStringLiteral();
+
+		if (str != null) {
+			return pool.findOrAddString(str);
+		}
+
+		int ch = tryReadCharLiteral();
+
+		if (ch != EOF_CHAR) {
+			return pool.findOrAddInteger(ch);
+		}
+
+		if (advanceIfHasNext(TRUE)) {
+			return pool.findOrAddInteger(1);
+		}
+
+		if (advanceIfHasNext(FALSE)) {
+			return pool.findOrAddInteger(0);
+		}
+
+		return pool.findOrAddNumber(parseNumber(nextString(
+				CharPredicate.ANY_NUMBER,
+				NonMatchingCharHandler.throwingParseException("constant")
+		)));
+	}
+
+	/**
+	 * @return Индекс следующей константы в переданном пуле констант
+	 */
 	public int nextConstant(ConstantPool pool) {
 		String str = tryReadStringLiteral();
 
@@ -516,14 +657,109 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			return pool.findOrAddString(str);
 		}
 
-//		if(Character.isDigit(preview())) {
+		int ch = tryReadCharLiteral();
+
+		if (ch != EOF_CHAR) {
+			return pool.findOrAddInteger(ch);
+		}
+
+		if (advanceIfHasNext(TRUE)) {
+			return pool.findOrAddInteger(1);
+		}
+
+		if (advanceIfHasNext(FALSE)) {
+			return pool.findOrAddInteger(0);
+		}
+
+		if (advanceIfHasNext('#')) {
+			String constantName = nextName();
+
+			requireNext('(');
+
+			int index = switch (constantName) {
+				case Constant.UTF8    -> pool.findOrAddUtf8(nextStringLiteral());
+				case Constant.INTEGER -> pool.findOrAddInteger(nextInt());
+				case Constant.FLOAT   -> pool.findOrAddFloat(nextFloat());
+				case Constant.LONG    -> pool.findOrAddLong(nextLong());
+				case Constant.DOUBLE  -> pool.findOrAddDouble(nextDouble());
+				case Constant.CLASS   -> pool.classIndexFor(nextClassType());
+				case Constant.STRING  -> pool.findOrAddString(nextStringLiteral());
+
+				case Constant.FIELDREF            -> nextFieldref(pool);
+				case Constant.METHODREF           -> nextMethodref(pool);
+				case Constant.INTERFACE_METHODREF -> nextInterfaceMethodref(pool);
+
+				case Constant.NAME_AND_TYPE ->
+					pool.findOrAddNameAndType(
+							pool.findOrAddUtf8(nextStringLiteral()),
+							pool.findOrAddUtf8(requireNext(',').nextStringLiteral())
+					);
+
+				case Constant.METHOD_HANDLE ->
+					pool.findOrAddMethodHandle(
+							ReferenceKind.byName(nextName()),
+							requireNext(',').nextReferenceConstant(pool)
+					);
+
+				case Constant.METHOD_TYPE ->
+					pool.findOrAddMethodType(
+							pool.findOrAddUtf8(nextMethodDescriptor())
+					);
+
+				case Constant.INVOKE_DYNAMIC ->
+					pool.findOrAddInvokeDynamic(
+							nextUnsignedInt(),
+							requireNext(',').nextNameAndTypeConstant(pool)
+					);
+
+				case Constant.MODULE -> pool.findOrAddModule(nextStringLiteral());
+				case Constant.PACKAGE -> pool.findOrAddPackage(nextStringLiteral());
+
+				default -> throw new ParseException("Illegal constant name \"" + constantName + "\"");
+			};
+
+			requireNext(')');
+			return index;
+		}
+
 		return pool.findOrAddNumber(parseNumber(nextString(
 				CharPredicate.ANY_NUMBER,
 				NonMatchingCharHandler.throwingParseException("constant")
 		)));
-//		}
 	}
 
+	/**
+	 * @return Индекс следующей константы в переданном пуле констант
+	 * @throws ParseException если тип константы не соответствует переданному типу
+	 */
+	public int nextConstant(ConstantPool pool, Class<? extends Constant> constType) {
+		int index = nextConstant(pool);
+
+		Constant constant = pool.get(index);
+
+		if (constType.isInstance(constant)) {
+			return index;
+		}
+
+		throw ParseException.expectedButGot(
+				constType.getSimpleName(),
+				constant.getClass().getSimpleName(),
+				""
+		);
+	}
+
+	public int nextReferenceConstant(ConstantPool pool) {
+		return nextConstant(pool, ReferenceConstant.class);
+	}
+
+	public int nextNameAndTypeConstant(ConstantPool pool) {
+		return nextConstant(pool, NameAndTypeConstant.class);
+	}
+
+	/**
+	 * @return Следующую {@link x590.yava.constpool.FieldrefConstant},
+	 * описанную дескриптором поля
+	 */
 	public int nextFieldref(ConstantPool pool) {
 		Type type = nextType();
 
@@ -538,12 +774,28 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		);
 	}
 
+	/**
+	 * @return Следующую {@link x590.yava.constpool.MethodrefConstant},
+	 * описанную дескриптором метода
+	 */
 	public int nextMethodref(ConstantPool pool) {
+		return nextMethodref(pool, pool::findOrAddMethodref);
+	}
+
+	/**
+	 * @return Следующую {@link x590.yava.constpool.InterfaceMethodrefConstant},
+	 * описанную дескриптором метода
+	 */
+	public int nextInterfaceMethodref(ConstantPool pool) {
+		return nextMethodref(pool, pool::findOrAddInterfaceMethodref);
+	}
+
+	private int nextMethodref(ConstantPool pool, IntBinaryOperator methodrefGetter) {
 		Type returnType = nextType();
 
 		var classAndName = nextClassAndName();
 
-		return pool.findOrAddMethodref(
+		return methodrefGetter.applyAsInt(
 				pool.findOrAddClass(pool.findOrAddUtf8(classAndName.first())),
 				pool.findOrAddNameAndType(
 						pool.findOrAddUtf8(classAndName.second()),
@@ -554,8 +806,12 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		);
 	}
 
-	private Pair<String, String> nextClassAndName() {
-		String str = nextString(CharPredicate.TYPE, NonMatchingCharHandler.throwingParseException("method"));
+	/**
+	 * @return Следующий класс и имя поля или метода.
+	 * Имя класса в формате "java/lang/Object"
+	 */
+	public Pair<String, String> nextClassAndName() {
+		String str = nextString(CharPredicate.TYPE, NonMatchingCharHandler.throwingParseException("class and name"));
 
 		String className, name;
 
@@ -566,7 +822,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			int pointIndex = str.lastIndexOf('.');
 
 			if (pointIndex == -1) {
-				throw ParseException.expectedButGot("method", str);
+				throw ParseException.expectedButGot("class and name", str);
 			}
 
 			className = str.substring(0, pointIndex);
@@ -576,33 +832,119 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		return Pair.of(className.replace('.', '/'), name);
 	}
 
-	private @Nullable String tryReadStringLiteral() {
+	/**
+	 * @return Следующую строку, если она есть, иначе {@code null}
+	 */
+	public @Nullable String tryReadStringLiteral() {
 		if (advanceIfHasNext('"')) {
 			StringBuilder value = new StringBuilder();
 
 			for (int ch = read(); ; value.append((char)ch), ch = read()) {
-				if (ch == '\\') {
-					int escaped = read();
-
-					ch = switch (escaped) {
-						case '"' -> '"';
-						case '\'' -> '\'';
-						case '\\' -> '\\';
-						case 'n' -> '\n';
-						case 'r' -> '\r';
-						case 'f' -> '\f';
-						default -> throw new ParseException("invalid char escaping \"\\" + escaped + "\"");
-					};
-
-				} else if (ch == '"') {
-					break;
+				if (ch == '"') {
+					return value.toString();
+				} else {
+					ch = nextLiteralChar(ch);
 				}
 			}
-
-			return value.toString();
 		}
 
 		return null;
+	}
+
+	/**
+	 * @return Следующий литерал символа, если он есть, иначе {@link #EOF_CHAR}
+	 */
+	public int tryReadCharLiteral() {
+		if (advanceIfHasNext('\'')) {
+			int ch = nextLiteralChar(read());
+			require('\'');
+			return ch;
+		}
+
+		return EOF_CHAR;
+	}
+
+	private int nextLiteralChar(int ch) {
+		if (ch != '\\') {
+			if (ch == '\n') {
+				throw new ParseException("Literal is not closed before end of line");
+			}
+
+			return ch;
+		}
+
+		int escaped = read();
+
+		return switch (escaped) {
+			case '"', '\'', '\\' -> escaped;
+			case 'n' -> '\n';
+			case 'r' -> '\r';
+			case 'f' -> '\f';
+			case 'u' -> readHexDigit() << 24 | readHexDigit() << 16 | readHexDigit() << 8 | readHexDigit();
+
+			default -> {
+				int readChars = 0;
+				int code = 0;
+
+				for (int digit = escaped; readChars < 3; readChars++, digit = read()) {
+
+					if (digit >= '0' && digit <= '7') {
+						code = (code << 3) | (digit - '0');
+
+						if (code > 0xFF) {
+							code >>= 3;
+							buffer(digit);
+							break;
+						}
+
+					} else {
+						buffer(digit);
+						break;
+					}
+				}
+
+				if (readChars > 0) {
+					yield code;
+				}
+
+				throw new ParseException("invalid char escaping \"\\" + (char) escaped + "\"");
+			}
+
+			case EOF_CHAR -> throw ParseException.expectedButGotEof("char");
+		};
+	}
+
+	private int readHexDigit() {
+		int ch = read();
+
+		if (ch == EOF_CHAR) {
+			throw ParseException.expectedButGotEof("hex digit");
+		}
+
+		if (ch >= '0' && ch <= '9') {
+			return ch - '0';
+		}
+
+		if (ch >= 'a' && ch <= 'f') {
+			return ch - 'a';
+		}
+
+		if (ch >= 'A' && ch <= 'F') {
+			return ch - 'A';
+		}
+
+		throw ParseException.expectedButGot("hex digit", String.valueOf((char) ch));
+	}
+
+
+	public String nextStringLiteral() {
+		String literal = tryReadStringLiteral();
+
+		if (literal != null) {
+			return literal;
+		}
+
+		throw ParseException.expectedButGot("string literal", previewString());
 	}
 
 	public Number nextNumber() {
@@ -619,7 +961,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 			int start = firstChar == '-' || firstChar == '+' ? 1 : 0;
 
 			int length = str.length();
-			int factualLength = length - start;
+			int factualLength = (int) str.chars().skip(start).takeWhile(Character::isDigit).count();
 
 
 			int radix =
@@ -686,7 +1028,7 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		int ch = next();
 
 		if (ch == EOF_CHAR) {
-			return handler.getEof();
+			return handler.handleEof();
 		}
 
 		if (!predicate.isStartChar(ch)) {
@@ -740,12 +1082,22 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		}
 	}
 
+	public AssemblingInputStream require(char expected) {
+		return require(expected, read());
+	}
+
+	/**
+	 * @throws ParseException если достигнут конец файла или следующий символ не совпадает с требуемым
+	 */
 	public AssemblingInputStream requireNext(char expected) {
-		int ch = next();
-		if (ch != expected) {
-			throw ch == EOF_CHAR ?
-					newUncheckedEOFException() :
-					ParseException.expectedButGot(expected, (char)ch);
+		return require(expected, next());
+	}
+
+	private AssemblingInputStream require(char expected, int actual) {
+		if (actual != expected) {
+			throw actual == EOF_CHAR ?
+					ParseException.expectedButGotEof(expected) :
+					ParseException.expectedButGot(expected, (char)actual);
 		}
 
 		return this;
@@ -759,8 +1111,8 @@ public class AssemblingInputStream extends UncheckedInputStream {
 		String str = nextString();
 		if (!str.equals(expected)) {
 			throw str.isEmpty() ?
-					newUncheckedEOFException() :
-					ParseException.expectedButGot(expected, str);
+					ParseException.expectedButGotEof(expected, "\"") :
+					ParseException.expectedButGot(expected, str, "\"", "\"");
 		}
 
 		return this;

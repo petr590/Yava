@@ -14,7 +14,7 @@ import static x590.yava.modifiers.Modifiers.*;
 
 public final class JavaEnumField extends JavaField {
 
-	protected JavaEnumField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
+	JavaEnumField(ExtendedDataInputStream in, ClassInfo classinfo, ConstantPool pool, FieldModifiers modifiers) {
 		super(in, classinfo, pool, modifiers);
 
 		if (classinfo.getModifiers().isNotEnum()) {
@@ -27,7 +27,7 @@ public final class JavaEnumField extends JavaField {
 	}
 
 
-	public void checkHasEnumInitializer(ClassInfo classinfo) {
+	public void checkHasEnumInitializer() {
 		if (!(getInitializer() instanceof InvokeOperation)) {
 			throw new DecompilationException("Enum constant " + getDescriptor() + " must have enum initializer." +
 					" Got: " + getInitializer());
@@ -61,7 +61,7 @@ public final class JavaEnumField extends JavaField {
 		}
 	}
 
-	public void writeIndent(StringifyOutputStream out, ClassInfo classinfo, JavaEnumField nextField) {
+	public void writeIndent(StringifyOutputStream out, JavaEnumField nextField) {
 		if (hasArgumentsInEnumInitializer() || nextField.hasArgumentsInEnumInitializer())
 			out.println(',').printIndent();
 		else

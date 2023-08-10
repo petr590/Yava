@@ -43,7 +43,7 @@ public final class NameAndTypeConstant extends Constant {
 
 	@Override
 	public String getConstantName() {
-		return "NameAndType";
+		return NAME_AND_TYPE;
 	}
 
 	@Override

@@ -1,15 +1,8 @@
 package x590.yava.constpool;
 
-import it.unimi.dsi.fastutil.doubles.Double2ObjectArrayMap;
-import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
-import it.unimi.dsi.fastutil.floats.Float2ObjectArrayMap;
-import it.unimi.dsi.fastutil.floats.Float2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import x590.util.annotation.Nullable;
 import x590.yava.constpool.constvalue.*;
+import x590.yava.constpool.MethodHandleConstant.ReferenceKind;
 import x590.yava.exception.decompilation.IllegalConstantException;
 import x590.yava.serializable.JavaSerializable;
 import x590.yava.exception.decompilation.NoSuchConstantException;
@@ -164,6 +157,12 @@ public final class ConstantPool implements JavaSerializable {
 		);
 	}
 
+	public int findOrAddNumber(Number number) {
+		return findOrAdd(
+				constant -> constant instanceof ConstableValueConstant<?> constableValueConstant && constableValueConstant.getValueAsObject().equals(number),
+				() -> findOrCreateConstant(number));
+	}
+
 	public int findOrAddUtf8(String value) {
 		return findOrAdd(
 				constant -> constant instanceof Utf8Constant utf8 && utf8.getString().equals(value),
@@ -224,10 +223,53 @@ public final class ConstantPool implements JavaSerializable {
 		);
 	}
 
-	public int findOrAddNumber(Number number) {
+	public int findOrAddMethodType(int descriptorIndex) {
 		return findOrAdd(
-				constant -> constant instanceof ConstableValueConstant<?> constableValueConstant && constableValueConstant.getValueAsObject().equals(number),
-				() -> findOrCreateConstant(number));
+				constant -> constant instanceof MethodTypeConstant methodType &&
+						methodType.getDescriptorIndex() == descriptorIndex,
+				() -> new MethodTypeConstant(descriptorIndex, this)
+		);
+	}
+
+	public int findOrAddMethodHandle(ReferenceKind referenceKind, int referenceIndex) {
+		return findOrAdd(
+				constant -> constant instanceof MethodHandleConstant methodHandle &&
+						methodHandle.getReferenceKind() == referenceKind &&
+						methodHandle.getReferenceIndex() == referenceIndex,
+				() -> new MethodHandleConstant(referenceKind, referenceIndex, this)
+		);
+	}
+
+	public int findOrAddInvokeDynamic(int bootstrapMethodIndex, int nameAndTypeIndex) {
+		return findOrAdd(
+				constant -> constant instanceof InvokeDynamicConstant invokeDynamic &&
+						invokeDynamic.getBootstrapMethodIndex() == bootstrapMethodIndex &&
+						invokeDynamic.getNameAndTypeIndex() == nameAndTypeIndex,
+				() -> new InvokeDynamicConstant(bootstrapMethodIndex, nameAndTypeIndex, this)
+		);
+	}
+
+	public int findOrAddModule(String name) {
+		return findOrAdd(
+				constant -> constant instanceof ModuleConstant module &&
+						module.getString().equals(name),
+				() -> new ModuleConstant(findOrAddUtf8(name), this)
+		);
+	}
+
+	public int findOrAddPackage(String name) {
+		return findOrAdd(
+				constant -> constant instanceof PackageConstant packageConstant &&
+						packageConstant.getString().equals(name),
+				() -> new PackageConstant(findOrAddUtf8(name), this)
+		);
+	}
+
+	public int findOrAddConstant(Constant constant) {
+		return findOrAdd(
+				constant::equals,
+				() -> constant
+		);
 	}
 
 	public static IntegerConstant findOrCreateConstant(int value) {

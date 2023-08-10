@@ -72,7 +72,7 @@ public final class Utf8Constant extends Constant {
 
 	@Override
 	public String getConstantName() {
-		return "Utf8";
+		return UTF8;
 	}
 
 	@Override

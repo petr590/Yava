@@ -29,6 +29,6 @@ public class LConstInstruction extends ConstInstruction<LongConstant> {
 
 		out .print("lconst")
 			.print(value == 0 || value == 1 ? '_' : ' ')
-			.printLong(value);
+			.print(Long.toString(value));
 	}
 }

@@ -6,39 +6,46 @@ import x590.yava.io.ExtendedStringInputStream;
 import x590.yava.type.reference.ReferenceType;
 
 /**
- * Дженерик, ограниченный сверху или снизу
+ * Wildcard-дженерик, ограниченный сверху или снизу
  */
-public abstract class BoundedGenericType extends IndefiniteGenericType {
+public abstract sealed class BoundedGenericType extends IndefiniteGenericType
+		permits ExtendingGenericType, SuperGenericType {
 
-	private final ReferenceType type;
+	private final ReferenceType bound;
 	private final String encodedName, name;
 
-	public BoundedGenericType(ReferenceType type) {
-		this.type = type;
-		this.name = encodedBound() + type.getName();
-		this.encodedName = "? " + bound() + type.getEncodedName();
+	public BoundedGenericType(ReferenceType bound) {
+		this.bound = bound;
+		this.name = encodedBound() + bound.getName();
+		this.encodedName = "? " + bound() + bound.getEncodedName();
 	}
 
 	public BoundedGenericType(ExtendedStringInputStream in) {
 		this(parseSignatureParameter(in));
 	}
 
-	public ReferenceType getType() {
-		return type;
+	public ReferenceType getBound() {
+		return bound;
 	}
 
+	/**
+	 * @return {@code "+"} или {@code "-"}, в зависимости от типа
+	 */
 	protected abstract String encodedBound();
 
+	/**
+	 * @return {@code "extends"} или {@code "super"}, в зависимости от типа
+	 */
 	protected abstract String bound();
 
 	@Override
 	public void addImports(ClassInfo classinfo) {
-		type.addImports(classinfo);
+		bound.addImports(classinfo);
 	}
 
 	@Override
 	public void writeTo(ExtendedOutputStream<?> out, ClassInfo classinfo) {
-		out.printsp('?').printsp(bound()).printObject(type, classinfo);
+		out.printsp('?').printsp(bound()).printObject(bound, classinfo);
 	}
 
 	@Override
@@ -53,6 +60,6 @@ public abstract class BoundedGenericType extends IndefiniteGenericType {
 
 	@Override
 	public String toString() {
-		return "? " + bound() + ' ' + getType().toString();
+		return "? " + bound() + ' ' + getBound().toString();
 	}
 }

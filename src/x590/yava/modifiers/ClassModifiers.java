@@ -107,7 +107,7 @@ public final class ClassModifiers extends ClassEntryModifiers {
 				throw new IllegalModifierException(duplicatedModifier(str));
 			}
 
-			if (!canMerge(modifiers, newModifiers)) {
+			if (cantMerge(modifiers, newModifiers)) {
 				throw new IllegalModifierException(conflictingModifier(str));
 			}
 
@@ -117,7 +117,9 @@ public final class ClassModifiers extends ClassEntryModifiers {
 
 		if (!classDefined) {
 			String str = in.nextString();
-			throw ParseException.expectedButGot("class definition", str.isEmpty() ? ParseException.END_OF_FILE : ParseException.Actual.of(str));
+			throw str.isEmpty() ?
+					ParseException.expectedButGotEof("class definition") :
+					ParseException.expectedButGot("class definition", str);
 		}
 
 		if ((modifiers & ACC_INTERFACE) == 0)
@@ -152,10 +154,6 @@ public final class ClassModifiers extends ClassEntryModifiers {
 	}
 
 
-	public boolean isNotAbstract() {
-		return (value & ACC_ABSTRACT) == 0;
-	}
-
 	public boolean isNotInterface() {
 		return (value & ACC_INTERFACE) == 0;
 	}
@@ -168,18 +166,10 @@ public final class ClassModifiers extends ClassEntryModifiers {
 		return (value & ACC_ENUM) == 0;
 	}
 
-	public boolean isNotModule() {
-		return (value & ACC_MODULE) == 0;
-	}
-
-	public boolean isNotStrictfp() {
-		return (value & ACC_STRICTFP) == 0;
-	}
-
 
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isAbstract() && isNotInterface(), "abstract")
 				.appendIf(isStrictfp(), "strictfp")
 				.appendIf(isInterface() && isNotAnnotation(), "interface")

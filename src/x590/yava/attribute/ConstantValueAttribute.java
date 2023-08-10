@@ -25,7 +25,7 @@ public final class ConstantValueAttribute extends Attribute {
 
 	ConstantValueAttribute(String name, AssemblingInputStream in, ConstantPool pool) {
 		super(name, 2);
-		this.valueIndex = in.requireNext(':').nextConstant(pool);
+		this.valueIndex = in.requireNext(':').nextLiteralConstant(pool);
 		this.value = pool.get(valueIndex);
 		in.requireNext(';');
 	}

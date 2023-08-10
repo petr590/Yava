@@ -59,7 +59,7 @@ public final class StringConstant extends SingleConstableValueConstant<String> {
 
 	@Override
 	public String getConstantName() {
-		return "String";
+		return STRING;
 	}
 
 	@Override

@@ -29,19 +29,15 @@ public class ModuleEntryModifiers extends Modifiers implements StringifyWritable
 		return (value & ACC_MANDATED) != 0;
 	}
 
-	public boolean isNotMandated() {
-		return (value & ACC_MANDATED) == 0;
-	}
-
 
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
-				.appendIf(!forWriting && isMandated(), "mandated");
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
+				.appendIf(writeHiddenModifiers && isMandated(), "mandated");
 	}
 
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
-		out.print(toStringBuilder(true), classinfo);
+		out.print(toStringBuilder(false, false), classinfo);
 	}
 }

@@ -3,6 +3,7 @@ package x590.yava.constpool;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.constpool.constvalue.ConstValueConstant;
 import x590.yava.exception.disassembling.DisassemblingException;
+import x590.yava.io.DisassemblingOutputStream;
 import x590.yava.io.ExtendedDataInputStream;
 import x590.yava.io.AssemblingOutputStream;
 import x590.yava.io.StringifyOutputStream;
@@ -56,6 +57,16 @@ public final class MethodHandleConstant extends ConstValueConstant {
 			throw new DisassemblingException("Invalid referenceKind: " + index);
 		}
 
+		public static ReferenceKind byName(String name) {
+			for (ReferenceKind referenceKind : VALUES) {
+				if (referenceKind.name.equals(name)) {
+					return referenceKind;
+				}
+			}
+
+			throw new IllegalArgumentException(name);
+		}
+
 		@Override
 		public String toString() {
 			return name;
@@ -71,6 +82,12 @@ public final class MethodHandleConstant extends ConstValueConstant {
 		referenceIndex = in.readUnsignedShort();
 	}
 
+	MethodHandleConstant(ReferenceKind referenceKind, int referenceIndex, ConstantPool pool) {
+		this.referenceKind = referenceKind;
+		this.referenceIndex = referenceIndex;
+		init(pool);
+	}
+
 	@Override
 	protected void init(ConstantPool pool) {
 		reference = pool.get(referenceIndex);
@@ -78,6 +95,10 @@ public final class MethodHandleConstant extends ConstValueConstant {
 
 	public ReferenceKind getReferenceKind() {
 		return referenceKind;
+	}
+
+	public int getReferenceIndex() {
+		return referenceIndex;
 	}
 
 	public ReferenceConstant getReferenceConstant() {
@@ -105,7 +126,7 @@ public final class MethodHandleConstant extends ConstValueConstant {
 
 	@Override
 	public String getConstantName() {
-		return "MethodHandle";
+		return METHOD_HANDLE;
 	}
 
 	@Override
@@ -121,6 +142,15 @@ public final class MethodHandleConstant extends ConstValueConstant {
 	@Override
 	public void writeTo(StringifyOutputStream out, ClassInfo classinfo) {
 		out.print("#MethodHandle#");
+	}
+
+	@Override
+	public void writeDisassembled(DisassemblingOutputStream out, ClassInfo classinfo, Type type, int flags) {
+		out .print("#MethodHandle(")
+			.print(referenceKind.toString())
+			.print(", ")
+			.print(reference, classinfo)
+			.print(')');
 	}
 
 	@Override

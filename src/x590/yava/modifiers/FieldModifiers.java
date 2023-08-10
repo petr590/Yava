@@ -38,7 +38,9 @@ public final class FieldModifiers extends ClassEntryModifiers {
 					case ENUM -> ACC_ENUM;
 
 					default -> -1;
-				}));
+				},
+
+				str -> -1));
 	}
 
 
@@ -55,24 +57,11 @@ public final class FieldModifiers extends ClassEntryModifiers {
 	}
 
 
-	public boolean isNotVolatile() {
-		return (value & ACC_VOLATILE) == 0;
-	}
-
-	public boolean isNotTransient() {
-		return (value & ACC_TRANSIENT) == 0;
-	}
-
-	public boolean isNotEnum() {
-		return (value & ACC_ENUM) == 0;
-	}
-
-
 	@Override
-	public IWhitespaceStringBuilder toStringBuilder(boolean forWriting) {
-		return super.toStringBuilder(forWriting)
+	public IWhitespaceStringBuilder toStringBuilder(boolean writeHiddenModifiers, boolean disassembling) {
+		return super.toStringBuilder(writeHiddenModifiers, disassembling)
 				.appendIf(isVolatile(), "volatile")
 				.appendIf(isTransient(), "transient")
-				.appendIf(!forWriting && isEnum(), "enum");
+				.appendIf(writeHiddenModifiers && isEnum(), "enum");
 	}
 }

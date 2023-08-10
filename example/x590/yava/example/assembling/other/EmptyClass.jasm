@@ -1,0 +1,225 @@
+public class x590.yava.other.assembling.x590.yava.example.EmptyClass extends java.lang.Object {
+	version = 63.0;
+	
+	fields {
+		public static final int FIELD {
+			ConstantValue: 0xFF;
+		}
+		
+		public static int otherField;
+	}
+
+	methods {
+		public void "<init>"() {
+			Code {
+				maxStackSize = 2;
+				maxLocalsCount = 1;
+				
+				aload_0
+				invokespecial void java.lang.Object."<init>"()
+				
+				return
+				
+				attributes {
+					LineNumberTable {
+						line 7: 0
+					}
+
+					LocalVariableTable {
+//						Start  End  Slot   Name   Type
+//						    0    5     0   this   x590.yava.other.assembling.x590.yava.example.EmptyClass
+					}
+				}
+			}
+		}
+
+		public static void main(java.lang.String[]) {
+			Code {
+				maxStackSize = 3;
+				maxLocalsCount = 2;
+				
+				getstatic java.io.PrintStream java.lang.System.out
+				new x590.yava.other.assembling.x590.yava.example.EmptyClass
+				dup
+				invokespecial void x590.yava.other.assembling.x590.yava.example.EmptyClass."<init>"()
+				invokevirtual void java.io.PrintStream.println(java.lang.Object)
+				
+				invokestatic void x590.yava.other.assembling.x590.yava.example.EmptyClass.foo()
+				invokestatic void x590.yava.other.assembling.x590.yava.example.EmptyClass.bar()
+//				invokestatic void x590.yava.other.assembling.x590.yava.example.EmptyClass.baz()
+				
+				return
+			}
+			
+			Exceptions {
+				java.lang.CloneNotSupportedException
+			}
+		}
+		
+		private void foo2() {
+			Code {
+				maxStackSize = 2;
+				maxLocalsCount = 3;
+				
+			S1:	getstatic       java.io.PrintStream java.lang.System.out
+				ldc             "U"
+				invokevirtual   void java.io.PrintStream.println(java.lang.String)
+			E1:
+				getstatic       java.io.PrintStream java.lang.System.out
+				ldc             "X"
+				invokevirtual   void java.io.PrintStream.println(java.lang.String)
+				goto            R
+			C1:S2:
+				astore_1
+				aload_1
+				invokevirtual   void java.lang.NullPointerException.printStackTrace()
+			E2:
+				getstatic       java.io.PrintStream java.lang.System.out
+				ldc             "X"
+				invokevirtual   void java.io.PrintStream.println(java.lang.String)
+				goto            R
+			C2:
+				astore_2
+				getstatic       java.io.PrintStream java.lang.System.out
+				ldc             "X"
+				invokevirtual   void java.io.PrintStream.println(java.lang.String)
+				aload_2
+				athrow
+				
+			R:	return
+			
+				ExceptionTable {
+//				  from    to  target type
+					S1    E1    C1   java.lang.NullPointerException
+					S1    E1    C2   null
+					S2    E2    C2   null
+				}
+
+				attributes {
+					LineNumberTable {
+						line 5: 0
+						line 9: 8
+						line 10: 16
+						line 6: 19
+						line 7: 20
+						line 9: 24
+						line 10: 32
+						line 9: 35
+						line 10: 44
+						line 11: 46
+					}
+				}
+			}
+		}
+		
+		private static void foo() {
+			Code {
+				maxStackSize = 5;
+				maxLocalsCount = 1;
+				
+				iconst_3
+				newarray long
+				
+				dup
+				iconst_0
+				lconst_1
+				lastore
+				
+				dup
+				iconst_1
+				ldc2_w 2l
+				lastore
+				
+				dup
+				iconst_2
+				ldc2_w 3l
+				lastore
+				
+				astore_0
+				
+				getstatic java.io.PrintStream java.lang.System.out
+				aload_0
+				invokestatic java.lang.String java.util.Arrays.toString(long[])
+				invokevirtual void java.io.PrintStream.println(java.lang.String)
+				
+				return
+			}
+		}
+		
+		private static void bar() {
+			Code {
+				maxStackSize = 7;
+				maxLocalsCount = 1;
+				
+//				iconst 7
+//				multianewarray java.lang.String[][] 1
+//				
+//				dup      // arrayref, arrayref
+//				dup      // arrayref, arrayref, arrayref
+//				iconst_0 // arrayref, arrayref, arrayref, index0
+//				swap     // arrayref, arrayref, index0, arrayref
+//				
+//				iconst_0 // +size
+//				anewarray java.lang.String // arrayref, arrayref, index0, arrayref, value
+//				swap     // arrayref, arrayref, index0, value, arrayref
+//				dup2     // arrayref, arrayref, index0, value, arrayref, value, arrayref
+//				pop      // arrayref, arrayref, index0, value, arrayref, value
+//				iconst_1 // arrayref, arrayref, index0, value, arrayref, value, index1
+//				swap     // arrayref, arrayref, index0, value, arrayref, index1, value
+//				
+//				aastore // arrayref, arrayref, index0, value
+//				aastore // arrayref
+//				
+//				astore_0
+				
+				iconst 7
+				multianewarray java.lang.String[][] 1
+				astore_0
+				
+				aload_0  // arrayref
+				iconst_0 // arrayref, index0
+				aload_0  // arrayref, index0, arrayref
+				iconst_1 // arrayref, index0, arrayref, index1
+				iconst_0 // arrayref, index0, arrayref, index1, size
+				anewarray java.lang.String // arrayref, index0, arrayref, index1, value
+				dup_x2   // arrayref, index0, value, arrayref, index1, value
+				aastore
+				aastore
+				
+				aload_0
+				iconst_0
+				aaload
+				iconst_0
+				aaload
+				pop
+				
+				
+				getstatic java.io.PrintStream java.lang.System.out
+				aload_0
+				invokestatic java.lang.String java.util.Arrays.deepToString(java.lang.Object[])
+				invokevirtual void java.io.PrintStream.println(java.lang.String)
+				
+				return
+			}
+		}
+		
+//		private static void baz() {
+//			Code {
+//				maxStackSize = 3;
+//				maxLocalsCount = 1;
+//				
+//				fconst_1
+//				fstore_0
+//				
+//				getstatic java.io.PrintStream java.lang.System.out
+//				fload_0
+//				fconst_2
+//				fcmpg
+//				invokevirtual void java.io.PrintStream.println(int)
+//				
+//				return
+//			}
+//		}
+	}
+}
+

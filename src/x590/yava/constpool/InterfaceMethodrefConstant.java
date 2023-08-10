@@ -14,6 +14,11 @@ public final class InterfaceMethodrefConstant extends MethodrefConstant {
 	}
 
 	@Override
+	public String getConstantName() {
+		return INTERFACE_METHODREF;
+	}
+
+	@Override
 	public void serialize(AssemblingOutputStream out) {
 		out .recordByte(TAG_INTERFACE_METHODREF)
 			.recordShort(getClassIndex())

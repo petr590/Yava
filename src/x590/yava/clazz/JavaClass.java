@@ -398,7 +398,7 @@ public final class JavaClass extends JavaClassElement implements JavaSerializabl
 		methods.forEach(method -> method.decompile(classinfo, stats));
 
 		if (enumConstants != null)
-			enumConstants.forEach(enumConstant -> enumConstant.checkHasEnumInitializer(classinfo));
+			enumConstants.forEach(JavaEnumField::checkHasEnumInitializer);
 
 
 		InnerClassesAttribute innerClassesAttribute = attributes.getNullable(AttributeType.INNER_CLASSES);
@@ -425,7 +425,7 @@ public final class JavaClass extends JavaClassElement implements JavaSerializabl
 
 	public void resolveImports() {
 		addImports(classinfo);
-		classinfo.uniqImports();
+		classinfo.uniqueImports();
 	}
 
 	@Override
@@ -725,7 +725,7 @@ public final class JavaClass extends JavaClassElement implements JavaSerializabl
 
 		LoopUtil.forEachPair(enumConstants,
 				enumConstant -> enumConstant.writeNameAndInitializer(out, classinfo),
-				(enumConstant1, enumConstant2) -> enumConstant1.writeIndent(out, classinfo, enumConstant2));
+				(enumConstant1, enumConstant2) -> enumConstant1.writeIndent(out, enumConstant2));
 	}
 
 
@@ -799,7 +799,8 @@ public final class JavaClass extends JavaClassElement implements JavaSerializabl
 			out .print(" implements ")
 				.printAll(interfaces, classinfo, ", ");
 
-		out.println(" {").increaseIndent();
+		out .println(" {").increaseIndent()
+			.printIndent().println(version, classinfo).println();
 
 		if (!fields.isEmpty()) {
 			out .printIndent().println("fields {").increaseIndent()

@@ -1,6 +1,7 @@
 package x590.yava;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import x590.util.Logger;
 import x590.util.annotation.Nullable;
 import x590.yava.clazz.ClassInfo;
 import x590.yava.field.FieldInfo;
@@ -18,7 +19,8 @@ import java.util.*;
 /**
  * Представляет общий шаблон для {@link FieldInfo} и {@link MethodInfo}
  */
-public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryModifiers> {
+public abstract sealed class MemberInfo<D extends Descriptor<D>, M extends ClassEntryModifiers>
+		permits FieldInfo, MethodInfo {
 
 	private final D descriptor, genericDescriptor;
 	private final M modifiers;
@@ -62,6 +64,9 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 	}
 
 
+	/**
+	 * @return Дженерик-дескриптор для поля или метода объекта типа {@code operationType}
+	 */
 	private D getDefiniteGenericDescriptor(ReferenceType operationType) {
 
 		// Список типов в порядке от самого широкого к самому узкому
@@ -69,10 +74,10 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 
 		if (findSuperTypes(operationType, descriptor.getDeclaringClass(), supertypes)) {
 
-			var foundClassinfo = ClassInfo.findIClassInfo(genericDescriptor.getDeclaringClass());
+			var widestClassinfo = ClassInfo.findIClassInfo(genericDescriptor.getDeclaringClass());
 
-			if (foundClassinfo.isPresent()) {
-				GenericParameters<GenericDeclarationType> srcParameters = foundClassinfo.get().getSignatureParameters();
+			if (widestClassinfo.isPresent()) {
+				GenericParameters<GenericDeclarationType> srcParameters = widestClassinfo.get().getSignatureParameters();
 				GenericParameters<? extends ReferenceType> parameters = srcParameters;
 
 				for (ReferenceType currType : supertypes) {
@@ -86,7 +91,17 @@ public abstract class MemberInfo<D extends Descriptor<D>, M extends ClassEntryMo
 				Map<GenericDeclarationType, ReferenceType> replaceTable = new HashMap<>(size);
 
 				for (int i = 0; i < size; i++) {
-					replaceTable.put(srcParameters.get(i), parameters.get(i));
+					Logger.debug(
+							srcParameters.get(i),
+							parameters.get(i)
+									.replaceIndefiniteGenericsToDefinite()
+									.replaceWildcardIndicatorsToBound(i, srcParameters)
+					);
+
+					replaceTable.put(
+							srcParameters.get(i),
+							parameters.get(i).replaceWildcardIndicatorsToBound(i, srcParameters)
+					);
 				}
 
 				return genericDescriptor.replaceAllTypes(replaceTable);

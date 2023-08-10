@@ -7,7 +7,8 @@ import x590.yava.type.reference.ReferenceType;
 import java.lang.reflect.WildcardType;
 import java.util.List;
 
-public abstract class IndefiniteGenericType extends GenericType {
+public abstract sealed class IndefiniteGenericType extends GenericType
+		permits AnyGenericType, BoundedGenericType, NamedGenericType {
 
 	public static ReferenceType fromWildcardType(WildcardType wildcardType) {
 		var upperBounds = wildcardType.getUpperBounds();

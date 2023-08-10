@@ -393,8 +393,8 @@ public final class ArrayType extends RealReferenceType implements IArrayType {
 	}
 
 	@Override
-	public ReferenceType replaceUndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
-		return replaceMemberType(memberType -> memberType.replaceUndefiniteGenericsToDefinite(classinfo, parameters));
+	public ReferenceType replaceIndefiniteGenericsToDefinite(IClassInfo classinfo, GenericParameters<GenericDeclarationType> parameters) {
+		return replaceMemberType(memberType -> memberType.replaceIndefiniteGenericsToDefinite(classinfo, parameters));
 	}
 
 	@Override
